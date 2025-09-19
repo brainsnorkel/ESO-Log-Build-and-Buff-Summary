@@ -171,8 +171,15 @@ class SingleReportAnalyzer:
                                         if gear_data['gear']:
                                             gear_sets = self.gear_parser.parse_player_gear(gear_data)
                                     
-                                    # Use display name if available, otherwise character name
-                                    final_name = display_name if display_name else name
+                                    # Use display name if available, otherwise character name with @
+                                    if display_name and display_name.startswith('@'):
+                                        final_name = display_name  # Already has @ symbol
+                                    elif display_name:
+                                        final_name = f"@{display_name}"  # Add @ to display name
+                                    elif name and not name.startswith('@'):
+                                        final_name = f"@{name}"  # Add @ to character name
+                                    else:
+                                        final_name = name or "@anonymous"  # Use as-is or fallback
                                     
                                     player = PlayerBuild(
                                         name=final_name,

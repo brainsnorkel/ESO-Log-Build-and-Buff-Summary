@@ -59,15 +59,15 @@ class ReportFormatter:
         
         # Format tanks
         for i, tank in enumerate(tanks, 1):
-            lines.append(f"Tank {i} @{tank.name}: {self._format_player_build_without_name(tank)}")
+            lines.append(f"Tank {i} {tank.name}: {self._format_player_build_without_name(tank)}")
         
         # Format healers
         for i, healer in enumerate(healers, 1):
-            lines.append(f"Healer {i} @{healer.name}: {self._format_player_build_without_name(healer)}")
+            lines.append(f"Healer {i} {healer.name}: {self._format_player_build_without_name(healer)}")
         
         # Format DPS
         for i, dps_player in enumerate(dps, 1):
-            lines.append(f"DPS {i} @{dps_player.name}: {self._format_player_build_without_name(dps_player)}")
+            lines.append(f"DPS {i} {dps_player.name}: {self._format_player_build_without_name(dps_player)}")
         
         # Add empty DPS slots if fewer than 8
         for i in range(len(dps) + 1, 9):

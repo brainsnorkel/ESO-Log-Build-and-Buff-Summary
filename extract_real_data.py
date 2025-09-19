@@ -113,8 +113,11 @@ async def extract_real_players():
                                 
                                 gear_sets = gear_parser.parse_player_gear(gear_data)
                             
-                            # Use display name if available
-                            final_name = display_name if display_name else name
+                                # Use display name if available, otherwise add @ to character name
+                                if display_name:
+                                    final_name = display_name  # Already has @ symbol
+                                else:
+                                    final_name = f"@{name}"  # Add @ to character name
                             
                             player = PlayerBuild(
                                 name=final_name,
