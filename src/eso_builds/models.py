@@ -56,6 +56,8 @@ class EncounterResult:
     encounter_name: str
     difficulty: Difficulty
     players: List[PlayerBuild] = field(default_factory=list)
+    kill: bool = False
+    boss_percentage: float = 0.0
     
     @property
     def tanks(self) -> List[PlayerBuild]:

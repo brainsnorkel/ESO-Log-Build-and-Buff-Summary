@@ -151,12 +151,10 @@ class MarkdownFormatter:
         if not gear_sets:
             return "*No gear data*"
         
-        # Format each set with markdown emphasis for perfected sets
+        # Format each set without perfected highlighting
         formatted_sets = []
         for gear_set in gear_sets:
             set_str = f"{gear_set.piece_count}pc {gear_set.name}"
-            if gear_set.is_perfected:
-                set_str = f"**{set_str}** *(Perfected)*"
             formatted_sets.append(set_str)
         
         return "<br>".join(formatted_sets)

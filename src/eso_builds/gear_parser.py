@@ -32,6 +32,7 @@ class GearParser:
         slot_info = defaultdict(list)  # Track which slots each set occupies
         
         # Count pieces for each set and track slots
+        # Use cleaned set name as key to merge perfected/non-perfected versions
         for item in gear_items:
             if not isinstance(item, dict):
                 continue
@@ -41,13 +42,16 @@ class GearParser:
             slot = item.get('slot', 'unknown')
             
             if set_id and set_name:
-                set_counts[set_id] += 1
-                slot_info[set_id].append(slot)
+                cleaned_name = self._clean_set_name(set_name)
                 
-                if set_id not in set_info:
-                    set_info[set_id] = {
-                        'name': self._clean_set_name(set_name),
-                        'is_perfected': self._is_perfected_set(set_name),
+                # Use cleaned name as key to merge perfected/non-perfected
+                set_counts[cleaned_name] += 1
+                slot_info[cleaned_name].append(slot)
+                
+                if cleaned_name not in set_info:
+                    set_info[cleaned_name] = {
+                        'name': cleaned_name,
+                        'is_perfected': False,  # Treat all sets the same
                         'original_name': set_name
                     }
         
@@ -66,12 +70,12 @@ class GearParser:
         """Create gear sets with validation for meaningful combinations."""
         gear_sets = []
         
-        for set_id, count in set_counts.items():
+        for set_name, count in set_counts.items():
             if count < 2:  # Skip single-piece sets
                 continue
                 
-            info = set_info[set_id]
-            slots = slot_info[set_id]
+            info = set_info[set_name]
+            slots = slot_info[set_name]
             
             # Validate the set makes sense (not just random pieces)
             if self._is_valid_set_combination(count, slots):

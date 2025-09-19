@@ -102,10 +102,16 @@ class SingleReportAnalyzer:
                 elif fight.difficulty == 122:
                     difficulty = Difficulty.VETERAN_HARD_MODE
                 
+                # Get kill status and boss percentage
+                kill_status = getattr(fight, 'kill', False)
+                boss_percentage = getattr(fight, 'percentage', 0.0)
+                
                 encounter = EncounterResult(
                     encounter_name=fight.name,
                     difficulty=difficulty,
-                    players=players
+                    players=players,
+                    kill=kill_status,
+                    boss_percentage=boss_percentage
                 )
                 
                 encounters.append(encounter)
