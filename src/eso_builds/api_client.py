@@ -122,31 +122,153 @@ class ESOLogsClient:
     
     async def get_top_rankings_for_trial(self, zone_id: int, limit: int = 5) -> List[Dict[str, Any]]:
         """Get top rankings for a specific trial."""
-        # This is a placeholder - we'll need to implement the actual ranking query
-        # based on the ESO Logs GraphQL schema
         logger.info(f"Getting top {limit} rankings for zone {zone_id}")
         
-        # TODO: Implement actual rankings query
-        # This will likely involve querying reports with filters for:
-        # - Zone ID
-        # - Recent time period (current update)
-        # - Sorted by score/performance
-        # - Limited to top N results
-        
-        raise NotImplementedError("Rankings query not yet implemented")
+        try:
+            # Get reports for this zone, sorted by performance
+            reports_response = await self._make_request(
+                "get_reports", 
+                zone_id=zone_id,
+                limit=limit * 2,  # Get more than we need in case some aren't suitable
+                page=1
+            )
+            
+            if not reports_response:
+                logger.warning(f"No reports found for zone {zone_id}")
+                return []
+            
+            rankings = []
+            rank = 1
+            
+            # Process reports to create rankings
+            for report_data in reports_response[:limit]:
+                if hasattr(report_data, 'code') and hasattr(report_data, 'fights'):
+                    # Calculate a simple score based on successful kills
+                    successful_fights = [f for f in report_data.fights if getattr(f, 'kill', False)]
+                    score = len(successful_fights) * 100.0  # Simple scoring for now
+                    
+                    ranking = {
+                        'rank': rank,
+                        'code': report_data.code,
+                        'url': f"https://www.esologs.com/reports/{report_data.code}",
+                        'score': score,
+                        'title': getattr(report_data, 'title', ''),
+                        'start_time': getattr(report_data, 'start_time', None),
+                        'guild_name': getattr(report_data.guild, 'name', '') if hasattr(report_data, 'guild') and report_data.guild else '',
+                        'fights': report_data.fights
+                    }
+                    rankings.append(ranking)
+                    rank += 1
+                    
+                    if len(rankings) >= limit:
+                        break
+            
+            logger.info(f"Found {len(rankings)} rankings for zone {zone_id}")
+            return rankings
+            
+        except Exception as e:
+            logger.error(f"Failed to get rankings for zone {zone_id}: {e}")
+            raise ESOLogsAPIError(f"Failed to get trial rankings: {e}")
     
     async def get_encounter_details(self, report_code: str) -> List[EncounterResult]:
         """Get detailed encounter information from a report."""
-        # This is a placeholder for extracting encounter details
         logger.info(f"Getting encounter details for report {report_code}")
         
-        # TODO: Implement encounter details extraction
-        # This will involve:
-        # - Getting report data
-        # - Extracting fights/encounters
-        # - Getting player information and gear for each encounter
+        try:
+            # Get the full report data
+            report = await self._make_request("get_report_by_code", code=report_code)
+            
+            if not report or not hasattr(report, 'fights'):
+                logger.warning(f"No fight data found for report {report_code}")
+                return []
+            
+            encounters = []
+            
+            for fight in report.fights:
+                if not getattr(fight, 'kill', False):
+                    continue  # Skip failed attempts
+                
+                # Determine difficulty
+                difficulty = Difficulty.NORMAL
+                if hasattr(fight, 'difficulty'):
+                    if fight.difficulty == 121:  # Veteran
+                        difficulty = Difficulty.VETERAN
+                    elif fight.difficulty == 122:  # Veteran Hard Mode
+                        difficulty = Difficulty.VETERAN_HARD_MODE
+                
+                encounter = EncounterResult(
+                    encounter_name=getattr(fight, 'name', 'Unknown'),
+                    difficulty=difficulty
+                )
+                
+                # Get player details for this fight
+                players = await self._get_fight_players(report_code, fight.id)
+                encounter.players = players
+                
+                encounters.append(encounter)
+                logger.debug(f"Processed encounter: {encounter.encounter_name} with {len(players)} players")
+            
+            logger.info(f"Extracted {len(encounters)} encounters from report {report_code}")
+            return encounters
+            
+        except Exception as e:
+            logger.error(f"Failed to get encounter details for {report_code}: {e}")
+            raise ESOLogsAPIError(f"Failed to extract encounter details: {e}")
+    
+    async def _get_fight_players(self, report_code: str, fight_id: int) -> List[PlayerBuild]:
+        """Get player builds for a specific fight."""
+        try:
+            # Get fight table data to see players
+            table_data = await self._make_request(
+                "get_report_table",
+                code=report_code,
+                fight_ids=[fight_id],
+                data_type="Summary",
+                hostility_type="Friendlies"
+            )
+            
+            players = []
+            
+            if table_data and hasattr(table_data, 'data') and hasattr(table_data.data, 'entries'):
+                for entry in table_data.data.entries:
+                    if hasattr(entry, 'name') and hasattr(entry, 'type'):
+                        # Determine role based on type/spec
+                        role = self._determine_role(entry)
+                        
+                        # Get class name
+                        character_class = getattr(entry, 'type', 'Unknown')
+                        
+                        player = PlayerBuild(
+                            name=entry.name,
+                            character_class=character_class,
+                            role=role,
+                            gear_sets=[]  # TODO: Implement gear extraction
+                        )
+                        players.append(player)
+            
+            logger.debug(f"Found {len(players)} players for fight {fight_id}")
+            return players
+            
+        except Exception as e:
+            logger.error(f"Failed to get players for fight {fight_id}: {e}")
+            return []
+    
+    def _determine_role(self, player_entry) -> Role:
+        """Determine player role from entry data."""
+        # This is a simplified role detection - in reality we'd need more sophisticated logic
+        if hasattr(player_entry, 'specs') and player_entry.specs:
+            for spec in player_entry.specs:
+                if hasattr(spec, 'role'):
+                    role_name = spec.role.lower()
+                    if 'tank' in role_name:
+                        return Role.TANK
+                    elif 'heal' in role_name:
+                        return Role.HEALER
+                    else:
+                        return Role.DPS
         
-        raise NotImplementedError("Encounter details extraction not yet implemented")
+        # Default fallback
+        return Role.DPS
     
     async def build_trial_report(self, trial_name: str, zone_id: int) -> TrialReport:
         """Build a complete trial report with top 5 rankings."""
