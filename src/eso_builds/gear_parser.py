@@ -71,7 +71,8 @@ class GearParser:
         gear_sets = []
         
         for set_name, count in set_counts.items():
-            if count < 2:  # Skip single-piece sets
+            # Include single-piece sets if they are mythics or arena weapons
+            if count < 2 and not self._is_mythic_or_arena_weapon(set_name):
                 continue
                 
             info = set_info[set_name]
@@ -177,6 +178,39 @@ class GearParser:
         
         set_name_lower = set_name.lower()
         return any(indicator in set_name_lower for indicator in perfected_indicators)
+    
+    def _is_mythic_or_arena_weapon(self, set_name: str) -> bool:
+        """Check if a set is a mythic item or arena weapon (typically 1-piece sets)."""
+        if not set_name:
+            return False
+        
+        set_lower = set_name.lower()
+        
+        # Common mythic items (1-piece sets)
+        mythic_indicators = [
+            'kilt', 'harpooner', 'ring of the pale order', 'ring of the wild hunt',
+            'malacath', 'thrassian stranglers', 'snow treaders', 'gaze of sithis',
+            'death dealer', 'markyn ring', 'oakensoul', 'velothi ur-mage',
+            'mora\'s whispers', 'esoteric environment greaves', 'spaulder of ruin',
+            'lefthander\'s aegis belt', 'pearls of ehlnofey', 'shapeshifter\'s chain',
+            'sea-serpent\'s coil', 'antiquarian\'s eye', 'torc of tonal constancy'
+        ]
+        
+        # Arena weapons (Maelstrom, Dragonstar, Blackrose Prison, Vateshran Hollows)
+        arena_weapon_indicators = [
+            'maelstrom', 'dragonstar', 'blackrose prison', 'vateshran hollows',
+            'master\'s', 'perfected master\'s'
+        ]
+        
+        # Check for mythic items
+        if any(mythic in set_lower for mythic in mythic_indicators):
+            return True
+            
+        # Check for arena weapons
+        if any(arena in set_lower for arena in arena_weapon_indicators):
+            return True
+            
+        return False
     
     def detect_build_archetype(self, gear_sets: List[GearSet], player_role: Optional[str] = None) -> str:
         """Detect the build archetype based on gear sets and role."""
