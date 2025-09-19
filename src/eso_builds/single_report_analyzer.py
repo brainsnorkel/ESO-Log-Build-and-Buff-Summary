@@ -187,6 +187,10 @@ class SingleReportAnalyzer:
                                     else:
                                         final_name = name or "@anonymous"  # Use as-is or fallback
                                     
+                                    # Replace @nil with @anonymous for better readability
+                                    if final_name == "@nil":
+                                        final_name = "@anonymous"
+                                    
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
