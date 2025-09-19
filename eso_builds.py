@@ -12,6 +12,13 @@ import os
 import sys
 from typing import Optional
 
+# Load .env file if available
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from src.eso_builds.api_client import ESOLogsClient, ESOLogsAPIError
 from src.eso_builds.report_generator import ReportGenerator
 

@@ -57,6 +57,10 @@ class ESOLogsClient:
         self._client = None
         self._rate_limiter = RateLimiter()
         
+        # Initialize gear parser
+        from .gear_parser import GearParser
+        self.gear_parser = GearParser()
+        
     async def __aenter__(self):
         """Async context manager entry."""
         await self._initialize_client()
@@ -178,8 +182,13 @@ class ESOLogsClient:
         
         try:
             # Get the full report data
-            report = await self._make_request("get_report_by_code", code=report_code)
+            report_response = await self._make_request("get_report_by_code", code=report_code)
             
+            if not report_response or not hasattr(report_response, 'report_data'):
+                logger.warning(f"No report data found for report {report_code}")
+                return []
+            
+            report = report_response.report_data.report
             if not report or not hasattr(report, 'fights'):
                 logger.warning(f"No fight data found for report {report_code}")
                 return []
@@ -187,8 +196,15 @@ class ESOLogsClient:
             encounters = []
             
             for fight in report.fights:
-                if not getattr(fight, 'kill', False):
-                    continue  # Skip failed attempts
+                # Focus on boss encounters (those with difficulty set)
+                if not hasattr(fight, 'difficulty') or fight.difficulty is None:
+                    continue  # Skip trash fights
+                
+                # Also check for actual boss encounters by name
+                boss_names = ['Hall of Fleshcraft', 'Jynorah and Skorkhif', 'Overfiend Kazpian', 
+                             'Count Ryelaz', 'Orphic Shattered Shard', 'Xoryn']
+                if not any(boss in fight.name for boss in boss_names):
+                    continue  # Skip if not a recognized boss
                 
                 # Determine difficulty
                 difficulty = Difficulty.NORMAL
@@ -203,8 +219,8 @@ class ESOLogsClient:
                     difficulty=difficulty
                 )
                 
-                # Get player details for this fight
-                players = await self._get_fight_players(report_code, fight.id)
+                # Get player details for this fight using rankings data (more reliable)
+                players = await self._get_fight_players_from_rankings(report_code, fight.id)
                 encounter.players = players
                 
                 encounters.append(encounter)
@@ -217,50 +233,121 @@ class ESOLogsClient:
             logger.error(f"Failed to get encounter details for {report_code}: {e}")
             raise ESOLogsAPIError(f"Failed to extract encounter details: {e}")
     
-    async def _get_fight_players(self, report_code: str, fight_id: int) -> List[PlayerBuild]:
+    async def _get_fight_players(self, report_code: str, fight_id: int, fight_start_time: float = None, fight_end_time: float = None) -> List[PlayerBuild]:
         """Get player builds for a specific fight with real gear data."""
         try:
-            # Get fight table data to see players
-            table_data = await self._make_request(
-                "get_report_table",
-                code=report_code,
-                fight_ids=[fight_id],
-                data_type="Summary",
-                hostility_type="Friendlies"
-            )
+            # Use time ranges instead of fight IDs as the API requires
+            if fight_start_time is not None and fight_end_time is not None:
+                table_data = await self._make_request(
+                    "get_report_table",
+                    code=report_code,
+                    start_time=int(fight_start_time),
+                    end_time=int(fight_end_time),
+                    data_type="Summary",
+                    hostility_type="Friendlies"
+                )
+            else:
+                # Fallback: try with fight_ids parameter
+                table_data = await self._make_request(
+                    "get_report_table", 
+                    code=report_code,
+                    fight_ids=[fight_id],
+                    data_type="Summary",
+                    hostility_type="Friendlies"
+                )
             
             players = []
             
-            if table_data and hasattr(table_data, 'data') and hasattr(table_data.data, 'entries'):
-                for entry in table_data.data.entries:
-                    if hasattr(entry, 'name') and hasattr(entry, 'type'):
-                        # Determine role based on type/spec
-                        role = self._determine_role(entry)
-                        
-                        # Get class name
-                        character_class = getattr(entry, 'type', 'Unknown')
-                        
-                        # Get player ID for gear lookup
-                        player_id = getattr(entry, 'id', None)
-                        
-                        # Get gear sets for this player
-                        gear_sets = []
-                        if player_id:
-                            gear_sets = await self._get_player_gear_sets(report_code, fight_id, player_id)
-                        
-                        player = PlayerBuild(
-                            name=entry.name,
-                            character_class=character_class,
-                            role=role,
-                            gear_sets=gear_sets
-                        )
-                        players.append(player)
+            # Parse the table data structure 
+            if table_data and hasattr(table_data, 'report_data') and hasattr(table_data.report_data, 'report'):
+                table = table_data.report_data.report.table
+                
+                # The table data is a dict with different sections
+                if isinstance(table, dict):
+                    # Extract players from role sections
+                    role_sections = [
+                        ('tanks', Role.TANK),
+                        ('healers', Role.HEALER), 
+                        ('dps', Role.DPS)
+                    ]
+                    
+                    for section_name, role in role_sections:
+                        if section_name in table and table[section_name]:
+                            section_players = table[section_name]
+                            
+                            for player_data in section_players:
+                                if hasattr(player_data, 'name'):
+                                    # Extract gear sets
+                                    gear_sets = []
+                                    if hasattr(player_data, 'combatant_info') and hasattr(player_data.combatant_info, 'gear'):
+                                        gear_data = {'gear': []}
+                                        for gear_item in player_data.combatant_info.gear:
+                                            gear_data['gear'].append({
+                                                'setID': getattr(gear_item, 'set_id', None),
+                                                'setName': getattr(gear_item, 'set_name', None),
+                                                'slot': getattr(gear_item, 'slot', 'unknown')
+                                            })
+                                        gear_sets = self.gear_parser.parse_player_gear(gear_data)
+                                    
+                                    player = PlayerBuild(
+                                        name=player_data.name,
+                                        character_class=getattr(player_data, 'type', 'Unknown'),
+                                        role=role,
+                                        gear_sets=gear_sets
+                                    )
+                                    players.append(player)
             
             logger.debug(f"Found {len(players)} players for fight {fight_id}")
             return players
             
         except Exception as e:
             logger.error(f"Failed to get players for fight {fight_id}: {e}")
+            return []
+    
+    async def _get_fight_players_from_rankings(self, report_code: str, fight_id: int) -> List[PlayerBuild]:
+        """Get player data from rankings which has complete info including gear."""
+        try:
+            # Get rankings for this specific fight
+            rankings_data = await self._make_request(
+                "get_report_rankings",
+                code=report_code,
+                fight_ids=[fight_id],
+                metric="dps"
+            )
+            
+            players = []
+            
+            if rankings_data and hasattr(rankings_data, 'report_data') and hasattr(rankings_data.report_data, 'report'):
+                rankings = rankings_data.report_data.report.rankings
+                
+                if isinstance(rankings, dict) and 'data' in rankings:
+                    for ranking_entry in rankings['data']:
+                        if 'roles' in ranking_entry:
+                            roles_data = ranking_entry['roles']
+                            
+                            # Process each role section
+                            for role_name, role_enum in [('tanks', Role.TANK), ('healers', Role.HEALER), ('dps', Role.DPS)]:
+                                if role_name in roles_data and 'characters' in roles_data[role_name]:
+                                    for char_data in roles_data[role_name]['characters']:
+                                        # Extract gear sets - try to get detailed player info
+                                        gear_sets = []
+                                        player_id = char_data.get('id')
+                                        if player_id:
+                                            gear_sets = await self._get_player_gear_sets(report_code, fight_id, player_id)
+                                        
+                                        player = PlayerBuild(
+                                            name=char_data.get('name', 'Unknown'),
+                                            character_class=char_data.get('class', 'Unknown'),
+                                            role=role_enum,
+                                            gear_sets=gear_sets
+                                        )
+                                        players.append(player)
+            
+            logger.debug(f"Found {len(players)} players from rankings for fight {fight_id}")
+            return players
+            
+        except Exception as e:
+            logger.error(f"Failed to get players from rankings for fight {fight_id}: {e}")
             return []
     
     async def _get_player_gear_sets(self, report_code: str, fight_id: int, player_id: int) -> List[GearSet]:
