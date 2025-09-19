@@ -4,7 +4,9 @@ A Python project that analyzes Elder Scrolls Online logs using the esologs.com A
 
 ## Overview
 
-This project uses the [esologs-python](https://github.com/knowlen/esologs-python) library to access the esologs.com API. For each trial, it takes the five top scoring logged encounters for the current update and builds a report for each boss encounter showing the class and gear of DPS, tanks, and healers.
+This project uses the [esologs-python](https://github.com/knowlen/esologs-python) library to access the esologs.com API. The API uses GraphQL and the full schema documentation is available at [https://www.esologs.com/v2-api-docs/eso/](https://www.esologs.com/v2-api-docs/eso/).
+
+For each trial, it takes the five top scoring logged encounters for the current update and builds a report for each boss encounter showing the class and gear of DPS, tanks, and healers.
 
 ## Output Format
 
@@ -49,7 +51,41 @@ pip install -r requirements.txt
 
 ## Configuration
 
-You'll need to obtain API credentials from esologs.com and configure them for the project.
+### ESO Logs API Credentials
+
+To use this project, you need to obtain API credentials from esologs.com:
+
+1. **Register your application** at https://www.esologs.com/api/clients
+2. **Get your credentials**: You'll receive a `client_id` and `client_secret`
+3. **Set up environment variables** (recommended for security):
+
+```bash
+export ESOLOGS_ID="your_client_id_here"
+export ESOLOGS_SECRET="your_client_secret_here"
+```
+
+**Alternative: .env file** (make sure it's in your .gitignore):
+```
+ESOLOGS_ID=your_client_id_here
+ESOLOGS_SECRET=your_client_secret_here
+```
+
+### Test Your Connection
+
+Run the connection test to verify your setup:
+
+```bash
+# Activate virtual environment first
+source venv/bin/activate
+
+# Run the connection test
+python test_connection.py
+```
+
+This will verify:
+- ✅ API credentials are configured
+- ✅ Authentication is working  
+- ✅ Basic API queries are successful
 
 ## Usage
 
@@ -58,6 +94,12 @@ You'll need to obtain API credentials from esologs.com and configure them for th
 ## Development
 
 This project is actively under development. See the changelog for recent updates.
+
+### API Reference
+
+- **ESO Logs Python Library**: [esologs-python](https://github.com/knowlen/esologs-python)
+- **ESO Logs GraphQL API**: [Schema Documentation](https://www.esologs.com/v2-api-docs/eso/)
+- **ESO Logs Website**: [esologs.com](https://www.esologs.com)
 
 ## License
 
