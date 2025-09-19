@@ -18,8 +18,7 @@ except ImportError:
     pass  # python-dotenv not installed, skip .env file loading
 
 try:
-    from esologs import get_access_token, AsyncBaseClient
-    from esologs.client import AsyncClient
+    from esologs import get_access_token, AsyncBaseClient, Client
     print("✅ esologs library imported successfully")
 except ImportError as e:
     print(f"❌ Failed to import esologs library: {e}")
@@ -60,13 +59,28 @@ async def test_api_connection(token: str):
     print("\n🌐 Testing API connection...")
     
     try:
-        async with AsyncClient(access_token=token) as client:
-            # Try to get rate limit information as a simple API test
-            rate_limit = await client.get_rate_limit_data()
-            print("✅ Successfully connected to ESO Logs API")
-            print(f"Rate limit: {rate_limit.points_spent_this_hour}/{rate_limit.points_per_hour} points used this hour")
+        client = Client(
+            url="https://www.esologs.com/api/v2/client",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        # Try to get rate limit information as a simple API test
+        rate_limit = await client.get_rate_limit_data()
+        print("✅ Successfully connected to ESO Logs API")
+        
+        # Print available rate limit information
+        if hasattr(rate_limit, 'limit_per_hour'):
+            print(f"Rate limit: {getattr(rate_limit, 'points_spent_this_hour', 'N/A')}/{rate_limit.limit_per_hour} points per hour")
+        elif hasattr(rate_limit, 'points_per_hour'):
+            print(f"Rate limit: {getattr(rate_limit, 'points_spent_this_hour', 'N/A')}/{rate_limit.points_per_hour} points per hour")
+        else:
+            print(f"Rate limit data: {rate_limit}")
+            
+        if hasattr(rate_limit, 'limit_reset_time'):
             print(f"Rate limit resets at: {rate_limit.limit_reset_time}")
-            return True
+        elif hasattr(rate_limit, 'reset_time'):
+            print(f"Rate limit resets at: {rate_limit.reset_time}")
+            
+        return True
     except Exception as e:
         print(f"❌ API connection failed: {e}")
         return False
@@ -77,21 +91,28 @@ async def test_basic_query(token: str):
     print("\n📊 Testing basic API query...")
     
     try:
-        async with AsyncClient(access_token=token) as client:
-            # Try to get game data (zones) as a simple test
-            game_data = await client.get_game_data()
-            if game_data and game_data.zones:
-                print(f"✅ Successfully retrieved game data")
-                print(f"Found {len(game_data.zones)} zones")
-                # Show first few zones as example
-                for i, zone in enumerate(game_data.zones[:3]):
-                    print(f"  - Zone {i+1}: {zone.name}")
-                if len(game_data.zones) > 3:
-                    print(f"  ... and {len(game_data.zones) - 3} more zones")
-                return True
-            else:
-                print("⚠️ Connected but no zone data returned")
-                return False
+        client = Client(
+            url="https://www.esologs.com/api/v2/client",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        # Try to get zones as a simple test
+        zones_response = await client.get_zones()
+        if zones_response and hasattr(zones_response, 'zones') and zones_response.zones:
+            zones = zones_response.zones
+            print(f"✅ Successfully retrieved zone data")
+            print(f"Found {len(zones)} zones")
+            # Show first few zones as example
+            for i, zone in enumerate(zones[:3]):
+                print(f"  - Zone {i+1}: {zone.name}")
+            if len(zones) > 3:
+                print(f"  ... and {len(zones) - 3} more zones")
+            return True
+        elif zones_response:
+            print(f"✅ Successfully retrieved zones response: {zones_response}")
+            return True
+        else:
+            print("⚠️ Connected but no zone data returned")
+            return False
     except Exception as e:
         print(f"❌ API query failed: {e}")
         return False
