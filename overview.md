@@ -1,0 +1,27 @@
+This project is a python project toi use https://github.com/knowlen/esologs-python to access the esologs.com api.
+
+For each trial, I want to take the five top scoring logged encounters for the current update, and build a report for each "boss encounter" of the class, and gear of the dps, tanks, and healers. 
+
+The output will be something like:
+
+Ossein Cage
+Rank 1: {url to log}
+Hall of Fleshcraft
+Tank 1: Dragonknight, 5pc Perfected Pearlescent Ward, 5pc Lucent Echoes, 2pc Nazaray
+Tank 2: Templar, 5pc Saxhleel, 5pc Powerful Assault...
+Healer 1: Arcanist, ...
+Healer 2: Warden, ...
+DPS 1: Necromancer, ...
+DPS 2: ...
+DPS 3: ...
+DPS 4: 
+DPS 5: 
+DPS 6: 
+DPS 7: 
+DPS 8: 
+
+Rank 2: ...
+
+
+
+
