@@ -59,25 +59,33 @@ class ReportFormatter:
         
         # Format tanks
         for i, tank in enumerate(tanks, 1):
-            lines.append(f"Tank {i}: {self._format_player_build(tank)}")
+            lines.append(f"Tank {i} @{tank.name}: {self._format_player_build_without_name(tank)}")
         
         # Format healers
         for i, healer in enumerate(healers, 1):
-            lines.append(f"Healer {i}: {self._format_player_build(healer)}")
+            lines.append(f"Healer {i} @{healer.name}: {self._format_player_build_without_name(healer)}")
         
         # Format DPS
         for i, dps_player in enumerate(dps, 1):
-            lines.append(f"DPS {i}: {self._format_player_build(dps_player)}")
+            lines.append(f"DPS {i} @{dps_player.name}: {self._format_player_build_without_name(dps_player)}")
         
         # Add empty DPS slots if fewer than 8
         for i in range(len(dps) + 1, 9):
-            lines.append(f"DPS {i}: ")
+            lines.append(f"DPS {i} @anonymous{i}: ")
         
         lines.append("")  # Empty line after encounter
         return lines
     
     def _format_player_build(self, player: PlayerBuild) -> str:
         """Format a single player's build."""
+        if not player.gear_sets:
+            return f"{player.character_class}, (no gear data)"
+        
+        gear_str = ", ".join(str(gear) for gear in player.gear_sets)
+        return f"{player.character_class}, {gear_str}"
+    
+    def _format_player_build_without_name(self, player: PlayerBuild) -> str:
+        """Format a single player's build without the player name (for use with handles)."""
         if not player.gear_sets:
             return f"{player.character_class}, (no gear data)"
         
