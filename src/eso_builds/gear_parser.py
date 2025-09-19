@@ -196,6 +196,16 @@ class GearParser:
             'sea-serpent\'s coil', 'antiquarian\'s eye', 'torc of tonal constancy'
         ]
         
+        # Monster sets (when worn as single pieces for 1pc bonus)
+        monster_set_indicators = [
+            'slimecraw', 'kjalnar', 'valkyn skoria', 'zaan', 'domihaus', 'iceheart',
+            'earthgore', 'chokethorn', 'bloodspawn', 'lord warden', 'mighty chudan',
+            'troll king', 'bone pirate', 'stormfist', 'selene', 'velidreth',
+            'grothdarr', 'ilambris', 'nerien\'eth', 'spawn of mephala', 'tremorscale',
+            'thurvokun', 'balorgh', 'maarselok', 'grundwulf', 'stone-talker',
+            'nazaray', 'archdruid devyric', 'ozezan the inferno', 'nunatak'
+        ]
+        
         # Arena weapons (Maelstrom, Dragonstar, Blackrose Prison, Vateshran Hollows)
         arena_weapon_indicators = [
             'maelstrom', 'dragonstar', 'blackrose prison', 'vateshran hollows',
@@ -204,6 +214,10 @@ class GearParser:
         
         # Check for mythic items
         if any(mythic in set_lower for mythic in mythic_indicators):
+            return True
+            
+        # Check for monster sets (when used as 1pc)
+        if any(monster in set_lower for monster in monster_set_indicators):
             return True
             
         # Check for arena weapons
