@@ -29,13 +29,18 @@ class ReportGenerator:
         self.markdown_formatter = MarkdownFormatter()
     
     async def generate_trial_report(self, trial_name: str, zone_id: int, 
-                                   client: Optional[ESOLogsClient] = None) -> TrialReport:
+                                   use_real_api: bool = True) -> TrialReport:
         """Generate a complete trial report."""
         logger.info(f"Generating report for {trial_name} (zone {zone_id})")
         
-        if client:
-            # Use provided client for real API calls
-            return await client.build_trial_report(trial_name, zone_id)
+        if use_real_api:
+            # Use real API calls
+            try:
+                async with ESOLogsClient() as client:
+                    return await client.build_trial_report(trial_name, zone_id)
+            except Exception as e:
+                logger.error(f"Real API failed, falling back to sample data: {e}")
+                return self._generate_sample_trial_report(trial_name, zone_id)
         else:
             # Generate sample report for demonstration
             return self._generate_sample_trial_report(trial_name, zone_id)

@@ -121,15 +121,15 @@ class ESOLogsClient:
         return trials
     
     async def get_top_rankings_for_trial(self, zone_id: int, limit: int = 5) -> List[Dict[str, Any]]:
-        """Get top rankings for a specific trial."""
+        """Get top rankings for a specific trial using real API."""
         logger.info(f"Getting top {limit} rankings for zone {zone_id}")
         
         try:
-            # Get reports for this zone, sorted by performance
+            # Get recent reports for this zone
             reports_response = await self._make_request(
                 "get_reports", 
                 zone_id=zone_id,
-                limit=limit * 2,  # Get more than we need in case some aren't suitable
+                limit=limit * 3,  # Get more than we need to filter for quality logs
                 page=1
             )
             
@@ -137,33 +137,35 @@ class ESOLogsClient:
                 logger.warning(f"No reports found for zone {zone_id}")
                 return []
             
-            rankings = []
-            rank = 1
-            
-            # Process reports to create rankings
-            for report_data in reports_response[:limit]:
+            # Filter for complete runs (successful kills on multiple bosses)
+            quality_reports = []
+            for report_data in reports_response:
                 if hasattr(report_data, 'code') and hasattr(report_data, 'fights'):
-                    # Calculate a simple score based on successful kills
                     successful_fights = [f for f in report_data.fights if getattr(f, 'kill', False)]
-                    score = len(successful_fights) * 100.0  # Simple scoring for now
-                    
-                    ranking = {
-                        'rank': rank,
-                        'code': report_data.code,
-                        'url': f"https://www.esologs.com/reports/{report_data.code}",
-                        'score': score,
-                        'title': getattr(report_data, 'title', ''),
-                        'start_time': getattr(report_data, 'start_time', None),
-                        'guild_name': getattr(report_data.guild, 'name', '') if hasattr(report_data, 'guild') and report_data.guild else '',
-                        'fights': report_data.fights
-                    }
-                    rankings.append(ranking)
-                    rank += 1
-                    
-                    if len(rankings) >= limit:
-                        break
+                    if len(successful_fights) >= 2:  # At least 2 boss kills for quality
+                        quality_reports.append(report_data)
             
-            logger.info(f"Found {len(rankings)} rankings for zone {zone_id}")
+            # Sort by performance (more kills = better score)
+            quality_reports.sort(key=lambda r: len([f for f in r.fights if getattr(f, 'kill', False)]), reverse=True)
+            
+            rankings = []
+            for rank, report_data in enumerate(quality_reports[:limit], 1):
+                successful_fights = [f for f in report_data.fights if getattr(f, 'kill', False)]
+                score = len(successful_fights) * 100.0  # Score based on boss kills
+                
+                ranking = {
+                    'rank': rank,
+                    'code': report_data.code,
+                    'url': f"https://www.esologs.com/reports/{report_data.code}",
+                    'score': score,
+                    'title': getattr(report_data, 'title', ''),
+                    'start_time': getattr(report_data, 'start_time', None),
+                    'guild_name': getattr(report_data.guild, 'name', '') if hasattr(report_data, 'guild') and report_data.guild else '',
+                    'fights': report_data.fights
+                }
+                rankings.append(ranking)
+            
+            logger.info(f"Found {len(rankings)} quality rankings for zone {zone_id}")
             return rankings
             
         except Exception as e:
@@ -216,7 +218,7 @@ class ESOLogsClient:
             raise ESOLogsAPIError(f"Failed to extract encounter details: {e}")
     
     async def _get_fight_players(self, report_code: str, fight_id: int) -> List[PlayerBuild]:
-        """Get player builds for a specific fight."""
+        """Get player builds for a specific fight with real gear data."""
         try:
             # Get fight table data to see players
             table_data = await self._make_request(
@@ -238,11 +240,19 @@ class ESOLogsClient:
                         # Get class name
                         character_class = getattr(entry, 'type', 'Unknown')
                         
+                        # Get player ID for gear lookup
+                        player_id = getattr(entry, 'id', None)
+                        
+                        # Get gear sets for this player
+                        gear_sets = []
+                        if player_id:
+                            gear_sets = await self._get_player_gear_sets(report_code, fight_id, player_id)
+                        
                         player = PlayerBuild(
                             name=entry.name,
                             character_class=character_class,
                             role=role,
-                            gear_sets=[]  # TODO: Implement gear extraction
+                            gear_sets=gear_sets
                         )
                         players.append(player)
             
@@ -253,9 +263,46 @@ class ESOLogsClient:
             logger.error(f"Failed to get players for fight {fight_id}: {e}")
             return []
     
+    async def _get_player_gear_sets(self, report_code: str, fight_id: int, player_id: int) -> List[GearSet]:
+        """Get gear sets for a specific player in a fight."""
+        try:
+            # Try to get player details with gear information
+            player_details = await self._make_request(
+                "get_report_player_details",
+                code=report_code,
+                fight_id=fight_id,
+                player_id=player_id
+            )
+            
+            gear_sets = []
+            if player_details and hasattr(player_details, 'combatant_info'):
+                # Use the gear parser to extract sets from gear data
+                from .gear_parser import GearParser
+                parser = GearParser()
+                
+                # Convert API gear data to parser format
+                gear_data = {'gear': []}
+                if hasattr(player_details.combatant_info, 'gear'):
+                    for item in player_details.combatant_info.gear:
+                        gear_item = {
+                            'setID': getattr(item, 'set_id', None),
+                            'setName': getattr(item, 'set_name', None),
+                            'slot': getattr(item, 'slot', 'unknown')
+                        }
+                        if gear_item['setID'] and gear_item['setName']:
+                            gear_data['gear'].append(gear_item)
+                
+                gear_sets = parser.parse_player_gear(gear_data)
+            
+            return gear_sets
+            
+        except Exception as e:
+            logger.debug(f"Could not get gear for player {player_id}: {e}")
+            return []  # Return empty list if gear data unavailable
+    
     def _determine_role(self, player_entry) -> Role:
         """Determine player role from entry data."""
-        # This is a simplified role detection - in reality we'd need more sophisticated logic
+        # Enhanced role detection using multiple indicators
         if hasattr(player_entry, 'specs') and player_entry.specs:
             for spec in player_entry.specs:
                 if hasattr(spec, 'role'):
@@ -267,7 +314,20 @@ class ESOLogsClient:
                     else:
                         return Role.DPS
         
-        # Default fallback
+        # Fallback: analyze by class and typical roles
+        class_name = getattr(player_entry, 'type', '').lower()
+        
+        # Some classes are more commonly tanks/healers
+        if class_name in ['dragonknight', 'templar'] and hasattr(player_entry, 'damage_done'):
+            # If low damage, likely tank/healer
+            damage = getattr(player_entry, 'damage_done', 0)
+            if damage < 100000:  # Arbitrary threshold
+                if class_name == 'templar':
+                    return Role.HEALER
+                else:
+                    return Role.TANK
+        
+        # Default to DPS
         return Role.DPS
     
     async def build_trial_report(self, trial_name: str, zone_id: int) -> TrialReport:
