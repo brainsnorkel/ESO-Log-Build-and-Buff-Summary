@@ -1,25 +1,57 @@
-# Making a Windows Installer for ESO Top Builds
+# Making Multi-Platform Installers for ESO Top Builds
 
-This guide explains how to create a Windows installer for the ESO Top Builds Python application, making it easy for Windows users to install and use without requiring Python knowledge.
+This guide explains how to create installers for the ESO Top Builds Python application across Windows, macOS, and Linux, making it easy for users to install and use without requiring Python knowledge.
 
 ## 📋 Overview
 
-Your ESO Top Builds project can be packaged into a professional Windows installer that:
-- Bundles Python and all dependencies into a single executable
-- Creates a proper Windows application with Start Menu shortcuts
-- Handles API credentials setup
-- Provides an uninstaller
-- Works on Windows 10/11 without requiring Python installation
+Your ESO Top Builds project can be packaged into professional installers for all major platforms:
+
+**Windows:**
+- NSIS installer with Start Menu shortcuts and uninstaller
+- Portable executable that runs without installation
+
+**macOS:**
+- DMG disk image with drag-and-drop installation
+- Portable executable
+
+**Linux:**
+- AppImage portable application
+- Portable executable
+
+All installers:
+- Bundle Python and all dependencies into a single executable
+- Handle API credentials setup
+- Work without requiring Python installation
 
 ## 🛠️ Prerequisites
 
-Before creating the installer, ensure you have:
-- Windows machine (or Windows VM)
+Before creating installers, ensure you have:
+- Target platform machine (Windows, macOS, or Linux)
 - Python 3.9+ installed
 - Your ESO Top Builds project working locally
-- Administrator privileges
+- Administrator privileges (for Windows installer creation)
 
-## 📦 Method 1: PyInstaller + NSIS (Recommended)
+## 📦 Method 1: Automated Multi-Platform Builds (Recommended)
+
+This method uses GitHub Actions to automatically build installers for all platforms when you create a release.
+
+### Benefits:
+- **Automated**: Builds run automatically on release
+- **Multi-platform**: Creates installers for Windows, macOS, and Linux
+- **Consistent**: Same build process every time
+- **No local setup**: No need to install platform-specific tools locally
+
+### How it works:
+1. Create a GitHub release with a tag (e.g., `v0.1.0-beta`)
+2. GitHub Actions automatically builds installers for all platforms
+3. Installers are attached to the release
+4. Users can download the appropriate installer for their platform
+
+## 📦 Method 2: Manual Platform-Specific Builds
+
+For local development and testing, you can build installers manually for each platform.
+
+### Windows: PyInstaller + NSIS
 
 This method creates a professional Windows installer with proper integration.
 
@@ -110,8 +142,8 @@ Create `installer.nsi`:
 !define APPNAME "ESO Top Builds"
 !define COMPANYNAME "ESO Community"
 !define DESCRIPTION "ESO Logs Analysis Tool"
-!define VERSIONMAJOR 1
-!define VERSIONMINOR 0
+!define VERSIONMAJOR 0
+!define VERSIONMINOR 1
 !define VERSIONBUILD 0
 !define HELPURL "https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary"
 !define UPDATEURL "https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary"

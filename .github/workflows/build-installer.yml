@@ -1,0 +1,341 @@
+name: Build Multi-Platform Installers
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Install NSIS
+      run: |
+        choco install nsis -y
+        
+    - name: Build Windows executable
+      run: |
+        pyinstaller --onefile --name "ESO-Log-Build-and-Buff-Summary" --console ^
+          --hidden-import reportlab ^
+          --hidden-import httpx ^
+          --hidden-import aiofiles ^
+          --hidden-import esologs ^
+          --hidden-import dotenv ^
+          --hidden-import reportlab.pdfgen ^
+          --hidden-import reportlab.lib ^
+          --hidden-import reportlab.lib.colors ^
+          --hidden-import reportlab.platypus ^
+          --hidden-import reportlab.lib.styles ^
+          --hidden-import reportlab.lib.units ^
+          --hidden-import reportlab.lib.enums ^
+          --add-data "src/eso_builds;src/eso_builds" ^
+          --add-data "README.md;." ^
+          --add-data "USAGE.md;." ^
+          single_report_tool.py
+          
+    - name: Create Windows installer
+      run: |
+        makensis installer.nsi
+        
+    - name: Upload Windows installer artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-Windows-Installer-${{ github.event.release.tag_name }}
+        path: ESO-Log-Build-and-Buff-Summary-Installer.exe
+        
+    - name: Upload Windows portable artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-Windows-Portable-${{ github.event.release.tag_name }}
+        path: dist/ESO-Log-Build-and-Buff-Summary.exe
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/Library/Caches/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build macOS executable
+      run: |
+        pyinstaller --onefile --name "ESO-Log-Build-and-Buff-Summary" --console \
+          --hidden-import reportlab \
+          --hidden-import httpx \
+          --hidden-import aiofiles \
+          --hidden-import esologs \
+          --hidden-import dotenv \
+          --hidden-import reportlab.pdfgen \
+          --hidden-import reportlab.lib \
+          --hidden-import reportlab.lib.colors \
+          --hidden-import reportlab.platypus \
+          --hidden-import reportlab.lib.styles \
+          --hidden-import reportlab.lib.units \
+          --hidden-import reportlab.lib.enums \
+          --add-data "src/eso_builds:src/eso_builds" \
+          --add-data "README.md:." \
+          --add-data "USAGE.md:." \
+          single_report_tool.py
+          
+    - name: Create macOS DMG
+      run: |
+        # Install create-dmg
+        brew install create-dmg
+        
+        # Create DMG
+        create-dmg \
+          --volname "ESO Log Build and Buff Summary" \
+          --volicon "icon.icns" \
+          --window-pos 200 120 \
+          --window-size 600 300 \
+          --icon-size 100 \
+          --icon "ESO-Log-Build-and-Buff-Summary.app" 175 120 \
+          --hide-extension "ESO-Log-Build-and-Buff-Summary.app" \
+          --app-drop-link 425 120 \
+          "ESO-Log-Build-and-Buff-Summary-macOS-${{ github.event.release.tag_name }}.dmg" \
+          "dist/"
+        
+    - name: Upload macOS DMG artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-macOS-DMG-${{ github.event.release.tag_name }}
+        path: ESO-Log-Build-and-Buff-Summary-macOS-${{ github.event.release.tag_name }}.dmg
+        
+    - name: Upload macOS portable artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-macOS-Portable-${{ github.event.release.tag_name }}
+        path: dist/ESO-Log-Build-and-Buff-Summary
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build Linux executable
+      run: |
+        pyinstaller --onefile --name "ESO-Log-Build-and-Buff-Summary" --console \
+          --hidden-import reportlab \
+          --hidden-import httpx \
+          --hidden-import aiofiles \
+          --hidden-import esologs \
+          --hidden-import dotenv \
+          --hidden-import reportlab.pdfgen \
+          --hidden-import reportlab.lib \
+          --hidden-import reportlab.lib.colors \
+          --hidden-import reportlab.platypus \
+          --hidden-import reportlab.lib.styles \
+          --hidden-import reportlab.lib.units \
+          --hidden-import reportlab.lib.enums \
+          --add-data "src/eso_builds:src/eso_builds" \
+          --add-data "README.md:." \
+          --add-data "USAGE.md:." \
+          single_report_tool.py
+          
+    - name: Create Linux AppImage
+      run: |
+        # Install appimagetool
+        wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        
+        # Create AppDir structure
+        mkdir -p ESO-Log-Build-and-Buff-Summary.AppDir/usr/bin
+        mkdir -p ESO-Log-Build-and-Buff-Summary.AppDir/usr/share/applications
+        mkdir -p ESO-Log-Build-and-Buff-Summary.AppDir/usr/share/icons
+        
+        # Copy executable
+        cp dist/ESO-Log-Build-and-Buff-Summary ESO-Log-Build-and-Buff-Summary.AppDir/usr/bin/
+        
+        # Create desktop file
+        cat > ESO-Log-Build-and-Buff-Summary.AppDir/usr/share/applications/eso-log-build-and-buff-summary.desktop << EOF
+        [Desktop Entry]
+        Type=Application
+        Name=ESO Log Build and Buff Summary
+        Comment=Analyze ESO trial logs and generate build reports
+        Exec=ESO-Log-Build-and-Buff-Summary
+        Icon=eso-log-build-and-buff-summary
+        Terminal=true
+        Categories=Game;
+        EOF
+        
+        # Create AppRun
+        cat > ESO-Log-Build-and-Buff-Summary.AppDir/AppRun << 'EOF'
+        #!/bin/bash
+        cd "$(dirname "$0")"
+        exec ./usr/bin/ESO-Log-Build-and-Buff-Summary "$@"
+        EOF
+        chmod +x ESO-Log-Build-and-Buff-Summary.AppDir/AppRun
+        
+        # Create AppImage
+        ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
+        
+    - name: Upload Linux AppImage artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-Linux-AppImage-${{ github.event.release.tag_name }}
+        path: ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
+        
+    - name: Upload Linux portable artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-Linux-Portable-${{ github.event.release.tag_name }}
+        path: dist/ESO-Log-Build-and-Buff-Summary
+
+  attach-to-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      
+    - name: Attach installers to release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          ESO-Log-Build-and-Buff-Summary-Windows-Installer-*/ESO-Log-Build-and-Buff-Summary-Installer.exe
+          ESO-Log-Build-and-Buff-Summary-Windows-Portable-*/ESO-Log-Build-and-Buff-Summary.exe
+          ESO-Log-Build-and-Buff-Summary-macOS-DMG-*/ESO-Log-Build-and-Buff-Summary-macOS-*.dmg
+          ESO-Log-Build-and-Buff-Summary-macOS-Portable-*/ESO-Log-Build-and-Buff-Summary
+          ESO-Log-Build-and-Buff-Summary-Linux-AppImage-*/ESO-Log-Build-and-Buff-Summary-Linux-*.AppImage
+          ESO-Log-Build-and-Buff-Summary-Linux-Portable-*/ESO-Log-Build-and-Buff-Summary
+        body: |
+          ## ESO Log Build and Buff Summary ${{ github.event.release.tag_name }}
+          
+          ### 📦 Download Options
+          
+          Choose the installer for your operating system:
+          
+          #### 🪟 Windows
+          - **ESO-Log-Build-and-Buff-Summary-Installer.exe**: Full Windows installer with Start Menu shortcuts and uninstaller
+          - **ESO-Log-Build-and-Buff-Summary.exe**: Portable version that runs without installation
+          
+          #### 🍎 macOS
+          - **ESO-Log-Build-and-Buff-Summary-macOS-*.dmg**: macOS disk image with drag-and-drop installation
+          - **ESO-Log-Build-and-Buff-Summary**: Portable version (rename to add .app extension if desired)
+          
+          #### 🐧 Linux
+          - **ESO-Log-Build-and-Buff-Summary-Linux-*.AppImage**: Portable Linux application
+          - **ESO-Log-Build-and-Buff-Summary**: Portable version (make executable with `chmod +x`)
+          
+          ### 🚀 Quick Start
+          
+          1. **Download** the appropriate installer for your operating system
+          2. **Install** following the instructions for your platform
+          3. **Configure** your ESO Logs API credentials (see below)
+          4. **Run** the tool with a report code
+          
+          ### 🔑 API Credentials Setup
+          
+          You need ESO Logs API credentials to use this tool:
+          
+          1. Visit [ESO Logs API](https://www.esologs.com/api/clients/)
+          2. Create a new API client
+          3. Copy your Client ID and Secret
+          4. Create a `.env` file with:
+             ```
+             ESOLOGS_ID=your_client_id_here
+             ESOLOGS_SECRET=your_client_secret_here
+             ```
+          5. Place the `.env` file:
+             - **Windows**: `%APPDATA%\ESO-Log-Build-and-Buff-Summary\`
+             - **macOS**: `~/Library/Application Support/ESO-Log-Build-and-Buff-Summary/`
+             - **Linux**: `~/.config/ESO-Log-Build-and-Buff-Summary/`
+          
+          ### 💻 Usage Examples
+          
+          ```bash
+          # Get help
+          ESO-Log-Build-and-Buff-Summary --help
+          
+          # Analyze a report (console output)
+          ESO-Log-Build-and-Buff-Summary mtFqVzQPNBcCrd1h
+          
+          # Generate all formats
+          ESO-Log-Build-and-Buff-Summary mtFqVzQPNBcCrd1h --output all
+          
+          # Generate PDF only
+          ESO-Log-Build-and-Buff-Summary mtFqVzQPNBcCrd1h --output pdf
+          ```
+          
+          ### 📋 Requirements
+          
+          - **Windows**: Windows 10 or later
+          - **macOS**: macOS 10.15 or later
+          - **Linux**: Most modern distributions
+          - **All platforms**: ESO Logs API credentials
+          
+          ### 📖 Documentation
+          
+          For detailed information, see [README.md](https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary/blob/main/README.md)
+          
+          ### 🐛 Issues & Feedback
+          
+          This is a beta release. Please report issues or suggestions on the [GitHub Issues](https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary/issues) page.
+        draft: false
+        prerelease: ${{ contains(github.event.release.tag_name, 'beta') || contains(github.event.release.tag_name, 'alpha') || contains(github.event.release.tag_name, 'rc') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
