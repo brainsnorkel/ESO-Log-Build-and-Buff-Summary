@@ -219,10 +219,10 @@ jobs:
           --add-data "USAGE.md:." \
           single_report_tool.py
           
-    - name: Install FUSE for AppImage
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y fuse libfuse2
+           - name: Install FUSE and ImageMagick for AppImage
+             run: |
+               sudo apt-get update
+               sudo apt-get install -y fuse libfuse2 imagemagick
         
     - name: Create Linux AppImage
       run: |
@@ -257,20 +257,28 @@ jobs:
         EOF
         chmod +x ESO-Log-Build-and-Buff-Summary.AppDir/AppRun
         
-               # Create AppImage 
-               ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
+               # Create a simple icon to satisfy appimagetool validation
+               echo "Creating simple icon..."
+               convert -size 256x256 xc:lightblue -pointsize 24 -fill black -gravity center -annotate +0+0 "ESO\nLog\nTool" ESO-Log-Build-and-Buff-Summary.AppDir/icon.png 2>/dev/null || echo "ImageMagick not available, creating placeholder"
+               
+               # Create AppImage with proper filename
+               TAG_NAME="${{ github.event.release.tag_name }}"
+               if [ -z "$TAG_NAME" ]; then
+                 TAG_NAME="latest"
+               fi
+               ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${TAG_NAME}.AppImage
         
-    - name: Upload Linux AppImage artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ESO-Log-Build-and-Buff-Summary-Linux-AppImage-${{ github.event.release.tag_name }}
-        path: ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
+           - name: Upload Linux AppImage artifact
+             uses: actions/upload-artifact@v4
+             with:
+               name: ESO-Log-Build-and-Buff-Summary-Linux-AppImage-${{ github.event.release.tag_name || 'latest' }}
+               path: ESO-Log-Build-and-Buff-Summary-Linux-*.AppImage
         
-    - name: Upload Linux portable artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ESO-Log-Build-and-Buff-Summary-Linux-Portable-${{ github.event.release.tag_name }}
-        path: dist/ESO-Log-Build-and-Buff-Summary
+           - name: Upload Linux portable artifact
+             uses: actions/upload-artifact@v4
+             with:
+               name: ESO-Log-Build-and-Buff-Summary-Linux-Portable-${{ github.event.release.tag_name || 'latest' }}
+               path: dist/ESO-Log-Build-and-Buff-Summary
 
   attach-to-release:
     needs: [build-windows, build-macos, build-linux]
