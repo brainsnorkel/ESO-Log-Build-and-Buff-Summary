@@ -257,8 +257,8 @@ jobs:
         EOF
         chmod +x ESO-Log-Build-and-Buff-Summary.AppDir/AppRun
         
-        # Create AppImage
-        ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
+        # Create AppImage (use --no-appstream to skip icon validation)
+        ./appimagetool-x86_64.AppImage --no-appstream ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
         
     - name: Upload Linux AppImage artifact
       uses: actions/upload-artifact@v4
