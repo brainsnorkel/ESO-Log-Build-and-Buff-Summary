@@ -527,3 +527,114 @@ class ESOLogsClient:
         except Exception as e:
             logger.error(f"Failed to get player abilities: {e}")
             return {}
+
+    async def get_report_master_data(self, report_code: str) -> Dict[str, Any]:
+        """
+        Get master data for a report including all abilities used.
+        
+        Returns a dictionary with:
+        {
+            "abilities": [{"gameID": 123, "name": "Ability Name", "icon": "...", "type": "..."}],
+            "actors": [{"name": "Player Name", "id": 123, "gameID": 456, "type": "Player"}]
+        }
+        """
+        try:
+            # GraphQL query for master data
+            query = """
+            query GetReportMasterData($code: String!) {
+              reportData {
+                report(code: $code) {
+                  masterData {
+                    abilities {
+                      gameID
+                      name
+                      icon
+                      type
+                    }
+                    actors(type: "Player") {
+                      name
+                      id
+                      gameID
+                      type
+                      subType
+                    }
+                  }
+                }
+              }
+            }
+            """
+            
+            # Use the execute method to run custom GraphQL query
+            # Note: execute() returns httpx.Response, need to parse JSON
+            http_response = await self._client.execute(query, variables={'code': report_code})
+            
+            if http_response.status_code != 200:
+                logger.error(f"HTTP error {http_response.status_code}: {http_response.text}")
+                return {"abilities": [], "actors": []}
+            
+            # Parse the JSON response
+            response_data = http_response.json()
+            
+            if not response_data:
+                logger.warning(f"No response data for report {report_code}")
+                return {"abilities": [], "actors": []}
+            
+            # Check for GraphQL errors
+            if 'errors' in response_data:
+                logger.error(f"GraphQL errors: {response_data['errors']}")
+                return {"abilities": [], "actors": []}
+            
+            # Navigate the JSON response structure
+            if 'data' not in response_data:
+                logger.warning(f"No data in response for {report_code}")
+                return {"abilities": [], "actors": []}
+            
+            data = response_data['data']
+            if 'reportData' not in data or not data['reportData']:
+                logger.warning(f"No reportData found for {report_code}")
+                return {"abilities": [], "actors": []}
+            
+            report_data = data['reportData']
+            if 'report' not in report_data or not report_data['report']:
+                logger.warning(f"No report found for {report_code}")
+                return {"abilities": [], "actors": []}
+            
+            report = report_data['report']
+            if 'masterData' not in report or not report['masterData']:
+                logger.warning(f"Report {report_code} does not have masterData")
+                return {"abilities": [], "actors": []}
+            
+            master_data = report['masterData']
+            if not master_data:
+                logger.warning(f"No master data found for report {report_code}")
+                return {"abilities": [], "actors": []}
+            
+            # Extract abilities from JSON
+            abilities = []
+            if 'abilities' in master_data and master_data['abilities']:
+                for ability in master_data['abilities']:
+                    abilities.append({
+                        'gameID': ability.get('gameID'),
+                        'name': ability.get('name', 'Unknown'),
+                        'icon': ability.get('icon'),
+                        'type': ability.get('type')
+                    })
+            
+            # Extract actors (players) from JSON
+            actors = []
+            if 'actors' in master_data and master_data['actors']:
+                for actor in master_data['actors']:
+                    actors.append({
+                        'name': actor.get('name', 'Unknown'),
+                        'id': actor.get('id'),
+                        'gameID': actor.get('gameID'),
+                        'type': actor.get('type'),
+                        'subType': actor.get('subType')
+                    })
+            
+            logger.info(f"Retrieved master data: {len(abilities)} abilities, {len(actors)} players")
+            return {"abilities": abilities, "actors": actors}
+                
+        except Exception as e:
+            logger.error(f"Failed to get master data: {e}")
+            return {"abilities": [], "actors": []}

@@ -1,182 +1,89 @@
-"""
-GraphQL queries for ESO Logs API.
+# GraphQL queries for ESO Logs API
 
-This module contains the GraphQL queries needed to fetch trial rankings,
-encounter details, player build information, and ability data.
-"""
-
-# GraphQL query to get top reports for a specific zone
-GET_TOP_REPORTS_QUERY = """
-query GetTopReports($zoneID: Int!, $limit: Int!, $page: Int!) {
-  reportData {
-    reports(
-      zoneID: $zoneID
-      limit: $limit
-      page: $page
-    ) {
-      data {
-        code
-        title
-        startTime
-        endTime
-        zone {
-          id
-          name
-        }
-        guild {
-          name
-        }
-        fights {
-          id
-          name
-          difficulty
-          kill
-          percentage
-          startTime
-          endTime
-        }
-      }
-      total
-      per_page
-      current_page
-      last_page
-    }
-  }
-}
-"""
-
-# GraphQL query to get game abilities for ability name resolution
-GET_GAME_ABILITIES_QUERY = """
-query GetGameAbilities($limit: Int!, $page: Int!) {
-  gameData {
-    abilities(limit: $limit, page: $page) {
-      data {
-        id
-        name
-        icon
-      }
-      total
-      per_page
-      current_page
-      has_more_pages
-    }
-  }
-}
-"""
-
-# GraphQL query to get detailed fight information including players and gear
-GET_FIGHT_DETAILS_QUERY = """
-query GetFightDetails($code: String!, $fightIDs: [Int]!) {
+# GraphQL query to get report information including fights
+GET_REPORT_BY_CODE_QUERY = """
+query GetReportByCode($code: String!) {
   reportData {
     report(code: $code) {
       code
       title
-      fights(fightIDs: $fightIDs) {
+      startTime
+      endTime
+      zone {
         id
         name
+      }
+      fights {
+        id
+        name
+        startTime
+        endTime
         difficulty
         kill
         percentage
-        startTime
-        endTime
-        
-        # Get all players in this fight
-        playerDetails {
-          name
+        maps {
           id
-          server
-          type
-          specs {
-            spec
-            role
-          }
         }
-        
-        # Get gear information for each player
-        table(
-          dataType: Summary
-          hostilityType: Friendlies
-        )
       }
     }
   }
 }
 """
 
-# GraphQL query to get game abilities for ability name resolution
-GET_GAME_ABILITIES_QUERY = """
-query GetGameAbilities($limit: Int!, $page: Int!) {
-  gameData {
-    abilities(limit: $limit, page: $page) {
-      data {
-        id
-        name
-        icon
-      }
-      total
-      per_page
-      current_page
-      has_more_pages
-    }
-  }
-}
-"""
-
-# GraphQL query to get player gear details
-GET_PLAYER_GEAR_QUERY = """
-query GetPlayerGear($code: String!, $fightID: Int!, $playerID: Int!) {
+# GraphQL query to get table data for a specific fight
+GET_REPORT_TABLE_QUERY = """
+query GetReportTable(
+  $code: String!
+  $startTime: Float
+  $endTime: Float
+  $dataType: TableDataType!
+  $hostilityType: HostilityType
+  $fightIDs: [Int]
+) {
   reportData {
     report(code: $code) {
-      fights(fightIDs: [$fightID]) {
-        playerDetails(playerID: $playerID) {
-          combatantInfo {
-            gear {
-              id
-              slot
-              quality
-              icon
-              name
-              itemLevel
-              bonusIDs
-              gems
-              enchant
-              setID
-              setName
-              setPieces
-            }
-          }
-        }
-      }
+      table(
+        startTime: $startTime
+        endTime: $endTime
+        dataType: $dataType
+        hostilityType: $hostilityType
+        fightIDs: $fightIDs
+      )
     }
   }
 }
 """
 
-# GraphQL query to get game abilities for ability name resolution
-GET_GAME_ABILITIES_QUERY = """
-query GetGameAbilities($limit: Int!, $page: Int!) {
-  gameData {
-    abilities(limit: $limit, page: $page) {
-      data {
+# GraphQL query to get available zones
+GET_ZONES_QUERY = """
+query GetZones {
+  worldData {
+    zones {
+      id
+      name
+      encounters {
         id
         name
-        icon
       }
-      total
-      per_page
-      current_page
-      has_more_pages
     }
   }
 }
 """
 
-# GraphQL query to get zone rankings (for finding top performing groups)
-GET_ZONE_RANKINGS_QUERY = """
-query GetZoneRankings($zoneID: Int!, $difficulty: Int!, $size: Int!, $page: Int!, $limit: Int!) {
+# GraphQL query to get top rankings for a specific zone/encounter
+GET_RANKINGS_QUERY = """
+query GetRankings(
+  $zoneID: Int!
+  $encounterID: Int
+  $difficulty: Int
+  $size: Int
+  $page: Int
+  $limit: Int
+) {
   worldData {
-    encounter(id: $zoneID) {
+    encounter(id: $encounterID) {
       characterRankings(
+        zoneID: $zoneID
         difficulty: $difficulty
         size: $size
         page: $page
@@ -197,23 +104,44 @@ query GetZoneRankings($zoneID: Int!, $difficulty: Int!, $size: Int!, $page: Int!
           }
         }
         total
-        page
-        hasMorePages
+        per_page
+        current_page
+        has_more_pages
       }
     }
   }
 }
 """
 
-# GraphQL query to get game abilities for ability name resolution
-GET_GAME_ABILITIES_QUERY = """
-query GetGameAbilities($limit: Int!, $page: Int!) {
-  gameData {
-    abilities(limit: $limit, page: $page) {
+# GraphQL query to get reports for a specific zone
+GET_REPORTS_QUERY = """
+query GetReports(
+  $zoneID: Int
+  $page: Int
+  $limit: Int
+) {
+  reportData {
+    reports(
+      zoneID: $zoneID
+      page: $page
+      limit: $limit
+    ) {
       data {
-        id
-        name
-        icon
+        code
+        title
+        startTime
+        endTime
+        zone {
+          id
+          name
+        }
+        guild {
+          id
+          name
+        }
+        owner {
+          name
+        }
       }
       total
       per_page
@@ -273,6 +201,31 @@ query GetGameAbilities($limit: Int!, $page: Int!) {
       per_page
       current_page
       has_more_pages
+    }
+  }
+}
+"""
+
+# GraphQL query to get master data including all abilities used in the report
+GET_REPORT_MASTER_DATA_QUERY = """
+query GetReportMasterData($code: String!) {
+  reportData {
+    report(code: $code) {
+      masterData {
+        abilities {
+          gameID
+          name
+          icon
+          type
+        }
+        actors(type: "Player") {
+          name
+          id
+          gameID
+          type
+          subType
+        }
+      }
     }
   }
 }

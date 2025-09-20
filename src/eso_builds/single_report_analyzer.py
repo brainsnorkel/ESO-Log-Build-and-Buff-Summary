@@ -210,28 +210,11 @@ class SingleReportAnalyzer:
                                     bar1_abilities = player_abilities.get('bar1', [])
                                     bar2_abilities = player_abilities.get('bar2', [])
                                     
-                                    # Use real ability data if available, otherwise show realistic placeholders
+                                    # Use real ability data if available, otherwise show that no cast data exists
                                     if not bar1_abilities and not bar2_abilities:
-                                        # Use realistic ESO abilities based on role and class
-                                        if role_enum == Role.DPS:
-                                            if 'Arcanist' in character_class:
-                                                bar1_abilities = ["Runeblades", "Fatecarver", "Chakram Shields", "Crux Weaver", "The Unblinking Eye"]
-                                                bar2_abilities = ["Inspired Scholarship", "Contingency", "Healing Salve", "Defensive Rune", "Gibbering Shield"]
-                                            elif 'Sorcerer' in character_class:
-                                                bar1_abilities = ["Crystal Fragments", "Force Pulse", "Elemental Weapon", "Hardened Ward", "Greater Storm Atronach"]
-                                                bar2_abilities = ["Critical Surge", "Bound Aegis", "Volatile Familiar", "Daedric Prey", "Power Surge"]
-                                            elif 'DragonKnight' in character_class:
-                                                bar1_abilities = ["Molten Whip", "Venomous Claw", "Noxious Breath", "Flames of Oblivion", "Standard of Might"]
-                                                bar2_abilities = ["Igneous Weapons", "Green Dragon Blood", "Molten Armaments", "Eruption", "Corrosive Armor"]
-                                            else:
-                                                bar1_abilities = ["[Cast data not available for this log]"]
-                                                bar2_abilities = ["[Cast data not available for this log]"]
-                                        elif role_enum == Role.TANK:
-                                            bar1_abilities = ["Pierce Armor", "Heroic Slash", "Defensive Stance", "Absorb Magic", "Aggressive Horn"]
-                                            bar2_abilities = ["Igneous Shield", "Green Dragon Blood", "Hardened Armor", "Chains", "Magma Shell"]
-                                        elif role_enum == Role.HEALER:
-                                            bar1_abilities = ["Healing Springs", "Combat Prayer", "Elemental Drain", "Energy Orb", "Aggressive Horn"]
-                                            bar2_abilities = ["Illustrious Healing", "Healing Ward", "Force Siphon", "Mystic Orb", "Solar Prison"]
+                                        # This log doesn't contain cast/ability data - be transparent about it
+                                        bar1_abilities = ["[No ability data in this log - requires detailed combat logging]"]
+                                        bar2_abilities = ["[No ability data in this log - requires detailed combat logging]"]
                                     
                                     # Special debug logging for brainsnorkel
                                     if 'brainsnorkel' in final_name.lower():
