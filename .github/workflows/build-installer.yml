@@ -61,13 +61,13 @@ jobs:
         makensis installer.nsi
         
     - name: Upload Windows installer artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ESO-Log-Build-and-Buff-Summary-Windows-Installer-${{ github.event.release.tag_name }}
         path: ESO-Log-Build-and-Buff-Summary-Installer.exe
         
     - name: Upload Windows portable artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ESO-Log-Build-and-Buff-Summary-Windows-Portable-${{ github.event.release.tag_name }}
         path: dist/ESO-Log-Build-and-Buff-Summary.exe
@@ -137,13 +137,13 @@ jobs:
           "dist/"
         
     - name: Upload macOS DMG artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ESO-Log-Build-and-Buff-Summary-macOS-DMG-${{ github.event.release.tag_name }}
         path: ESO-Log-Build-and-Buff-Summary-macOS-${{ github.event.release.tag_name }}.dmg
         
     - name: Upload macOS portable artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ESO-Log-Build-and-Buff-Summary-macOS-Portable-${{ github.event.release.tag_name }}
         path: dist/ESO-Log-Build-and-Buff-Summary
@@ -232,13 +232,13 @@ jobs:
         ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
         
     - name: Upload Linux AppImage artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ESO-Log-Build-and-Buff-Summary-Linux-AppImage-${{ github.event.release.tag_name }}
         path: ESO-Log-Build-and-Buff-Summary-Linux-${{ github.event.release.tag_name }}.AppImage
         
     - name: Upload Linux portable artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ESO-Log-Build-and-Buff-Summary-Linux-Portable-${{ github.event.release.tag_name }}
         path: dist/ESO-Log-Build-and-Buff-Summary
@@ -250,7 +250,7 @@ jobs:
     
     steps:
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       
     - name: Attach installers to release
       uses: softprops/action-gh-release@v1
