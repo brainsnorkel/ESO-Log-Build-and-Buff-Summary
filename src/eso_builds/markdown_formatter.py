@@ -64,7 +64,8 @@ class MarkdownFormatter:
             for encounter in ranking.encounters:
                 clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
                 encounter_anchor = f"encounter-{clean_name}"
-                lines.append(f"  - [{encounter.encounter_name} ({encounter.difficulty.value})](#{encounter_anchor})")
+                status_text = "✅ KILL" if encounter.kill else f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
+                lines.append(f"  - [{encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}](#{encounter_anchor})")
         
         return lines
     
@@ -97,8 +98,10 @@ class MarkdownFormatter:
         clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
         encounter_anchor = f"encounter-{clean_name}"
         
+        status_text = "✅ KILL" if encounter.kill else f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
+        
         lines = [
-            f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) {{#{encounter_anchor}}}",
+            f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text} {{#{encounter_anchor}}}",
             ""
         ]
         
@@ -137,13 +140,6 @@ class MarkdownFormatter:
         for i, player in enumerate(players, 1):
             gear_str = self._format_gear_sets_for_table(player.gear_sets)
             lines.append(f"| {role_title.split()[1]} {i} {player.name} | {player.character_class} | {gear_str} |")
-            
-            # Add ability bars if available
-            if player.bar1_abilities or player.bar2_abilities:
-                bar1_str = ", ".join(player.bar1_abilities) if player.bar1_abilities else "No abilities detected"
-                bar2_str = ", ".join(player.bar2_abilities) if player.bar2_abilities else "No abilities detected"
-                lines.append(f"| | **Bar 1:** | {bar1_str} |")
-                lines.append(f"| | **Bar 2:** | {bar2_str} |")
         
         # Add empty rows for missing players (especially DPS up to 8)
         if "DPS" in role_title:

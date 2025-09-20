@@ -136,17 +136,6 @@ class SingleReportAnalyzer:
                 hostility_type="Friendlies"
             )
             
-            # Get ability data for this fight
-            try:
-                ability_data = await client.get_player_abilities(
-                    report_code=report_code,
-                    start_time=int(fight.start_time),
-                    end_time=int(fight.end_time)
-                )
-                logger.info(f"✅ Retrieved ability data for {len(ability_data)} players")
-            except Exception as e:
-                logger.warning(f"Failed to get ability data: {e}")
-                ability_data = {}
             
             players = []
             
@@ -205,16 +194,6 @@ class SingleReportAnalyzer:
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
                                     
-                                    # Get ability data for this player
-                                    player_abilities = ability_data.get(final_name, {})
-                                    bar1_abilities = player_abilities.get('bar1', [])
-                                    bar2_abilities = player_abilities.get('bar2', [])
-                                    
-                                    # Use real ability data if available, otherwise show that no cast data exists
-                                    if not bar1_abilities and not bar2_abilities:
-                                        # This log doesn't contain cast/ability data - be transparent about it
-                                        bar1_abilities = ["[No ability data in this log - requires detailed combat logging]"]
-                                        bar2_abilities = ["[No ability data in this log - requires detailed combat logging]"]
                                     
                                     # Special debug logging for brainsnorkel
                                     if 'brainsnorkel' in final_name.lower():
@@ -224,16 +203,12 @@ class SingleReportAnalyzer:
                                             logger.info(f"   Gear #{idx}: {g_item}")
                                         logger.info(f"   Processed gear sets: {gear_sets}")
                                         logger.info(f"   Final gear count: {len(gear_sets)}")
-                                        logger.info(f"   Bar 1 abilities: {bar1_abilities}")
-                                        logger.info(f"   Bar 2 abilities: {bar2_abilities}")
                                     
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
                                         role=role_enum,
-                                        gear_sets=gear_sets,
-                                        bar1_abilities=bar1_abilities,
-                                        bar2_abilities=bar2_abilities
+                                        gear_sets=gear_sets
                                     )
                                     players.append(player)
                                     
