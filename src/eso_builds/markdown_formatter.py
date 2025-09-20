@@ -64,7 +64,12 @@ class MarkdownFormatter:
             for encounter in ranking.encounters:
                 clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
                 encounter_anchor = f"encounter-{clean_name}"
-                status_text = "✅ KILL" if encounter.kill else f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
+                # If boss percentage is 0%, that means it was killed (boss defeated)
+                # If boss percentage > 0%, that means it was a wipe at that percentage
+                if encounter.kill or encounter.boss_percentage == 0.0:
+                    status_text = "✅ KILL"
+                else:
+                    status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
                 lines.append(f"  - [{encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}](#{encounter_anchor})")
         
         return lines
@@ -98,7 +103,12 @@ class MarkdownFormatter:
         clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
         encounter_anchor = f"encounter-{clean_name}"
         
-        status_text = "✅ KILL" if encounter.kill else f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
+        # If boss percentage is 0%, that means it was killed (boss defeated)
+        # If boss percentage > 0%, that means it was a wipe at that percentage
+        if encounter.kill or encounter.boss_percentage == 0.0:
+            status_text = "✅ KILL"
+        else:
+            status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
         
         lines = [
             f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text} {{#{encounter_anchor}}}",
