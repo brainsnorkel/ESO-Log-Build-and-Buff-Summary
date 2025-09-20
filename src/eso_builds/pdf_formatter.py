@@ -140,7 +140,7 @@ class PDFReportFormatter:
         story = []
         
         # Add anchor for Report Analysis section with report title
-        report_analysis_title = f'<a name="report-analysis"/>Report Analysis: {ranking.log_code}'
+        report_analysis_title = f'<a name="report-analysis"/>Report Analysis - {ranking.log_code}'
         story.append(Paragraph(report_analysis_title, self.styles['Subtitle']))
         
         # Log URL - make full URL clickable
