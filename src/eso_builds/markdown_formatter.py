@@ -269,7 +269,7 @@ class MarkdownFormatter:
         ]
         
         # Define all tracked buffs and debuffs
-        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault']
+        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
         debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Create rows for the table (pad with empty entries if needed)

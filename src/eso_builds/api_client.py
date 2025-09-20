@@ -751,7 +751,7 @@ class ESOLogsClient:
             # Target buff/debuff names we want to track
             target_buffs = [
                 'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
-                'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault'
+                'Minor Toughness', 'Major Resolve', 'Powerful Assault'
             ]
             target_debuffs = [
                 'Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 
@@ -766,7 +766,6 @@ class ESOLogsClient:
                 'Major Force': ['Major Force', 'major-force', 'majorforce', 'Major-Force', 'MajorForce'],
                 'Minor Toughness': ['Minor Toughness', 'minor-toughness', 'minortoughness', 'Minor-Toughness', 'MinorToughness'],
                 'Major Resolve': ['Major Resolve', 'major-resolve', 'majorresolve', 'Major-Resolve', 'MajorResolve'],
-                'Pillager\'s Profit': ['Pillager\'s Profit', 'pillagers-profit', 'pillagersprofit', 'Pillagers-Profit', 'PillagersProfit'],
                 'Powerful Assault': ['Powerful Assault', 'powerful-assault', 'powerfulassault', 'Powerful-Assault', 'PowerfulAssault']
             }
             
@@ -795,6 +794,7 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
+                                aura_id = aura.get('id', None)  # Get ability ID if available
                                 
                                 # Check each target buff and its variations
                                 for target_buff, variations in buff_variations.items():
