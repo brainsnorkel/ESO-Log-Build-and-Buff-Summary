@@ -59,7 +59,7 @@ jobs:
           
     - name: Create Windows installer
       run: |
-        makensis installer.nsi
+        "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
         
     - name: Upload Windows installer artifact
       uses: actions/upload-artifact@v4
@@ -124,15 +124,13 @@ jobs:
         # Install create-dmg
         brew install create-dmg
         
-        # Create DMG (without icon since we don't have icon.icns)
+        # Check what was actually created
+        ls -la dist/
+        
+        # Create a simple DMG without fancy positioning
         create-dmg \
           --volname "ESO Log Build and Buff Summary" \
-          --window-pos 200 120 \
           --window-size 600 300 \
-          --icon-size 100 \
-          --icon "ESO-Log-Build-and-Buff-Summary.app" 175 120 \
-          --hide-extension "ESO-Log-Build-and-Buff-Summary.app" \
-          --app-drop-link 425 120 \
           "ESO-Log-Build-and-Buff-Summary-macOS-${{ github.event.release.tag_name }}.dmg" \
           "dist/"
         
@@ -213,8 +211,8 @@ jobs:
         # Copy executable
         cp dist/ESO-Log-Build-and-Buff-Summary ESO-Log-Build-and-Buff-Summary.AppDir/usr/bin/
         
-        # Create desktop file
-        cat > ESO-Log-Build-and-Buff-Summary.AppDir/usr/share/applications/eso-log-build-and-buff-summary.desktop << EOF
+        # Create desktop file (AppImage expects it in AppDir root)
+        cat > ESO-Log-Build-and-Buff-Summary.AppDir/eso-log-build-and-buff-summary.desktop << EOF
         [Desktop Entry]
         Type=Application
         Name=ESO Log Build and Buff Summary
