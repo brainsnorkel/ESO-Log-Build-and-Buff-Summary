@@ -120,8 +120,8 @@ Examples:
     parser.add_argument('--output', choices=['console', 'markdown', 'both'], default='console',
                        help='Output format (default: console)')
     
-    parser.add_argument('--output-dir', type=str, default='.',
-                       help='Directory for output files (default: current directory)')
+    parser.add_argument('--output-dir', type=str, default='reports',
+                       help='Directory for output files (default: reports)')
     
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Enable verbose logging')

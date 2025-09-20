@@ -41,7 +41,7 @@ class MarkdownFormatter:
     def _format_header(self, trial_report: TrialReport) -> List[str]:
         """Format the markdown header."""
         lines = [
-            f"# {trial_report.trial_name} - Build Analysis Report",
+            f"# {trial_report.trial_name} - Builds and Buff Report",
             "",
             f"**Generated:** {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}  ",
             f"**Zone ID:** {trial_report.zone_id}  ",

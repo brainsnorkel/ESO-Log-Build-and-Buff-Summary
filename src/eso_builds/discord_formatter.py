@@ -24,7 +24,7 @@ class DiscordReportFormatter:
         lines = []
         
         # Main header with Discord formatting
-        title = f"**{trial_report.trial_name} - Build Analysis Report**"
+        title = f"**{trial_report.trial_name} - Builds and Buff Report**"
         lines.extend([
             title,
             "",
