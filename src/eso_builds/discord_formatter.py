@@ -98,43 +98,27 @@ class DiscordReportFormatter:
         return lines
     
     def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float]) -> List[str]:
-        """Format buff/debuff uptimes for Discord."""
+        """Format buff/debuff uptimes for Discord in two columns."""
         lines = [
             "#### 📊 **Buff/Debuff Uptimes**",
             ""
         ]
         
-        # Separate buffs and debuffs
+        # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve']
         debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle']
         
-        # Discord doesn't have great table support, so use a compact format
-        buff_lines = []
-        debuff_lines = []
-        
-        # Add buffs
+        # Create two-column layout for Discord
+        lines.append("**🔺 Buffs:**")
         for buff_name in buffs:
-            if buff_name in buff_uptimes:
-                uptime = buff_uptimes[buff_name]
-                buff_lines.append(f"🔺 **{buff_name}**: {uptime:.1f}%")
+            uptime = buff_uptimes.get(buff_name, 0.0)
+            lines.append(f"• **{buff_name}**: {uptime:.1f}%")
         
-        # Add debuffs
+        lines.append("")
+        lines.append("**🔻 Debuffs:**")
         for debuff_name in debuffs:
-            if debuff_name in buff_uptimes:
-                uptime = buff_uptimes[debuff_name]
-                debuff_lines.append(f"🔻 **{debuff_name}**: {uptime:.1f}%")
-        
-        # Combine buffs and debuffs
-        if buff_lines:
-            lines.extend(buff_lines)
-        if debuff_lines:
-            if buff_lines:
-                lines.append("")
-            lines.extend(debuff_lines)
-        
-        # If no data found, show a message
-        if not buff_lines and not debuff_lines:
-            lines.append("*No buff/debuff data available*")
+            uptime = buff_uptimes.get(debuff_name, 0.0)
+            lines.append(f"• **{debuff_name}**: {uptime:.1f}%")
         
         return lines
     

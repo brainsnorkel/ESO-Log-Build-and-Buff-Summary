@@ -239,33 +239,43 @@ class MarkdownFormatter:
         return "\n".join(lines)
     
     def _format_buff_debuff_table(self, buff_uptimes: Dict[str, float]) -> List[str]:
-        """Format buff/debuff uptimes as a markdown table."""
+        """Format buff/debuff uptimes as a two-column markdown table."""
         lines = [
             "#### 📊 Buff/Debuff Uptimes",
             "",
-            "| Type | Name | Uptime |",
-            "|------|------|--------|"
+            "| 🔺 **Buffs** | **Uptime** | 🔻 **Debuffs** | **Uptime** |",
+            "|--------------|------------|-----------------|------------|"
         ]
         
-        # Separate buffs and debuffs
+        # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve']
         debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle']
         
-        # Add buffs first
-        for buff_name in buffs:
-            if buff_name in buff_uptimes:
-                uptime = buff_uptimes[buff_name]
-                lines.append(f"| 🔺 Buff | {buff_name} | {uptime:.1f}% |")
+        # Create rows for the table (pad with empty entries if needed)
+        max_rows = max(len(buffs), len(debuffs))
         
-        # Add debuffs
-        for debuff_name in debuffs:
-            if debuff_name in buff_uptimes:
-                uptime = buff_uptimes[debuff_name]
-                lines.append(f"| 🔻 Debuff | {debuff_name} | {uptime:.1f}% |")
-        
-        # If no data found, show a message
-        if len(lines) == 4:  # Only headers
-            lines.append("| - | *No buff/debuff data available* | - |")
+        for i in range(max_rows):
+            # Get buff info for this row
+            if i < len(buffs):
+                buff_name = buffs[i]
+                buff_uptime = buff_uptimes.get(buff_name, 0.0)
+                buff_cell = buff_name
+                buff_uptime_cell = f"{buff_uptime:.1f}%"
+            else:
+                buff_cell = ""
+                buff_uptime_cell = ""
+            
+            # Get debuff info for this row
+            if i < len(debuffs):
+                debuff_name = debuffs[i]
+                debuff_uptime = buff_uptimes.get(debuff_name, 0.0)
+                debuff_cell = debuff_name
+                debuff_uptime_cell = f"{debuff_uptime:.1f}%"
+            else:
+                debuff_cell = ""
+                debuff_uptime_cell = ""
+            
+            lines.append(f"| {buff_cell} | {buff_uptime_cell} | {debuff_cell} | {debuff_uptime_cell} |")
         
         return lines
     
