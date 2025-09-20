@@ -6,7 +6,7 @@ proper structure, tables, and links for better readability and sharing.
 """
 
 import logging
-from typing import List
+from typing import List, Dict
 from datetime import datetime
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role
 
@@ -102,11 +102,15 @@ class MarkdownFormatter:
             ""
         ]
         
+        # Add Buff/Debuff Uptime Table
+        if encounter.buff_uptimes:
+            lines.extend(self._format_buff_debuff_table(encounter.buff_uptimes))
+            lines.append("")
+        
         # Create team composition summary
         tanks = encounter.tanks
         healers = encounter.healers
         dps = encounter.dps
-        
         
         # Format as tables for better readability
         if tanks:
@@ -222,6 +226,37 @@ class MarkdownFormatter:
             lines.extend(["", "---", ""])
         
         return "\n".join(lines)
+    
+    def _format_buff_debuff_table(self, buff_uptimes: Dict[str, float]) -> List[str]:
+        """Format buff/debuff uptimes as a markdown table."""
+        lines = [
+            "#### 📊 Buff/Debuff Uptimes",
+            "",
+            "| Type | Name | Uptime |",
+            "|------|------|--------|"
+        ]
+        
+        # Separate buffs and debuffs
+        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve']
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle']
+        
+        # Add buffs first
+        for buff_name in buffs:
+            if buff_name in buff_uptimes:
+                uptime = buff_uptimes[buff_name]
+                lines.append(f"| 🔺 Buff | {buff_name} | {uptime:.1f}% |")
+        
+        # Add debuffs
+        for debuff_name in debuffs:
+            if debuff_name in buff_uptimes:
+                uptime = buff_uptimes[debuff_name]
+                lines.append(f"| 🔻 Debuff | {debuff_name} | {uptime:.1f}% |")
+        
+        # If no data found, show a message
+        if len(lines) == 4:  # Only headers
+            lines.append("| - | *No buff/debuff data available* | - |")
+        
+        return lines
     
     def get_filename(self, trial_name: str) -> str:
         """Generate a safe filename for the trial report."""

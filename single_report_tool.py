@@ -21,6 +21,7 @@ except ImportError:
 from src.eso_builds.single_report_analyzer import SingleReportAnalyzer
 from src.eso_builds.report_formatter import ReportFormatter
 from src.eso_builds.markdown_formatter import MarkdownFormatter
+from src.eso_builds.discord_formatter import DiscordReportFormatter
 
 
 def setup_logging(verbose: bool = False):
@@ -62,18 +63,31 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             print(console_output)
         
         if output_format in ["markdown", "both"]:
-            markdown_formatter = MarkdownFormatter()
             os.makedirs(output_dir, exist_ok=True)
-            
             from datetime import datetime
-            filename = f"single_report_{report_code}_{datetime.now().strftime('%Y%m%d_%H%M')}.md"
-            filepath = os.path.join(output_dir, filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+            
+            # Generate Markdown report
+            markdown_formatter = MarkdownFormatter()
+            markdown_filename = f"single_report_{report_code}_{timestamp}.md"
+            markdown_filepath = os.path.join(output_dir, markdown_filename)
             
             markdown_content = markdown_formatter.format_trial_report(trial_report)
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(markdown_filepath, 'w', encoding='utf-8') as f:
                 f.write(markdown_content)
             
-            print(f"\n💾 Markdown report saved to: {filepath}")
+            print(f"\n💾 Markdown report saved to: {markdown_filepath}")
+            
+            # Generate Discord report
+            discord_formatter = DiscordReportFormatter()
+            discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
+            discord_filepath = os.path.join(output_dir, discord_filename)
+            
+            discord_content = discord_formatter.format_trial_report(trial_report)
+            with open(discord_filepath, 'w', encoding='utf-8') as f:
+                f.write(discord_content)
+            
+            print(f"💬 Discord report saved to: {discord_filepath}")
         
         return True
         
