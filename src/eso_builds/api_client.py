@@ -452,9 +452,11 @@ class ESOLogsClient:
                         gear_item = {
                             'setID': getattr(item, 'set_id', None),
                             'setName': getattr(item, 'set_name', None),
+                            'name': getattr(item, 'name', ''),  # Individual item name
                             'slot': getattr(item, 'slot', 'unknown')
                         }
-                        if gear_item['setID'] and gear_item['setName']:
+                        # Include items that have either setID or setName (more general detection)
+                        if gear_item['setID'] or gear_item['setName'] or gear_item['name']:
                             gear_data['gear'].append(gear_item)
                 
                 gear_sets = parser.parse_player_gear(gear_data)

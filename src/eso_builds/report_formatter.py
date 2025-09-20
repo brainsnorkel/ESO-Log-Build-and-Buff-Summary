@@ -30,7 +30,13 @@ class ReportFormatter:
         """Get the shortened display name for a class."""
         return self.CLASS_MAPPING.get(class_name, class_name)
     
-    def format_trial_report(self, trial_report: TrialReport) -> str:
+    def _get_anonymous_name(self, original_name: str, name_counter: dict) -> str:
+        """Generate an anonymous name for a player."""
+        if original_name not in name_counter:
+            name_counter[original_name] = len(name_counter) + 1
+        return f"anon{name_counter[original_name]}"
+    
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> str:
         """Format a complete trial report."""
         lines = []
         
@@ -39,12 +45,12 @@ class ReportFormatter:
         
         # Process each ranking
         for ranking in trial_report.rankings:
-            lines.extend(self._format_ranking(ranking))
+            lines.extend(self._format_ranking(ranking, anonymize=anonymize))
             lines.append("")  # Empty line between rankings
         
         return "\n".join(lines)
     
-    def _format_ranking(self, ranking: LogRanking) -> List[str]:
+    def _format_ranking(self, ranking: LogRanking, anonymize: bool = False) -> List[str]:
         """Format a single ranking with all its encounters."""
         lines = []
         

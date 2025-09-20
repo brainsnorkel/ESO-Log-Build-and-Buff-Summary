@@ -46,6 +46,20 @@ This creates three files in the `reports/` directory:
 - Discord (.txt) for chat sharing
 - PDF (.pdf) for professional presentation
 
+### 3. Anonymize Reports
+
+To generate anonymized reports that remove player names, URLs, and identifying information:
+
+```bash
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all --anonymize
+```
+
+Anonymized reports will:
+- Replace all player names with "anon1", "anon2", etc.
+- Remove log URLs from the output
+- Change the report title to "Anonymous Trial - Summary Report"
+- Keep all gear and buff/debuff information for analysis purposes
+
 ## 🔍 Understanding Report Codes
 
 ### Where to Find Them
@@ -153,6 +167,9 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf
 
 # Generate all formats
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
+
+# Generate anonymized reports (removes player names, URLs, etc.)
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all --anonymize
 ```
 
 ### Custom Output Directory

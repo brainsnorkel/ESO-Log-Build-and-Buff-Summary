@@ -154,6 +154,39 @@ class GearParser:
                             'is_perfected': False,
                             'original_name': set_name
                         }
+                else:
+                    # Regular set without setID but with setName
+                    cleaned_name = self._clean_set_name(set_name)
+                    logger.debug(f"Found regular set without setID: '{set_name}' -> '{cleaned_name}'")
+                    
+                    piece_count = 2 if self._is_two_handed_weapon(item_name) else 1
+                    set_counts[cleaned_name] += piece_count
+                    slot_info[cleaned_name].append(slot)
+                    
+                    if cleaned_name not in set_info:
+                        set_info[cleaned_name] = {
+                            'name': cleaned_name,
+                            'is_perfected': False,
+                            'original_name': set_name
+                        }
+            
+            # Handle items with only individual name (no set information)
+            elif item_name and not set_id and not set_name:
+                logger.debug(f"Found item with only name: '{item_name}', slot={slot}")
+                # Process ALL items with names, not just "known" ones
+                cleaned_name = self._clean_set_name(item_name)
+                logger.debug(f"Processing gear item by name: '{item_name}' -> '{cleaned_name}'")
+                
+                piece_count = 2 if self._is_two_handed_weapon(item_name) else 1
+                set_counts[cleaned_name] += piece_count
+                slot_info[cleaned_name].append(slot)
+                
+                if cleaned_name not in set_info:
+                    set_info[cleaned_name] = {
+                        'name': cleaned_name,
+                        'is_perfected': False,
+                        'original_name': item_name
+                    }
             
             # Log items that don't match any category
             else:
@@ -178,10 +211,8 @@ class GearParser:
             info = set_info[set_name]
             original_name = info.get('original_name', set_name)
             
-            # Include single-piece sets if they are mythics, arena weapons, or monster sets
-            if count < 2 and not (self._is_mythic_or_arena_weapon(original_name) or self._is_monster_set(set_name)):
-                logger.debug(f"Skipping single-piece non-special set: {set_name} (original: {original_name})")
-                continue
+            # Include ALL gear sets, regardless of piece count - let the API data determine what's equipped
+            # No longer filter out single-piece sets as they may be legitimate gear choices
                 
             slots = slot_info[set_name]
             
@@ -255,12 +286,20 @@ class GearParser:
         
         if not is_valid_combination:
             logger.warning(f"Unusual set combination detected: {current_combination}")
+            # Log detailed breakdown of what sets are contributing to this unusual combination
+            logger.warning("Detailed set breakdown:")
+            for gear_set in gear_sets:
+                logger.warning(f"  - {gear_set.piece_count}pc {gear_set.name}")
             # Still return the sets, but log the warning
         
         # Additional validation: check total pieces make sense
         expected_gear_slots = 12  # Standard ESO gear slots
         if set_pieces > expected_gear_slots:
             logger.warning(f"Set pieces ({set_pieces}) exceed expected gear slots ({expected_gear_slots})")
+            # Log detailed breakdown of all sets and their pieces when exceeding 12
+            logger.warning("Detailed breakdown of all detected sets:")
+            for gear_set in gear_sets:
+                logger.warning(f"  - {gear_set.piece_count}pc {gear_set.name}")
         
         return gear_sets
     
@@ -278,7 +317,7 @@ class GearParser:
             'troll king', 'bone pirate', 'stormfist', 'selene', 'velidreth',
             'grothdarr', 'ilambris', 'nerien\'eth', 'spawn of mephala', 'tremorscale',
             'thurvokun', 'balorgh', 'maarselok', 'grundwulf', 'stone-talker',
-            'nazaray', 'archdruid devyric', 'ozezan the inferno', 'nunatak'
+            'nazaray', 'archdruid devyric', 'ozezan the inferno', 'nunatak', 'magma incarnate'
         ]
         
         return any(monster in set_lower for monster in monster_set_names)
@@ -299,6 +338,7 @@ class GearParser:
             
         return cleaned
     
+
     def _is_perfected_set(self, set_name: str) -> bool:
         """Determine if a set name indicates a perfected set."""
         if not set_name:
@@ -329,7 +369,8 @@ class GearParser:
             'death dealer', 'markyn ring', 'oakensoul', 'velothi ur-mage',
             'mora\'s whispers', 'esoteric environment greaves', 'spaulder of ruin',
             'lefthander\'s aegis belt', 'pearls of ehlnofey', 'shapeshifter\'s chain',
-            'sea-serpent\'s coil', 'antiquarian\'s eye', 'torc of tonal constancy'
+            'sea-serpent\'s coil', 'antiquarian\'s eye', 'torc of tonal constancy',
+            'cryptcanon'
         ]
         
         # Monster sets should NOT be treated as individual items - they are 2-piece sets

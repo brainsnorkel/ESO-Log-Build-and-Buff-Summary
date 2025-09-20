@@ -45,12 +45,15 @@ class DiscordReportFormatter:
         
         return mapped_class
     
-    def format_trial_report(self, trial_report: TrialReport) -> str:
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> str:
         """Format a complete trial report for Discord."""
         lines = []
         
         # Main header with Discord formatting
-        title = f"**{trial_report.trial_name} - Summary Report - Logged by Unknown**"
+        if anonymize:
+            title = f"**Anonymous Trial - Summary Report**"
+        else:
+            title = f"**{trial_report.trial_name} - Summary Report - Logged by Unknown**"
         lines.extend([
             title,
             "",
@@ -61,16 +64,25 @@ class DiscordReportFormatter:
         # For single report analysis, process encounters from the first ranking
         if trial_report.rankings and len(trial_report.rankings) > 0:
             ranking = trial_report.rankings[0]
-            lines.extend([
-                "## 📋 **Report Analysis**",
-                "",
-                f"**🔗 Log URL:** <https://www.esologs.com/reports/{ranking.log_code}>",
-                f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
-                ""
-            ])
+            
+            if anonymize:
+                lines.extend([
+                    "## 📋 **Report Analysis**",
+                    "",
+                    f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
+                    ""
+                ])
+            else:
+                lines.extend([
+                    "## 📋 **Report Analysis**",
+                    "",
+                    f"**🔗 Log URL:** <https://www.esologs.com/reports/{ranking.log_code}>",
+                    f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
+                    ""
+                ])
             
             for encounter in ranking.encounters:
-                lines.extend(self._format_encounter_discord(encounter))
+                lines.extend(self._format_encounter_discord(encounter, anonymize=anonymize))
                 lines.append("")
             
         
@@ -82,7 +94,7 @@ class DiscordReportFormatter:
         
         return "\n".join(lines)
     
-    def _format_encounter_discord(self, encounter: EncounterResult) -> List[str]:
+    def _format_encounter_discord(self, encounter: EncounterResult, anonymize: bool = False) -> List[str]:
         """Format a single encounter for Discord."""
         # Determine kill status - treat 0.0% or very low boss health as kill
         if encounter.kill or encounter.boss_percentage <= 0.1:
@@ -107,15 +119,15 @@ class DiscordReportFormatter:
         
         # Format role sections
         if tanks:
-            lines.extend(self._format_role_discord("**Tanks**", tanks))
+            lines.extend(self._format_role_discord("**Tanks**", tanks, anonymize=anonymize))
             lines.append("")
         
         if healers:
-            lines.extend(self._format_role_discord("**Healers**", healers))
+            lines.extend(self._format_role_discord("**Healers**", healers, anonymize=anonymize))
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_discord("**DPS**", dps))
+            lines.extend(self._format_role_discord("**DPS**", dps, anonymize=anonymize))
             lines.append("")
         
         return lines
@@ -212,13 +224,19 @@ class DiscordReportFormatter:
         return lines
     
     
-    def _format_role_discord(self, role_header: str, players: List[PlayerBuild]) -> List[str]:
+    def _format_role_discord(self, role_header: str, players: List[PlayerBuild], anonymize: bool = False) -> List[str]:
         """Format players of a specific role for Discord."""
         lines = [role_header]
         
+        # Track anonymous names for consistency
+        name_counter = {}
+        
         for i, player in enumerate(players, 1):
             # Player header - escape @ symbols with backticks to prevent Discord pings
-            player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
+            if anonymize:
+                player_name = f"anon{i}"
+            else:
+                player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
             # Gear sets in a compact format

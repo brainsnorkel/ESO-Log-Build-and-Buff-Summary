@@ -80,12 +80,12 @@ class MarkdownFormatter:
                 return True
         return False
     
-    def format_trial_report(self, trial_report: TrialReport) -> str:
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> str:
         """Format a complete trial report as markdown."""
         lines = []
         
         # Report header with metadata
-        lines.extend(self._format_header(trial_report))
+        lines.extend(self._format_header(trial_report, anonymize=anonymize))
         lines.append("")
         
         # Table of contents
@@ -94,21 +94,28 @@ class MarkdownFormatter:
         
         # Process each report
         for ranking in trial_report.rankings:
-            lines.extend(self._format_ranking_markdown(ranking, 1))
+            lines.extend(self._format_ranking_markdown(ranking, 1, anonymize=anonymize))
             lines.append("")
         
         # Footer with generation info
-        lines.extend(self._format_footer(trial_report))
+        lines.extend(self._format_footer(trial_report, anonymize=anonymize))
         
         return "\n".join(lines)
     
-    def _format_header(self, trial_report: TrialReport) -> List[str]:
+    def _format_header(self, trial_report: TrialReport, anonymize: bool = False) -> List[str]:
         """Format the markdown header."""
-        lines = [
-            f"# {trial_report.trial_name} - Summary Report - Logged by Unknown",
-            "",
-            "---"
-        ]
+        if anonymize:
+            lines = [
+                f"# Anonymous Trial - Summary Report",
+                "",
+                "---"
+            ]
+        else:
+            lines = [
+                f"# {trial_report.trial_name} - Summary Report - Logged by Unknown",
+                "",
+                "---"
+            ]
         return lines
     
     def _format_table_of_contents(self, trial_report: TrialReport) -> List[str]:
@@ -133,15 +140,17 @@ class MarkdownFormatter:
         
         return lines
     
-    def _format_ranking_markdown(self, ranking: LogRanking, rank_num: int) -> List[str]:
+    def _format_ranking_markdown(self, ranking: LogRanking, rank_num: int, anonymize: bool = False) -> List[str]:
         """Format a single ranking as markdown."""
         lines = [
             f"## Report Analysis {{#report-analysis}}",
             "",
-            f"**🔗 Log URL:** [{ranking.log_code}]({ranking.log_url})  "
         ]
         
-        if ranking.guild_name:
+        if not anonymize:
+            lines.append(f"**🔗 Log URL:** [{ranking.log_code}]({ranking.log_url})  ")
+        
+        if ranking.guild_name and not anonymize:
             lines.append(f"**🏰 Guild:** {ranking.guild_name}  ")
         
         if ranking.date:
@@ -151,14 +160,14 @@ class MarkdownFormatter:
         
         # Process each encounter
         for encounter in ranking.encounters:
-            lines.extend(self._format_encounter_markdown(encounter, rank_num))
+            lines.extend(self._format_encounter_markdown(encounter, rank_num, anonymize=anonymize))
             lines.append("")
         
         
         lines.append("---")
         return lines
     
-    def _format_encounter_markdown(self, encounter: EncounterResult, rank_num: int) -> List[str]:
+    def _format_encounter_markdown(self, encounter: EncounterResult, rank_num: int, anonymize: bool = False) -> List[str]:
         """Format a single encounter as markdown with tables."""
         clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
         encounter_anchor = f"encounter-{clean_name}"
@@ -186,20 +195,20 @@ class MarkdownFormatter:
         
         # Format as tables for better readability
         if tanks:
-            lines.extend(self._format_role_table("Tanks", tanks))
+            lines.extend(self._format_role_table("Tanks", tanks, anonymize=anonymize))
             lines.append("")
         
         if healers:
-            lines.extend(self._format_role_table("Healers", healers))
+            lines.extend(self._format_role_table("Healers", healers, anonymize=anonymize))
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_table("DPS", dps))
+            lines.extend(self._format_role_table("DPS", dps, anonymize=anonymize))
             lines.append("")
         
         return lines
     
-    def _format_role_table(self, role_title: str, players: List[PlayerBuild]) -> List[str]:
+    def _format_role_table(self, role_title: str, players: List[PlayerBuild], anonymize: bool = False) -> List[str]:
         """Format a role section as a markdown table."""
         lines = [
             f"#### {role_title}",
@@ -211,7 +220,11 @@ class MarkdownFormatter:
         for i, player in enumerate(players, 1):
             gear_str = self._format_gear_sets_for_table(player.gear_sets)
             class_name = self._get_class_display_name(player.character_class, player)
-            lines.append(f"| {player.name} | {class_name} | {gear_str} |")
+            if anonymize:
+                player_name = f"anon{i}"
+            else:
+                player_name = player.name
+            lines.append(f"| {player_name} | {class_name} | {gear_str} |")
         
         # Add empty rows for missing players (especially DPS up to 8)
         if "DPS" in role_title:
@@ -233,15 +246,13 @@ class MarkdownFormatter:
         
         return ", ".join(formatted_sets)
     
-    def _format_footer(self, trial_report: TrialReport) -> List[str]:
+    def _format_footer(self, trial_report: TrialReport, anonymize: bool = False) -> List[str]:
         """Format the markdown footer."""
         lines = [
             "---",
             "",
             "## 📊 Report Information",
             "",
-            f"- **Trial:** {trial_report.trial_name}",
-            f"- **Zone ID:** {trial_report.zone_id}",
             f"- **Reports Analyzed:** {len(trial_report.rankings)}",
             f"- **Generated:** {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}",
             f"- **Tool:** ESO Logs Build and Buff Summary Analyzer",

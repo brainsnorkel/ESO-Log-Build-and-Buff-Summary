@@ -19,6 +19,9 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
   - Table of contents with navigation
   - Proper page breaks between encounters
   - Text wrapping in tables
+- **Anonymization Support**: 
+  - Option to generate anonymized reports with player names replaced by "anon1", "anon2", etc.
+  - Removes URLs and identifying information while preserving all gear and buff data
 - **Kill/Wipe Status**: Accurate fight outcome detection with boss health percentages
 
 ## 📋 Requirements
@@ -105,6 +108,9 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output all --output-dir my_repor
 
 # Enable verbose logging
 python single_report_tool.py 3gjVGWB2dxCL8XAw --verbose
+
+# Generate anonymized reports (removes player names, URLs, etc.)
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all --anonymize
 ```
 
 ### Complete Command Reference
@@ -119,6 +125,7 @@ Options:
   --output {console,markdown,discord,pdf,all}
                         Output format (default: console)
   --output-dir DIR      Directory for output files (default: reports)
+  --anonymize           Anonymize reports by replacing player names with anon1, anon2, etc.
   --verbose, -v         Enable verbose logging
   --help, -h           Show help message
 ```

@@ -147,7 +147,7 @@ class PDFReportFormatter:
             leftIndent=15
         ))
     
-    def format_trial_report(self, trial_report: TrialReport) -> bytes:
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> bytes:
         """Format a complete trial report as a PDF document."""
         from io import BytesIO
         
@@ -168,16 +168,24 @@ class PDFReportFormatter:
         story = []
         
         # Add title
-        title_text = f"{trial_report.trial_name} - Summary Report - Logged by Unknown"
+        if anonymize:
+            title_text = f"Anonymous Trial - Summary Report"
+        else:
+            title_text = f"{trial_report.trial_name} - Summary Report - Logged by Unknown"
         title = Paragraph(title_text, self.styles['CustomTitle'])
         story.append(title)
         story.append(Spacer(1, 6))
         
         # Add metadata
-        metadata_text = f"""
-        <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
-        <b>Zone ID:</b> {trial_report.zone_id}<br/>
-        """
+        if anonymize:
+            metadata_text = f"""
+            <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
+            """
+        else:
+            metadata_text = f"""
+            <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
+            <b>Zone ID:</b> {trial_report.zone_id}<br/>
+            """
         metadata = Paragraph(metadata_text, self.styles['Normal'])
         story.append(metadata)
         story.append(Spacer(1, 12))
@@ -189,7 +197,7 @@ class PDFReportFormatter:
         # Process rankings (for single report, there's typically one ranking)
         if trial_report.rankings:
             for ranking in trial_report.rankings:
-                story.extend(self._format_ranking_pdf(ranking, trial_report.trial_name))
+                story.extend(self._format_ranking_pdf(ranking, trial_report.trial_name, anonymize=anonymize))
         
         # Build the PDF
         doc.build(story)
@@ -200,7 +208,7 @@ class PDFReportFormatter:
         
         return pdf_bytes
     
-    def _format_ranking_pdf(self, ranking: LogRanking, trial_name: str) -> List:
+    def _format_ranking_pdf(self, ranking: LogRanking, trial_name: str, anonymize: bool = False) -> List:
         """Format a single ranking as PDF elements."""
         story = []
         
@@ -208,9 +216,10 @@ class PDFReportFormatter:
         report_analysis_title = f'<a name="report-analysis"/>Report Analysis - {trial_name}'
         story.append(Paragraph(report_analysis_title, self.styles['Subtitle']))
         
-        # Log URL - make full URL clickable
-        log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}" color="blue">{ranking.log_url}</link>'
-        story.append(Paragraph(log_url_text, self.styles['Normal']))
+        # Log URL - make full URL clickable (only if not anonymized)
+        if not anonymize:
+            log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}" color="blue">{ranking.log_url}</link>'
+            story.append(Paragraph(log_url_text, self.styles['Normal']))
         
         if ranking.date:
             date_text = f"<b>Date:</b> {ranking.date.strftime('%Y-%m-%d %H:%M UTC')}"
@@ -220,13 +229,13 @@ class PDFReportFormatter:
         
         # Process encounters with index for linking
         for i, encounter in enumerate(ranking.encounters):
-            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i))
+            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i, anonymize=anonymize))
             story.append(Spacer(1, 6))
         
         
         return story
     
-    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False, encounter_index: int = 0) -> List:
+    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False, encounter_index: int = 0, anonymize: bool = False) -> List:
         """Format a single encounter as PDF elements."""
         story = []
         
@@ -260,15 +269,15 @@ class PDFReportFormatter:
         dps = encounter.dps
         
         if tanks:
-            story.extend(self._format_role_table_pdf("Tanks", tanks))
+            story.extend(self._format_role_table_pdf("Tanks", tanks, anonymize=anonymize))
             story.append(Spacer(1, 6))
         
         if healers:
-            story.extend(self._format_role_table_pdf("Healers", healers))
+            story.extend(self._format_role_table_pdf("Healers", healers, anonymize=anonymize))
             story.append(Spacer(1, 6))
         
         if dps:
-            story.extend(self._format_role_table_pdf("DPS", dps))
+            story.extend(self._format_role_table_pdf("DPS", dps, anonymize=anonymize))
             story.append(Spacer(1, 6))
         
         return story
@@ -365,7 +374,7 @@ class PDFReportFormatter:
         story.append(KeepTogether([table]))
         return story
     
-    def _format_role_table_pdf(self, role_title: str, players: List[PlayerBuild]) -> List:
+    def _format_role_table_pdf(self, role_title: str, players: List[PlayerBuild], anonymize: bool = False) -> List:
         """Format a role section as a PDF table."""
         story = []
         
@@ -380,11 +389,15 @@ class PDFReportFormatter:
              Paragraph('<b>Gear Sets</b>', self.styles['Normal'])]
         ]
         
-        for player in players:
+        for i, player in enumerate(players, 1):
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
             class_name = self._get_class_display_name(player.character_class, player)
+            if anonymize:
+                player_name = f"anon{i}"
+            else:
+                player_name = player.name
             table_data.append([
-                Paragraph(player.name, self.styles['Normal']),
+                Paragraph(player_name, self.styles['Normal']),
                 Paragraph(class_name, self.styles['Normal']),
                 Paragraph(gear_str, self.styles['Normal'])
             ])

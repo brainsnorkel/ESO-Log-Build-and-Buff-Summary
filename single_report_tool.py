@@ -67,7 +67,7 @@ def setup_logging(verbose: bool = False):
     logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = "."):
+async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False):
     """Analyze a single ESO Logs report."""
     print(f"🔍 Analyzing ESO Logs Report: {report_code}")
     print("=" * 50)
@@ -93,7 +93,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
         # Generate output
         if output_format in ["console", "both"]:
             formatter = ReportFormatter()
-            console_output = formatter.format_trial_report(trial_report)
+            console_output = formatter.format_trial_report(trial_report, anonymize=anonymize)
             print("\n" + "=" * 60)
             print("REPORT OUTPUT:")
             print("=" * 60)
@@ -111,7 +111,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                 markdown_filename = f"single_report_{report_code}_{timestamp}.md"
                 markdown_filepath = os.path.join(output_dir, markdown_filename)
                 
-                markdown_content = markdown_formatter.format_trial_report(trial_report)
+                markdown_content = markdown_formatter.format_trial_report(trial_report, anonymize=anonymize)
                 with open(markdown_filepath, 'w', encoding='utf-8') as f:
                     f.write(markdown_content)
                 
@@ -123,7 +123,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                 discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
                 discord_filepath = os.path.join(output_dir, discord_filename)
                 
-                discord_content = discord_formatter.format_trial_report(trial_report)
+                discord_content = discord_formatter.format_trial_report(trial_report, anonymize=anonymize)
                 with open(discord_filepath, 'w', encoding='utf-8') as f:
                     f.write(discord_content)
                 
@@ -137,7 +137,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                 pdf_filename = f"single_report_{report_code}_{timestamp}.pdf"
                 pdf_filepath = os.path.join(output_dir, pdf_filename)
                 
-                pdf_content = pdf_formatter.format_trial_report(trial_report)
+                pdf_content = pdf_formatter.format_trial_report(trial_report, anonymize=anonymize)
                 with open(pdf_filepath, 'wb') as f:
                     f.write(pdf_content)
                 
@@ -183,6 +183,9 @@ Examples:
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Enable verbose logging')
     
+    parser.add_argument('--anonymize', action='store_true',
+                       help='Anonymize the report by replacing player names with anon1, anon2, etc. and removing URLs')
+    
     args = parser.parse_args()
     
     # Set up logging
@@ -211,7 +214,7 @@ Examples:
     
     # Run analysis
     try:
-        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir))
+        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize))
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print("\n⏹️ Analysis cancelled by user")
