@@ -1,4 +1,5 @@
 name: Build Multi-Platform Installers
+# Updated to use v4 artifact actions
 
 on:
   release:
