@@ -91,7 +91,6 @@ class PDFReportFormatter:
         metadata_text = f"""
         <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
         <b>Zone ID:</b> {trial_report.zone_id}<br/>
-        <b>Reports Analyzed:</b> {len(trial_report.rankings) if trial_report.rankings else 1}
         """
         metadata = Paragraph(metadata_text, self.styles['Normal'])
         story.append(metadata)
@@ -115,13 +114,8 @@ class PDFReportFormatter:
         """Format a single ranking as PDF elements."""
         story = []
         
-        # Ranking header (for single reports, this is just the report info)
-        if ranking.rank > 0:
-            rank_title = f"Rank {ranking.rank}: {ranking.score:.2f} Score"
-        else:
-            rank_title = "Report Analysis"
-        
-        story.append(Paragraph(rank_title, self.styles['Subtitle']))
+        # Report Analysis header (no rank/score for single reports)
+        story.append(Paragraph("Report Analysis", self.styles['Subtitle']))
         
         # Log URL
         log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}">{ranking.log_code}</link>'

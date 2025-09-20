@@ -30,7 +30,6 @@ class DiscordReportFormatter:
             "",
             f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC",
             f"**Zone ID:** {trial_report.zone_id}",
-            f"**Reports Analyzed:** {len(trial_report.rankings) if trial_report.rankings else 1}",
             "",
             "─" * 50,
             ""
@@ -153,7 +152,7 @@ class DiscordReportFormatter:
     def _format_ranking_discord(self, ranking: LogRanking) -> List[str]:
         """Format a ranking section for Discord (future expansion)."""
         lines = [
-            f"## **Rank {ranking.rank}: {ranking.score:.2f} Score**",
+            f"## **Report Analysis: {ranking.log_code}**",
             "",
             f"**🔗 Log URL:** <{ranking.log_url}>",
             f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",

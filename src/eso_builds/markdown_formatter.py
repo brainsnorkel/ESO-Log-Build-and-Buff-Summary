@@ -45,7 +45,6 @@ class MarkdownFormatter:
             "",
             f"**Generated:** {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}  ",
             f"**Zone ID:** {trial_report.zone_id}  ",
-            f"**Reports Analyzed:** {len(trial_report.rankings)}  ",
             "",
             "---"
         ]
@@ -180,7 +179,7 @@ class MarkdownFormatter:
             "",
             f"- **Trial:** {trial_report.trial_name}",
             f"- **Zone ID:** {trial_report.zone_id}",
-            f"- **Rankings Analyzed:** {len(trial_report.rankings)}",
+            f"- **Reports Analyzed:** {len(trial_report.rankings)}",
             f"- **Generated:** {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}",
             f"- **Tool:** ESO Top Builds Analyzer",
             "",
@@ -212,8 +211,8 @@ class MarkdownFormatter:
         
         # Overview table
         lines.extend([
-            "| Trial | Rankings | Total Encounters |",
-            "|-------|----------|------------------|"
+            "| Trial | Reports | Total Encounters |",
+            "|-------|---------|------------------|"
         ])
         
         for trial_report in trial_reports:
