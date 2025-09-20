@@ -61,6 +61,25 @@ class PDFReportFormatter:
             spaceAfter=6,
             textColor=colors.black
         ))
+        
+        # TOC styles
+        self.styles.add(ParagraphStyle(
+            name='TOCHeading',
+            fontName='Helvetica-Bold',
+            fontSize=16,
+            leading=20,
+            spaceBefore=12,
+            spaceAfter=12,
+            alignment=TA_CENTER
+        ))
+        
+        self.styles.add(ParagraphStyle(
+            name='TOCEntry',
+            fontName='Helvetica',
+            fontSize=10,
+            leading=14,
+            leftIndent=20
+        ))
     
     def format_trial_report(self, trial_report: TrialReport) -> bytes:
         """Format a complete trial report as a PDF document."""
@@ -95,6 +114,10 @@ class PDFReportFormatter:
         metadata = Paragraph(metadata_text, self.styles['Normal'])
         story.append(metadata)
         story.append(Spacer(1, 20))
+        
+        # Add Table of Contents
+        story.extend(self._format_table_of_contents_pdf(trial_report))
+        story.append(PageBreak())
         
         # Process rankings (for single report, there's typically one ranking)
         if trial_report.rankings:
@@ -300,6 +323,35 @@ class PDFReportFormatter:
             formatted_sets.append(set_str)
         
         return ", ".join(formatted_sets)
+    
+    def _format_table_of_contents_pdf(self, trial_report: TrialReport) -> List:
+        """Format a table of contents for the PDF."""
+        story = []
+        
+        # TOC Title
+        story.append(Paragraph("📋 Table of Contents", self.styles['TOCHeading']))
+        story.append(Spacer(1, 12))
+        
+        # TOC entries
+        if trial_report.rankings:
+            for ranking in trial_report.rankings:
+                # Report Analysis entry
+                story.append(Paragraph("• Report Analysis", self.styles['TOCEntry']))
+                story.append(Spacer(1, 6))
+                
+                # Encounter entries
+                for encounter in ranking.encounters:
+                    # Determine kill status
+                    if encounter.kill or encounter.boss_percentage <= 0.1:
+                        status_text = "✅ KILL"
+                    else:
+                        status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
+                    
+                    entry_text = f"  - {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}"
+                    story.append(Paragraph(entry_text, self.styles['TOCEntry']))
+                    story.append(Spacer(1, 4))
+        
+        return story
     
     def get_filename(self, trial_name: str) -> str:
         """Generate a safe filename for the trial report."""
