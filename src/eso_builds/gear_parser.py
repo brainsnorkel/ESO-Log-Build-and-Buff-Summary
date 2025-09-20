@@ -178,16 +178,16 @@ class GearParser:
             info = set_info[set_name]
             original_name = info.get('original_name', set_name)
             
-            # Include single-piece sets if they are mythics or arena weapons
-            if count < 2 and not self._is_mythic_or_arena_weapon(original_name):
-                logger.debug(f"Skipping single-piece non-mythic/arena set: {set_name} (original: {original_name})")
+            # Include single-piece sets if they are mythics, arena weapons, or monster sets
+            if count < 2 and not (self._is_mythic_or_arena_weapon(original_name) or self._is_monster_set(set_name)):
+                logger.debug(f"Skipping single-piece non-special set: {set_name} (original: {original_name})")
                 continue
                 
             slots = slot_info[set_name]
             
             # Validate the set makes sense (not just random pieces)
-            # Special handling for arena weapons and mythics - always valid
-            is_special_item = self._is_mythic_or_arena_weapon(original_name)
+            # Special handling for arena weapons, mythics, and monster sets - always valid
+            is_special_item = self._is_mythic_or_arena_weapon(original_name) or self._is_monster_set(set_name)
             
             if is_special_item or self._is_valid_set_combination(count, slots):
                 gear_set = GearSet(
@@ -264,6 +264,24 @@ class GearParser:
         
         return gear_sets
     
+    def _is_monster_set(self, set_name: str) -> bool:
+        """Check if a set is a monster set (can be worn as 1pc for the 1-piece bonus)."""
+        if not set_name:
+            return False
+            
+        set_lower = set_name.lower()
+        
+        # Common monster sets that players often wear as 1pc
+        monster_set_names = [
+            'slimecraw', 'kjalnar', 'valkyn skoria', 'zaan', 'domihaus', 'iceheart',
+            'earthgore', 'chokethorn', 'bloodspawn', 'lord warden', 'mighty chudan',
+            'troll king', 'bone pirate', 'stormfist', 'selene', 'velidreth',
+            'grothdarr', 'ilambris', 'nerien\'eth', 'spawn of mephala', 'tremorscale',
+            'thurvokun', 'balorgh', 'maarselok', 'grundwulf', 'stone-talker',
+            'nazaray', 'archdruid devyric', 'ozezan the inferno', 'nunatak'
+        ]
+        
+        return any(monster in set_lower for monster in monster_set_names)
     
     def _clean_set_name(self, set_name: str) -> str:
         """Clean and normalize set names."""
