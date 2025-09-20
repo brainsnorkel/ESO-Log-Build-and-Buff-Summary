@@ -156,18 +156,32 @@ class SingleReportAnalyzer:
         # Get detailed fight data with kill/percentage information
         detailed_fights = await self._get_detailed_fight_data(client, report_code)
         
-        # Focus on boss encounters
+        # Focus on boss encounters - automatically detect by difficulty field
         boss_fights = []
         for fight in detailed_fights:
+            # Boss encounters have a difficulty value (120=Normal, 121=Veteran, 122=Veteran HM)
+            # Trash fights and non-boss encounters typically have difficulty=None
             if hasattr(fight, 'difficulty') and fight.difficulty is not None:
-                # Lucent Citadel bosses
-                lucent_bosses = ['Zilyesset', 'Cavot Agnan', 'Orphic Shattered Shard', 'Baron Rize', 'Xoryn']
-                # Sanity's Edge bosses  
-                sanity_bosses = ['Hall of Fleshcraft', 'Jynorah and Skorkhif', 'Overfiend Kazpian']
+                # Additional filters to exclude non-boss encounters that might have difficulty
+                fight_name = fight.name.lower()
                 
-                all_boss_names = lucent_bosses + sanity_bosses
-                if any(boss in fight.name for boss in all_boss_names):
-                    boss_fights.append(fight)
+                # Skip obvious trash/add fights
+                skip_keywords = [
+                    'unknown', 'trash', 'add', 'acolyte', 'atronach', 'lurker', 
+                    'slasher', 'iridescent', 'sandroach', 'mirrorworm'
+                ]
+                
+                # Skip if fight name contains obvious trash indicators
+                if any(keyword in fight_name for keyword in skip_keywords):
+                    continue
+                
+                # Skip very short fights (likely trash) - less than 30 seconds
+                fight_duration = getattr(fight, 'end_time', 0) - getattr(fight, 'start_time', 0)
+                if fight_duration < 30000:  # 30 seconds in milliseconds
+                    continue
+                
+                boss_fights.append(fight)
+                logger.info(f"🎯 Detected boss encounter: {fight.name} (difficulty: {fight.difficulty})")
         
         logger.info(f"Found {len(boss_fights)} boss encounters to analyze")
         
