@@ -291,14 +291,12 @@ class GearParser:
             'sea-serpent\'s coil', 'antiquarian\'s eye', 'torc of tonal constancy'
         ]
         
-        # Monster sets (when worn as single pieces for 1pc bonus)
+        # Monster sets should NOT be treated as individual items - they are 2-piece sets
+        # Only include them here if they're actually being used as 1-piece (rare case)
+        # Most of the time, monster sets should be parsed as normal 2-piece sets
         monster_set_indicators = [
-            'slimecraw', 'kjalnar', 'valkyn skoria', 'zaan', 'domihaus', 'iceheart',
-            'earthgore', 'chokethorn', 'bloodspawn', 'lord warden', 'mighty chudan',
-            'troll king', 'bone pirate', 'stormfist', 'selene', 'velidreth',
-            'grothdarr', 'ilambris', 'nerien\'eth', 'spawn of mephala', 'tremorscale',
-            'thurvokun', 'balorgh', 'maarselok', 'grundwulf', 'stone-talker',
-            'nazaray', 'archdruid devyric', 'ozezan the inferno', 'nunatak'
+            # Remove most monster sets - they should be 2pc sets, not individual items
+            # Only keep ones that are commonly used as 1pc for specific bonuses
         ]
         
         # Arena weapons (Maelstrom, Dragonstar, Blackrose Prison, Vateshran Hollows)
