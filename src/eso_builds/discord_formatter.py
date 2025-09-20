@@ -129,11 +129,12 @@ class DiscordReportFormatter:
             # Player header - escape @ symbols with backticks to prevent Discord pings
             player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
-            lines.append(f"{escaped_name}: {player.character_class}")
             
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
-            lines.append(f"{gear_text}")
+            
+            # Combine character class and gear sets on one line with a dash separator
+            lines.append(f"{escaped_name}: {player.character_class} - {gear_text}")
         
         return lines
     
