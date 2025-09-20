@@ -2,7 +2,7 @@
 GraphQL queries for ESO Logs API.
 
 This module contains the GraphQL queries needed to fetch trial rankings,
-encounter details, and player build information.
+encounter details, player build information, and ability data.
 """
 
 # GraphQL query to get top reports for a specific zone
@@ -142,6 +142,41 @@ query GetZoneRankings($zoneID: Int!, $difficulty: Int!, $size: Int!, $page: Int!
         total
         page
         hasMorePages
+      }
+    }
+  }
+}
+"""
+
+# GraphQL query to get player abilities/casts for a specific fight
+GET_PLAYER_ABILITIES_QUERY = """
+query GetPlayerAbilities($code: String!, $startTime: Float!, $endTime: Float!) {
+  reportData {
+    report(code: $code) {
+      table(
+        dataType: Casts
+        hostilityType: Friendlies
+        startTime: $startTime
+        endTime: $endTime
+      ) {
+        data {
+          entries {
+            name
+            id
+            guid
+            type
+            abilityGameID
+            total
+            activeTime
+          }
+          playerDetails {
+            name
+            id
+            guid
+            type
+            displayName
+          }
+        }
       }
     }
   }

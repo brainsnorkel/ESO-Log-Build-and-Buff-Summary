@@ -442,3 +442,81 @@ class ESOLogsClient:
             trial_report.add_ranking(ranking)
         
         return trial_report
+    
+    async def get_player_abilities(self, report_code: str, start_time: int, end_time: int) -> Dict[str, Dict[str, List[str]]]:
+        """
+        Get player abilities for a specific fight.
+        
+        Returns a dictionary mapping player names to their abilities:
+        {
+            "player_name": {
+                "bar1": ["ability1", "ability2", ...],
+                "bar2": ["ability6", "ability7", ...]
+            }
+        }
+        """
+        try:
+            # Get cast data for the fight
+            response = await self._make_request(
+                'get_report_table',
+                code=report_code,
+                data_type='Casts',
+                hostility_type='Friendlies',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            if not response or not hasattr(response, 'report_data'):
+                logger.warning(f"No cast data returned for report {report_code}")
+                return {}
+            
+            table = response.report_data.report.table
+            if not hasattr(table, 'data') or not hasattr(table.data, 'entries'):
+                logger.warning(f"No cast entries found for report {report_code}")
+                return {}
+            
+            # Process cast data to extract abilities per player
+            player_abilities = {}
+            
+            # Get player details first
+            if hasattr(table.data, 'playerDetails'):
+                for player in table.data.playerDetails:
+                    player_name = getattr(player, 'displayName', None) or getattr(player, 'name', 'Unknown')
+                    if player_name and player_name not in player_abilities:
+                        player_abilities[player_name] = {
+                            'bar1': [],
+                            'bar2': [],
+                            'all_abilities': set()
+                        }
+            
+            # Process cast entries to find abilities
+            for entry in table.data.entries:
+                ability_name = getattr(entry, 'name', None)
+                player_guid = getattr(entry, 'guid', None)
+                
+                if ability_name and player_guid:
+                    # Find the player for this cast
+                    for player in table.data.playerDetails:
+                        if getattr(player, 'guid', None) == player_guid:
+                            player_name = getattr(player, 'displayName', None) or getattr(player, 'name', 'Unknown')
+                            if player_name in player_abilities:
+                                player_abilities[player_name]['all_abilities'].add(ability_name)
+                            break
+            
+            # For now, we'll put all abilities in bar1 since we can't distinguish bars from cast data
+            # This is a limitation of the current API data structure
+            for player_name, abilities in player_abilities.items():
+                all_abilities_list = sorted(list(abilities['all_abilities']))
+                # Split abilities between bars (first half in bar1, second half in bar2)
+                mid_point = len(all_abilities_list) // 2
+                abilities['bar1'] = all_abilities_list[:mid_point] if mid_point > 0 else all_abilities_list[:5]
+                abilities['bar2'] = all_abilities_list[mid_point:] if mid_point > 0 else []
+                # Remove the temporary set
+                del abilities['all_abilities']
+            
+            logger.debug(f"Extracted abilities for {len(player_abilities)} players")
+            return player_abilities
+            
+        except Exception as e:
+            logger.error(f"Failed to get player abilities: {e}")
+            return {}

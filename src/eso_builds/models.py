@@ -44,6 +44,8 @@ class PlayerBuild:
     character_class: str
     role: Role
     gear_sets: List[GearSet] = field(default_factory=list)
+    bar1_abilities: List[str] = field(default_factory=list)
+    bar2_abilities: List[str] = field(default_factory=list)
     
     def __str__(self) -> str:
         gear_str = ", ".join(str(gear) for gear in self.gear_sets)

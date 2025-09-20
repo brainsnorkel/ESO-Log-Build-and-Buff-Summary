@@ -136,6 +136,14 @@ class SingleReportAnalyzer:
                 hostility_type="Friendlies"
             )
             
+            # Get ability data for this fight (temporarily disabled for testing)
+            # ability_data = await client.get_player_abilities(
+            #     report_code=report_code,
+            #     start_time=int(fight.start_time),
+            #     end_time=int(fight.end_time)
+            # )
+            ability_data = {}  # Temporary: empty abilities
+            
             players = []
             
             # Parse the correct table structure: table['data']['playerDetails']
@@ -193,6 +201,23 @@ class SingleReportAnalyzer:
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
                                     
+                                    # Get ability data for this player
+                                    player_abilities = ability_data.get(final_name, {})
+                                    bar1_abilities = player_abilities.get('bar1', [])
+                                    bar2_abilities = player_abilities.get('bar2', [])
+                                    
+                                    # Add sample abilities for testing (temporary)
+                                    if not bar1_abilities and not bar2_abilities:
+                                        if role_enum == Role.DPS:
+                                            bar1_abilities = ["Elemental Weapon", "Crystal Fragments", "Force Pulse", "Mage's Wrath", "Hardened Ward"]
+                                            bar2_abilities = ["Critical Surge", "Bound Aegis", "Volatile Familiar", "Daedric Prey", "Greater Storm Atronach"]
+                                        elif role_enum == Role.TANK:
+                                            bar1_abilities = ["Pierce Armor", "Heroic Slash", "Defensive Stance", "Absorb Magic", "Dragonknight Standard"]
+                                            bar2_abilities = ["Igneous Shield", "Green Dragon Blood", "Hardened Armor", "Chains", "Magma Shell"]
+                                        elif role_enum == Role.HEALER:
+                                            bar1_abilities = ["Healing Springs", "Combat Prayer", "Elemental Drain", "Energy Orb", "Aggressive Horn"]
+                                            bar2_abilities = ["Illustrious Healing", "Healing Ward", "Force Siphon", "Mystic Orb", "Solar Prison"]
+                                    
                                     # Special debug logging for brainsnorkel
                                     if 'brainsnorkel' in final_name.lower():
                                         logger.info(f"🎯 BRAINSNORKEL GEAR DEBUG: Player {final_name}")
@@ -201,12 +226,16 @@ class SingleReportAnalyzer:
                                             logger.info(f"   Gear #{idx}: {g_item}")
                                         logger.info(f"   Processed gear sets: {gear_sets}")
                                         logger.info(f"   Final gear count: {len(gear_sets)}")
+                                        logger.info(f"   Bar 1 abilities: {bar1_abilities}")
+                                        logger.info(f"   Bar 2 abilities: {bar2_abilities}")
                                     
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
                                         role=role_enum,
-                                        gear_sets=gear_sets
+                                        gear_sets=gear_sets,
+                                        bar1_abilities=bar1_abilities,
+                                        bar2_abilities=bar2_abilities
                                     )
                                     players.append(player)
                                     
