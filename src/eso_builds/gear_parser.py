@@ -97,7 +97,15 @@ class GearParser:
                         logger.info(f"❌ MAELSTROM NOT DETECTED AS ARENA: '{individual_name}' -> using setName '{set_name}'")
                 
                 # Use cleaned name as key to merge perfected/non-perfected
-                set_counts[cleaned_name] += 1
+                # 2-handed weapons and staves count as 2 pieces
+                if self._is_two_handed_weapon(item_name):
+                    piece_count = 2
+                    logger.info(f"🗡️ 2H WEAPON in regular set: '{item_name}' counts as 2 pieces for {set_name}")
+                else:
+                    piece_count = 1
+                    
+                    
+                set_counts[cleaned_name] += piece_count
                 slot_info[cleaned_name].append(slot)
                 
                 if cleaned_name not in set_info:
@@ -166,6 +174,7 @@ class GearParser:
             if count < 2 and not self._is_mythic_or_arena_weapon(original_name):
                 logger.debug(f"Skipping single-piece non-mythic/arena set: {set_name} (original: {original_name})")
                 continue
+                
             slots = slot_info[set_name]
             
             # Validate the set makes sense (not just random pieces)
@@ -181,7 +190,9 @@ class GearParser:
                 gear_sets.append(gear_set)
                 if is_special_item:
                     logger.debug(f"Added special item (mythic/arena): {count}pc {info['name']}")
-        
+                else:
+                    logger.debug(f"Added regular set: {count}pc {info['name']}")
+            
         # Sort by piece count (descending) for consistent ordering
         gear_sets.sort(key=lambda x: x.piece_count, reverse=True)
         return gear_sets
@@ -193,9 +204,12 @@ class GearParser:
             return False
             
         # Check for duplicate slots (shouldn't happen with proper gear)
+        # Note: For 2-handed weapons, the piece count can be higher than unique slots
+        # because a 2-handed weapon in one slot counts as 2 pieces
         unique_slots = set(slots)
-        if len(unique_slots) != count:
-            logger.warning(f"Set has duplicate slots: {slots}")
+        
+        if len(unique_slots) > count:
+            logger.warning(f"Set has more unique slots than pieces: slots={slots}, count={count}")
             return False
             
         return True
