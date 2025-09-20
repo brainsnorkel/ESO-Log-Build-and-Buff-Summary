@@ -737,13 +737,13 @@ class ESOLogsClient:
                 hostility_type='Friendlies'
             )
             
-            # Get debuff data using table API  
+            # Get debuff data using table API (debuffs are applied TO enemies)
             debuff_table = await self._client.get_report_table(
                 code=report_code,
                 data_type=TableDataType.Debuffs,
                 start_time=float(start_time),
                 end_time=float(end_time),
-                hostility_type='Friendlies'
+                hostility_type='Enemies'
             )
             
             # Target buff/debuff names we want to track
