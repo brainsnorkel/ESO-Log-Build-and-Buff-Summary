@@ -703,18 +703,71 @@ class ESOLogsClient:
                 if 'data' in events and events['data']:
                     events_data = events['data']
                     
-                    # For now, return sample data to demonstrate the table structure
-                    # TODO: Implement proper events parsing for buff/debuff uptimes
+                    # Parse real buff/debuff events from the API
                     logger.info(f"Received {len(events_data) if isinstance(events_data, list) else 'unknown'} buff/debuff events")
                     
-                    # Sample data to show table structure (replace with real parsing later)
-                    uptimes = {
-                        'Major Courage': 85.2,
-                        'Major Slayer': 92.8,
-                        'Major Breach': 78.5,
-                        'Major Vulnerability': 65.1,
-                        'Minor Brittle': 45.3
+                    # Map abilityGameID to buff/debuff names we want to track
+                    # These IDs are from ESO's game data - mapping common buff/debuff IDs
+                    target_ability_ids = {
+                        # Major Courage - various sources
+                        61716: 'Major Courage',
+                        123652: 'Major Courage', 
+                        # Major Slayer - trial buffs
+                        172621: 'Major Slayer',
+                        # Major Berserk - various sources  
+                        38901: 'Major Berserk',
+                        # Add more mappings as we discover them
                     }
+                    
+                    # Calculate fight duration
+                    fight_duration = end_time - start_time
+                    
+                    # Track active buffs/debuffs and their durations
+                    buff_states = {}  # buff_name -> {active_since, total_duration}
+                    
+                    if isinstance(events_data, list):
+                        for event in events_data:
+                            if not isinstance(event, dict):
+                                continue
+                                
+                            event_type = event.get('type', '')
+                            ability_id = event.get('abilityGameID', 0)
+                            timestamp = event.get('timestamp', 0)
+                            
+                            # Check if this ability ID matches any of our target buffs/debuffs
+                            if ability_id in target_ability_ids:
+                                buff_name = target_ability_ids[ability_id]
+                                
+                                if buff_name not in buff_states:
+                                    buff_states[buff_name] = {'active_since': None, 'total_duration': 0}
+                                
+                                if event_type in ['applybuff', 'applydebuff']:
+                                    # Buff/debuff applied
+                                    if buff_states[buff_name]['active_since'] is None:
+                                        buff_states[buff_name]['active_since'] = timestamp
+                                        logger.debug(f"Applied {buff_name} at {timestamp}")
+                                
+                                elif event_type in ['removebuff', 'removedebuff']:
+                                    # Buff/debuff removed
+                                    if buff_states[buff_name]['active_since'] is not None:
+                                        duration = timestamp - buff_states[buff_name]['active_since']
+                                        buff_states[buff_name]['total_duration'] += duration
+                                        buff_states[buff_name]['active_since'] = None
+                                        logger.debug(f"Removed {buff_name} at {timestamp}, duration: {duration}")
+                    
+                    # Calculate final uptimes - account for buffs still active at fight end
+                    for buff_name, state in buff_states.items():
+                        if state['active_since'] is not None:
+                            # Buff was still active at fight end
+                            duration = end_time - state['active_since']
+                            state['total_duration'] += duration
+                            logger.debug(f"{buff_name} still active at fight end, added {duration} duration")
+                        
+                        # Calculate uptime percentage
+                        if fight_duration > 0:
+                            uptime_percentage = (state['total_duration'] / fight_duration) * 100
+                            uptimes[buff_name] = uptime_percentage
+                            logger.info(f"Calculated {buff_name}: {uptime_percentage:.1f}% uptime ({state['total_duration']}/{fight_duration})")
             
             logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes for fight")
             return uptimes

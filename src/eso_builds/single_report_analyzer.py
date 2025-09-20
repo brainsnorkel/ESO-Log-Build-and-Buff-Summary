@@ -203,15 +203,6 @@ class SingleReportAnalyzer:
                                         final_name = "@anonymous"
                                     
                                     
-                                    # Special debug logging for brainsnorkel
-                                    if 'brainsnorkel' in final_name.lower():
-                                        logger.info(f"🎯 BRAINSNORKEL GEAR DEBUG: Player {final_name}")
-                                        logger.info(f"   Raw gear items count: {len(gear_items)}")
-                                        for idx, g_item in enumerate(gear_items):
-                                            logger.info(f"   Gear #{idx}: {g_item}")
-                                        logger.info(f"   Processed gear sets: {gear_sets}")
-                                        logger.info(f"   Final gear count: {len(gear_sets)}")
-                                    
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
