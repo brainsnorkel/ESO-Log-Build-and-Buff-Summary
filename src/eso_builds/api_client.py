@@ -471,7 +471,14 @@ class ESOLogsClient:
                 return {}
             
             table = response.report_data.report.table
-            if not hasattr(table, 'data') or not hasattr(table.data, 'entries'):
+            if not hasattr(table, 'data'):
+                logger.warning(f"No table data found for report {report_code}")
+                return {}
+            
+            # Debug: log what we got
+            logger.debug(f"Table data attributes: {list(table.data.__dict__.keys()) if hasattr(table.data, '__dict__') else 'No __dict__'}")
+            
+            if not hasattr(table.data, 'entries'):
                 logger.warning(f"No cast entries found for report {report_code}")
                 return {}
             

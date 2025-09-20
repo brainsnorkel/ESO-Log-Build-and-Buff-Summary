@@ -45,6 +45,25 @@ query GetTopReports($zoneID: Int!, $limit: Int!, $page: Int!) {
 }
 """
 
+# GraphQL query to get game abilities for ability name resolution
+GET_GAME_ABILITIES_QUERY = """
+query GetGameAbilities($limit: Int!, $page: Int!) {
+  gameData {
+    abilities(limit: $limit, page: $page) {
+      data {
+        id
+        name
+        icon
+      }
+      total
+      per_page
+      current_page
+      has_more_pages
+    }
+  }
+}
+"""
+
 # GraphQL query to get detailed fight information including players and gear
 GET_FIGHT_DETAILS_QUERY = """
 query GetFightDetails($code: String!, $fightIDs: [Int]!) {
@@ -84,6 +103,25 @@ query GetFightDetails($code: String!, $fightIDs: [Int]!) {
 }
 """
 
+# GraphQL query to get game abilities for ability name resolution
+GET_GAME_ABILITIES_QUERY = """
+query GetGameAbilities($limit: Int!, $page: Int!) {
+  gameData {
+    abilities(limit: $limit, page: $page) {
+      data {
+        id
+        name
+        icon
+      }
+      total
+      per_page
+      current_page
+      has_more_pages
+    }
+  }
+}
+"""
+
 # GraphQL query to get player gear details
 GET_PLAYER_GEAR_QUERY = """
 query GetPlayerGear($code: String!, $fightID: Int!, $playerID: Int!) {
@@ -109,6 +147,25 @@ query GetPlayerGear($code: String!, $fightID: Int!, $playerID: Int!) {
           }
         }
       }
+    }
+  }
+}
+"""
+
+# GraphQL query to get game abilities for ability name resolution
+GET_GAME_ABILITIES_QUERY = """
+query GetGameAbilities($limit: Int!, $page: Int!) {
+  gameData {
+    abilities(limit: $limit, page: $page) {
+      data {
+        id
+        name
+        icon
+      }
+      total
+      per_page
+      current_page
+      has_more_pages
     }
   }
 }
@@ -148,6 +205,25 @@ query GetZoneRankings($zoneID: Int!, $difficulty: Int!, $size: Int!, $page: Int!
 }
 """
 
+# GraphQL query to get game abilities for ability name resolution
+GET_GAME_ABILITIES_QUERY = """
+query GetGameAbilities($limit: Int!, $page: Int!) {
+  gameData {
+    abilities(limit: $limit, page: $page) {
+      data {
+        id
+        name
+        icon
+      }
+      total
+      per_page
+      current_page
+      has_more_pages
+    }
+  }
+}
+"""
+
 # GraphQL query to get player abilities/casts for a specific fight
 GET_PLAYER_ABILITIES_QUERY = """
 query GetPlayerAbilities($code: String!, $startTime: Float!, $endTime: Float!) {
@@ -178,6 +254,25 @@ query GetPlayerAbilities($code: String!, $startTime: Float!, $endTime: Float!) {
           }
         }
       }
+    }
+  }
+}
+"""
+
+# GraphQL query to get game abilities for ability name resolution
+GET_GAME_ABILITIES_QUERY = """
+query GetGameAbilities($limit: Int!, $page: Int!) {
+  gameData {
+    abilities(limit: $limit, page: $page) {
+      data {
+        id
+        name
+        icon
+      }
+      total
+      per_page
+      current_page
+      has_more_pages
     }
   }
 }

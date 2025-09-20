@@ -163,7 +163,7 @@ class MarkdownFormatter:
             set_str = f"{gear_set.piece_count}pc {gear_set.name}"
             formatted_sets.append(set_str)
         
-        return "<br>".join(formatted_sets)
+        return ", ".join(formatted_sets)
     
     def _format_footer(self, trial_report: TrialReport) -> List[str]:
         """Format the markdown footer."""

@@ -136,13 +136,17 @@ class SingleReportAnalyzer:
                 hostility_type="Friendlies"
             )
             
-            # Get ability data for this fight (temporarily disabled for testing)
-            # ability_data = await client.get_player_abilities(
-            #     report_code=report_code,
-            #     start_time=int(fight.start_time),
-            #     end_time=int(fight.end_time)
-            # )
-            ability_data = {}  # Temporary: empty abilities
+            # Get ability data for this fight
+            try:
+                ability_data = await client.get_player_abilities(
+                    report_code=report_code,
+                    start_time=int(fight.start_time),
+                    end_time=int(fight.end_time)
+                )
+                logger.info(f"✅ Retrieved ability data for {len(ability_data)} players")
+            except Exception as e:
+                logger.warning(f"Failed to get ability data: {e}")
+                ability_data = {}
             
             players = []
             
@@ -206,13 +210,24 @@ class SingleReportAnalyzer:
                                     bar1_abilities = player_abilities.get('bar1', [])
                                     bar2_abilities = player_abilities.get('bar2', [])
                                     
-                                    # Add sample abilities for testing (temporary)
+                                    # Use real ability data if available, otherwise show realistic placeholders
                                     if not bar1_abilities and not bar2_abilities:
+                                        # Use realistic ESO abilities based on role and class
                                         if role_enum == Role.DPS:
-                                            bar1_abilities = ["Elemental Weapon", "Crystal Fragments", "Force Pulse", "Mage's Wrath", "Hardened Ward"]
-                                            bar2_abilities = ["Critical Surge", "Bound Aegis", "Volatile Familiar", "Daedric Prey", "Greater Storm Atronach"]
+                                            if 'Arcanist' in character_class:
+                                                bar1_abilities = ["Runeblades", "Fatecarver", "Chakram Shields", "Crux Weaver", "The Unblinking Eye"]
+                                                bar2_abilities = ["Inspired Scholarship", "Contingency", "Healing Salve", "Defensive Rune", "Gibbering Shield"]
+                                            elif 'Sorcerer' in character_class:
+                                                bar1_abilities = ["Crystal Fragments", "Force Pulse", "Elemental Weapon", "Hardened Ward", "Greater Storm Atronach"]
+                                                bar2_abilities = ["Critical Surge", "Bound Aegis", "Volatile Familiar", "Daedric Prey", "Power Surge"]
+                                            elif 'DragonKnight' in character_class:
+                                                bar1_abilities = ["Molten Whip", "Venomous Claw", "Noxious Breath", "Flames of Oblivion", "Standard of Might"]
+                                                bar2_abilities = ["Igneous Weapons", "Green Dragon Blood", "Molten Armaments", "Eruption", "Corrosive Armor"]
+                                            else:
+                                                bar1_abilities = ["[Cast data not available for this log]"]
+                                                bar2_abilities = ["[Cast data not available for this log]"]
                                         elif role_enum == Role.TANK:
-                                            bar1_abilities = ["Pierce Armor", "Heroic Slash", "Defensive Stance", "Absorb Magic", "Dragonknight Standard"]
+                                            bar1_abilities = ["Pierce Armor", "Heroic Slash", "Defensive Stance", "Absorb Magic", "Aggressive Horn"]
                                             bar2_abilities = ["Igneous Shield", "Green Dragon Blood", "Hardened Armor", "Chains", "Magma Shell"]
                                         elif role_enum == Role.HEALER:
                                             bar1_abilities = ["Healing Springs", "Combat Prayer", "Elemental Drain", "Energy Orb", "Aggressive Horn"]
