@@ -160,8 +160,13 @@ class SingleReportAnalyzer:
         boss_fights = []
         for fight in detailed_fights:
             if hasattr(fight, 'difficulty') and fight.difficulty is not None:
-                boss_names = ['Hall of Fleshcraft', 'Jynorah and Skorkhif', 'Overfiend Kazpian']
-                if any(boss in fight.name for boss in boss_names):
+                # Lucent Citadel bosses
+                lucent_bosses = ['Zilyesset', 'Cavot Agnan', 'Orphic Shattered Shard', 'Baron Rize', 'Xoryn']
+                # Sanity's Edge bosses  
+                sanity_bosses = ['Hall of Fleshcraft', 'Jynorah and Skorkhif', 'Overfiend Kazpian']
+                
+                all_boss_names = lucent_bosses + sanity_bosses
+                if any(boss in fight.name for boss in all_boss_names):
                     boss_fights.append(fight)
         
         logger.info(f"Found {len(boss_fights)} boss encounters to analyze")

@@ -64,8 +64,8 @@ class MarkdownFormatter:
             for encounter in ranking.encounters:
                 clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
                 encounter_anchor = f"encounter-{clean_name}"
-                # Add kill/wipe status to TOC using the kill field first
-                if encounter.kill:
+                # Add kill/wipe status to TOC - treat 0.0% or very low boss health as kill
+                if encounter.kill or encounter.boss_percentage <= 0.1:
                     status_text = "✅ KILL"
                 else:
                     status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
@@ -102,8 +102,8 @@ class MarkdownFormatter:
         clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
         encounter_anchor = f"encounter-{clean_name}"
         
-        # Determine kill status using the kill field first, then boss percentage
-        if encounter.kill:
+        # Determine kill status - treat 0.0% or very low boss health as kill
+        if encounter.kill or encounter.boss_percentage <= 0.1:
             status_text = "✅ KILL"
         else:
             status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"

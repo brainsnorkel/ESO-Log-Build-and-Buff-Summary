@@ -717,6 +717,91 @@ class ESOLogsClient:
             logger.error(f"Failed to get master data: {e}")
             return {"abilities": [], "actors": []}
 
+    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+        """
+        Get buff/debuff uptimes using the table API method.
+        
+        Returns a dictionary mapping buff/debuff names to their uptime percentages.
+        """
+        try:
+            from esologs import TableDataType
+            
+            uptimes = {}
+            
+            # Get buff data using table API
+            buff_table = await self._client.get_report_table(
+                code=report_code,
+                data_type=TableDataType.Buffs,
+                start_time=float(start_time),
+                end_time=float(end_time),
+                hostility_type='Friendlies'
+            )
+            
+            # Get debuff data using table API  
+            debuff_table = await self._client.get_report_table(
+                code=report_code,
+                data_type=TableDataType.Debuffs,
+                start_time=float(start_time),
+                end_time=float(end_time),
+                hostility_type='Friendlies'
+            )
+            
+            # Target buff/debuff names we want to track
+            target_buffs = [
+                'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
+                'Minor Toughness', 'Major Resolve'
+            ]
+            target_debuffs = [
+                'Major Breach', 'Major Vulnerability', 'Minor Brittle'
+            ]
+            
+            # Process buff table data
+            if (buff_table and hasattr(buff_table, 'report_data') and 
+                buff_table.report_data and hasattr(buff_table.report_data, 'report') and
+                buff_table.report_data.report and hasattr(buff_table.report_data.report, 'table')):
+                
+                table_data = buff_table.report_data.report.table
+                if isinstance(table_data, dict) and 'data' in table_data:
+                    data = table_data['data']
+                    if 'auras' in data and 'totalTime' in data:
+                        auras = data['auras']
+                        total_time = data['totalTime']
+                        
+                        for aura in auras:
+                            if isinstance(aura, dict) and 'name' in aura:
+                                aura_name = aura['name']
+                                if aura_name in target_buffs and 'totalUptime' in aura:
+                                    uptime_ms = aura['totalUptime']
+                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
+                                    uptimes[aura_name] = uptime_percent
+            
+            # Process debuff table data
+            if (debuff_table and hasattr(debuff_table, 'report_data') and 
+                debuff_table.report_data and hasattr(debuff_table.report_data, 'report') and
+                debuff_table.report_data.report and hasattr(debuff_table.report_data.report, 'table')):
+                
+                table_data = debuff_table.report_data.report.table
+                if isinstance(table_data, dict) and 'data' in table_data:
+                    data = table_data['data']
+                    if 'auras' in data and 'totalTime' in data:
+                        auras = data['auras']
+                        total_time = data['totalTime']
+                        
+                        for aura in auras:
+                            if isinstance(aura, dict) and 'name' in aura:
+                                aura_name = aura['name']
+                                if aura_name in target_debuffs and 'totalUptime' in aura:
+                                    uptime_ms = aura['totalUptime']
+                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
+                                    uptimes[aura_name] = uptime_percent
+            
+            logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes using table API")
+            return uptimes
+            
+        except Exception as e:
+            logger.error(f"Failed to get buff/debuff uptimes using table API: {e}")
+            return {}
+
     async def get_buff_debuff_uptimes_graph(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
         Get buff/debuff uptimes using the graph API method.
@@ -813,9 +898,15 @@ class ESOLogsClient:
         """
         Get buff/debuff uptimes for a specific fight.
         
-        Primary method that tries graph API first, falls back to events.
+        Primary method that tries table API first, falls back to events.
         """
-        return await self.get_buff_debuff_uptimes_graph(report_code, start_time, end_time)
+        # Try table API first (most reliable)
+        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time)
+        if table_uptimes:
+            return table_uptimes
+        
+        # Fall back to events API if table fails
+        return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
 
     async def get_buff_debuff_uptimes_events(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """

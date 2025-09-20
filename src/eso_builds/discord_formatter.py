@@ -61,8 +61,8 @@ class DiscordReportFormatter:
     
     def _format_encounter_discord(self, encounter: EncounterResult) -> List[str]:
         """Format a single encounter for Discord."""
-        # Determine kill status using the kill field first, then boss percentage
-        if encounter.kill:
+        # Determine kill status - treat 0.0% or very low boss health as kill
+        if encounter.kill or encounter.boss_percentage <= 0.1:
             status_text = "✅ KILL"
         else:
             status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
