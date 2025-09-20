@@ -168,6 +168,7 @@ ESO Logs report codes can be found in the URL of any log:
 - **Linked Table of Contents** for easy navigation
 - Each encounter on separate page
 - Text wrapping in tables
+- **Table headings stay with their tables** (no orphaned headers)
 - Proper page break control
 
 ## 📊 Buff and Debuff Tracking Logic

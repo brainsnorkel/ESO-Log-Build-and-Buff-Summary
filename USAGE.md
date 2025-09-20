@@ -143,6 +143,7 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf
 - Each encounter on separate page
 - Professional styling
 - Text wrapping in tables
+- **Table headings stay with their tables** (no orphaned headers)
 - Print-ready format
 
 ## 💻 Command Examples
