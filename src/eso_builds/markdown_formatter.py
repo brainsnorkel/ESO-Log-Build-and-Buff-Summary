@@ -116,6 +116,7 @@ class MarkdownFormatter:
             lines.extend(self._format_encounter_markdown(encounter, rank_num))
             lines.append("")
         
+        
         lines.append("---")
         return lines
     
@@ -299,6 +300,7 @@ class MarkdownFormatter:
             lines.append(f"| {buff_cell} | {buff_uptime_cell} | {debuff_cell} | {debuff_uptime_cell} |")
         
         return lines
+    
     
     def get_filename(self, trial_name: str) -> str:
         """Generate a safe filename for the trial report."""

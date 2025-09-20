@@ -9,9 +9,10 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, Difficulty, GearSet
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, Difficulty, GearSet, ClassSummary
 from .api_client import ESOLogsClient, ESOLogsAPIError
 from .gear_parser import GearParser
+from .class_analyzer import ClassAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class SingleReportAnalyzer:
     def __init__(self):
         """Initialize the analyzer."""
         self.gear_parser = GearParser()
+        self.class_analyzer = ClassAnalyzer()
     
     async def analyze_report(self, report_code: str) -> TrialReport:
         """Analyze a single ESO Logs report and extract all encounter data."""
@@ -193,6 +195,51 @@ class SingleReportAnalyzer:
                 # Get player data using table method with time ranges
                 players = await self._get_players_simple(client, report_code, fight)
                 
+                # Get comprehensive player data for class analysis
+                start_time = int(getattr(fight, 'start_time', 0))
+                end_time = int(getattr(fight, 'end_time', start_time + 300000))
+                
+                # Get player abilities using multiple methods
+                player_abilities_legacy = await client.get_player_abilities(
+                    report_code, start_time, end_time
+                )
+                
+                # Get enhanced player-specific ability casts
+                player_ability_casts = await client.get_player_ability_casts(
+                    report_code, start_time, end_time
+                )
+                
+                # Get player-specific buff data for mundus detection
+                player_specific_buffs = await client.get_player_specific_buffs(
+                    report_code, start_time, end_time
+                )
+                
+                # Extract all buffs for mundus detection (including Boon buffs)
+                all_buffs_for_mundus = []
+                if '_all_buffs' in player_specific_buffs:
+                    all_buffs_for_mundus = player_specific_buffs['_all_buffs']
+                    logger.debug(f"Found {len(all_buffs_for_mundus)} total buffs including {len([b for b in all_buffs_for_mundus if b.startswith('Boon:')])} Boon buffs")
+                
+                # Add class analysis to each player
+                for player in players:
+                    # Combine legacy abilities with enhanced cast data
+                    legacy_abilities = player_abilities_legacy.get(player.name, {}).get('all_abilities', [])
+                    cast_abilities = player_ability_casts.get(player.name, [])
+                    
+                    # Merge and deduplicate abilities
+                    all_abilities = list(set(legacy_abilities + cast_abilities))
+                    
+                    # Get player-specific buffs (if any)
+                    player_buffs = player_specific_buffs.get(player.name, [])
+                    
+                    # Use all buffs for mundus detection since we can't easily map them to individual players
+                    combined_buffs = list(set(player_buffs + all_buffs_for_mundus))
+                    
+                    logger.debug(f"Player {player.name}: {len(legacy_abilities)} legacy abilities, {len(cast_abilities)} cast abilities, {len(all_abilities)} total, {len(combined_buffs)} buffs")
+                    
+                    class_summary = self.class_analyzer.analyze_character(player, all_abilities, combined_buffs)
+                    player.class_summary = class_summary
+                
                 # Determine difficulty
                 difficulty = Difficulty.NORMAL
                 if fight.difficulty == 121:
@@ -205,8 +252,6 @@ class SingleReportAnalyzer:
                 boss_percentage = getattr(fight, 'boss_percentage', 0.0)
                 
                 # Get buff/debuff uptimes for this fight (tries table API first, falls back to events)
-                start_time = int(getattr(fight, 'start_time', 0))
-                end_time = int(getattr(fight, 'end_time', start_time + 300000))
                 buff_uptimes = await client.get_buff_debuff_uptimes(
                     report_code, start_time, end_time
                 )

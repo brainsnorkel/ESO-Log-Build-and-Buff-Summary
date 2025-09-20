@@ -38,12 +38,29 @@ class GearSet:
 
 
 @dataclass
+class ClassSummary:
+    """Represents a character's class analysis including skill lines, mundus, and racial passives."""
+    character_name: str
+    character_class: str
+    mundus_stone: Optional[str] = None
+    racial_passives: List[str] = field(default_factory=list)
+    skill_lines: List[str] = field(default_factory=list)  # Format: "Herald of the Tome/Ardent Flame/Assassination"
+    
+    def __str__(self) -> str:
+        skill_lines_str = "/".join(self.skill_lines) if self.skill_lines else "_"
+        mundus_str = self.mundus_stone or "_"
+        racial_str = ", ".join(self.racial_passives) if self.racial_passives else "None"
+        return f"{self.character_name}: {skill_lines_str} | Mundus: {mundus_str} | Racial: {racial_str}"
+
+
+@dataclass
 class PlayerBuild:
     """Represents a player's complete build for an encounter."""
     name: str
     character_class: str
     role: Role
     gear_sets: List[GearSet] = field(default_factory=list)
+    class_summary: Optional[ClassSummary] = None
     
     def __str__(self) -> str:
         gear_str = ", ".join(str(gear) for gear in self.gear_sets)

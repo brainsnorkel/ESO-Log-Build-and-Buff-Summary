@@ -185,6 +185,7 @@ class PDFReportFormatter:
             story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i))
             story.append(Spacer(1, 6))
         
+        
         return story
     
     def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False, encounter_index: int = 0) -> List:
@@ -388,6 +389,7 @@ class PDFReportFormatter:
                     story.append(Spacer(1, 2))
         
         return story
+    
     
     def get_filename(self, trial_name: str) -> str:
         """Generate a safe filename for the trial report."""

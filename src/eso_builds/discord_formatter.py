@@ -72,6 +72,7 @@ class DiscordReportFormatter:
             for encounter in ranking.encounters:
                 lines.extend(self._format_encounter_discord(encounter))
                 lines.append("")
+            
         
         # For ranked reports (future expansion)
         else:
@@ -142,6 +143,7 @@ class DiscordReportFormatter:
         lines.append(f"Debuffs: {', '.join(debuff_items)}")
         
         return lines
+    
     
     def _format_role_discord(self, role_header: str, players: List[PlayerBuild]) -> List[str]:
         """Format players of a specific role for Discord."""
