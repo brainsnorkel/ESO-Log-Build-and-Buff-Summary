@@ -20,7 +20,11 @@ This guide provides detailed instructions and examples for using the ESO Top Bui
 The simplest way to analyze a log:
 
 ```bash
+# Using report ID
 python single_report_tool.py 3gjVGWB2dxCL8XAw
+
+# Using full URL (automatically extracts report ID)
+python single_report_tool.py "https://www.esologs.com/reports/3gjVGWB2dxCL8XAw"
 ```
 
 This will:
@@ -52,6 +56,8 @@ ESO Logs URLs contain the report code:
 | `https://www.esologs.com/reports/3gjVGWB2dxCL8XAw` | `3gjVGWB2dxCL8XAw` |
 | `https://www.esologs.com/reports/xbMVztd6Z4CBmFWQ` | `xbMVztd6Z4CBmFWQ` |
 | `https://www.esologs.com/reports/gcrLFMZqdA3T6DzV` | `gcrLFMZqdA3T6DzV` |
+
+**💡 Pro Tip:** You can use either the report code or the full URL - the tool automatically detects and extracts the report ID from URLs!
 
 ### Valid Report Codes
 
@@ -129,11 +135,17 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf
 ### Basic Commands
 
 ```bash
-# Analyze and show in console
+# Analyze and show in console (using report ID)
 python single_report_tool.py 3gjVGWB2dxCL8XAw
+
+# Analyze and show in console (using full URL)
+python single_report_tool.py "https://www.esologs.com/reports/3gjVGWB2dxCL8XAw"
 
 # Generate Markdown report
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output markdown
+
+# Generate Discord report
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output discord
 
 # Generate PDF with table of contents
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf

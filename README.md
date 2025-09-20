@@ -61,9 +61,13 @@ Analyze a single ESO Logs report:
 python single_report_tool.py <report_code>
 ```
 
-**Example:**
+**Examples:**
 ```bash
+# Using report ID
 python single_report_tool.py 3gjVGWB2dxCL8XAw
+
+# Using full URL (automatically extracts report ID)
+python single_report_tool.py "https://www.esologs.com/reports/3gjVGWB2dxCL8XAw"
 ```
 
 ### Output Formats
@@ -71,11 +75,17 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw
 Choose your preferred output format:
 
 ```bash
-# Console output only (default)
+# Console output only (default) - using report ID
 python single_report_tool.py 3gjVGWB2dxCL8XAw
 
-# Generate Markdown and Discord reports
+# Console output only (default) - using full URL
+python single_report_tool.py "https://www.esologs.com/reports/3gjVGWB2dxCL8XAw"
+
+# Generate Markdown report
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output markdown
+
+# Generate Discord report
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output discord
 
 # Generate PDF report
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf
@@ -100,10 +110,10 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --verbose
 python single_report_tool.py <report_code> [options]
 
 Arguments:
-  report_code           ESO Logs report code (e.g., 3gjVGWB2dxCL8XAw)
+  report_code           ESO Logs report code or full URL (e.g., 3gjVGWB2dxCL8XAw or https://www.esologs.com/reports/3gjVGWB2dxCL8XAw)
 
 Options:
-  --output {console,markdown,pdf,all}
+  --output {console,markdown,discord,pdf,all}
                         Output format (default: console)
   --output-dir DIR      Directory for output files (default: reports)
   --verbose, -v         Enable verbose logging

@@ -9,6 +9,7 @@ import argparse
 import asyncio
 import logging
 import os
+import re
 import sys
 
 # Load .env file
@@ -22,6 +23,42 @@ from src.eso_builds.single_report_analyzer import SingleReportAnalyzer
 from src.eso_builds.report_formatter import ReportFormatter
 from src.eso_builds.markdown_formatter import MarkdownFormatter
 from src.eso_builds.discord_formatter import DiscordReportFormatter
+
+
+def extract_report_id(input_string: str) -> str:
+    """
+    Extract ESO Logs report ID from either a full URL or just the report ID.
+    
+    Args:
+        input_string: Either a full ESO Logs URL or just the report ID
+        
+    Returns:
+        The extracted report ID
+        
+    Raises:
+        ValueError: If the input is invalid or doesn't contain a valid report ID
+    """
+    if not input_string or not input_string.strip():
+        raise ValueError("Input cannot be empty")
+    
+    input_string = input_string.strip()
+    
+    # If it looks like a URL, extract the report ID
+    if input_string.startswith('http'):
+        # Pattern to match ESO Logs report URLs
+        url_pattern = r'https?://(?:www\.)?esologs\.com/reports/([a-zA-Z0-9]+)'
+        match = re.search(url_pattern, input_string)
+        if match:
+            return match.group(1)
+        else:
+            raise ValueError("Invalid ESO Logs URL format")
+    
+    # If it's not a URL, treat it as a report ID directly
+    # Validate that it looks like a report ID (alphanumeric, reasonable length)
+    if re.match(r'^[a-zA-Z0-9]+$', input_string) and len(input_string) >= 10:
+        return input_string
+    else:
+        raise ValueError("Invalid report ID format")
 
 
 def setup_logging(verbose: bool = False):
@@ -63,7 +100,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             print(console_output)
         
         # Generate file outputs if requested
-        if output_format in ["markdown", "pdf", "all"]:
+        if output_format in ["markdown", "discord", "pdf", "all"]:
             os.makedirs(output_dir, exist_ok=True)
             from datetime import datetime
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
@@ -79,8 +116,9 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     f.write(markdown_content)
                 
                 print(f"\n💾 Markdown report saved to: {markdown_filepath}")
-                
-                # Generate Discord report
+            
+            # Generate Discord report
+            if output_format in ["discord", "all"]:
                 discord_formatter = DiscordReportFormatter()
                 discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
                 discord_filepath = os.path.join(output_dir, discord_filename)
@@ -119,8 +157,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Analyze a specific report
+  # Analyze a specific report (report ID)
   python single_report_tool.py mtFqVzQPNBcCrd1h
+  
+  # Analyze a specific report (full URL)
+  python single_report_tool.py "https://www.esologs.com/reports/mtFqVzQPNBcCrd1h"
   
   # Generate markdown output
   python single_report_tool.py mtFqVzQPNBcCrd1h --output markdown
@@ -131,10 +172,10 @@ Examples:
     )
     
     parser.add_argument('report_code', type=str,
-                       help='ESO Logs report code (e.g. mtFqVzQPNBcCrd1h)')
+                       help='ESO Logs report code or full URL (e.g. mtFqVzQPNBcCrd1h or https://www.esologs.com/reports/mtFqVzQPNBcCrd1h)')
     
-    parser.add_argument('--output', choices=['console', 'markdown', 'pdf', 'all'], default='console',
-                       help='Output format: console, markdown, pdf, or all (default: console)')
+    parser.add_argument('--output', choices=['console', 'markdown', 'discord', 'pdf', 'all'], default='console',
+                       help='Output format: console, markdown, discord, pdf, or all (default: console)')
     
     parser.add_argument('--output-dir', type=str, default='reports',
                        help='Directory for output files (default: reports)')
@@ -157,15 +198,20 @@ Examples:
         print("   ESOLOGS_SECRET=your_client_secret")
         sys.exit(1)
     
-    # Validate report code format
-    if not args.report_code or len(args.report_code) < 10:
-        print("❌ Invalid report code format")
-        print("Report codes should be like: mtFqVzQPNBcCrd1h")
+    # Extract and validate report code
+    try:
+        report_id = extract_report_id(args.report_code)
+        print(f"📋 Extracted report ID: {report_id}")
+    except ValueError as e:
+        print(f"❌ Invalid input: {e}")
+        print("Examples:")
+        print("  Report ID: mtFqVzQPNBcCrd1h")
+        print("  Full URL: https://www.esologs.com/reports/mtFqVzQPNBcCrd1h")
         sys.exit(1)
     
     # Run analysis
     try:
-        success = asyncio.run(analyze_single_report(args.report_code, args.output, args.output_dir))
+        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir))
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print("\n⏹️ Analysis cancelled by user")
