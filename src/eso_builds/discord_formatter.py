@@ -123,18 +123,17 @@ class DiscordReportFormatter:
     
     def _format_role_discord(self, role_header: str, players: List[PlayerBuild]) -> List[str]:
         """Format players of a specific role for Discord."""
-        lines = [role_header, ""]
+        lines = [role_header]
         
         for i, player in enumerate(players, 1):
             # Player header - escape @ symbols with backticks to prevent Discord pings
             player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
-            lines.append(f"**{escaped_name}:** {player.character_class}")
+            lines.append(f"{escaped_name}: {player.character_class}")
             
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
-            lines.append(f"*{gear_text}*")
-            lines.append("")
+            lines.append(f"{gear_text}")
         
         return lines
     
@@ -145,8 +144,8 @@ class DiscordReportFormatter:
         
         formatted_sets = []
         for gear_set in gear_sets:
-            # Use Discord formatting for piece counts
-            formatted_sets.append(f"**{gear_set.piece_count}pc** {gear_set.name}")
+            # Simple format without bold styling
+            formatted_sets.append(f"{gear_set.piece_count}pc {gear_set.name}")
         
         return ", ".join(formatted_sets)
     
