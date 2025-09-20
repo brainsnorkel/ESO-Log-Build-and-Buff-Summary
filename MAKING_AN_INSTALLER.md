@@ -85,7 +85,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='ESO-Top-Builds',
+    name='ESO-Log-Build-and-Buff-Summary',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -113,15 +113,15 @@ Create `installer.nsi`:
 !define VERSIONMAJOR 1
 !define VERSIONMINOR 0
 !define VERSIONBUILD 0
-!define HELPURL "https://github.com/your-repo/ESO-Top-Builds"
-!define UPDATEURL "https://github.com/your-repo/ESO-Top-Builds"
-!define ABOUTURL "https://github.com/your-repo/ESO-Top-Builds"
+!define HELPURL "https://github.com/your-repo/ESO-Log-Build-and-Buff-Summary"
+!define UPDATEURL "https://github.com/your-repo/ESO-Log-Build-and-Buff-Summary"
+!define ABOUTURL "https://github.com/your-repo/ESO-Log-Build-and-Buff-Summary"
 !define INSTALLSIZE 50000
 
 RequestExecutionLevel admin
 InstallDir "$PROGRAMFILES\${APPNAME}"
 Name "${APPNAME}"
-outFile "ESO-Top-Builds-Installer.exe"
+outFile "ESO-Log-Build-and-Buff-Summary-Installer.exe"
 
 !include LogicLib.nsh
 !include MUI2.nsh
@@ -160,31 +160,31 @@ functionEnd
 
 section "install"
     setOutPath $INSTDIR
-    file "dist\ESO-Top-Builds.exe"
+    file "dist\ESO-Log-Build-and-Buff-Summary.exe"
     file "README.md"
     file "USAGE.md"
     file "LICENSE.txt"
     
     # Create config directory
-    createDirectory "$APPDATA\ESO-Top-Builds"
+    createDirectory "$APPDATA\ESO-Log-Build-and-Buff-Summary"
     
     writeUninstaller "$INSTDIR\uninstall.exe"
     
     # Start Menu shortcuts
     createDirectory "$SMPROGRAMS\${APPNAME}"
-    createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\ESO-Top-Builds.exe" "" "$INSTDIR\ESO-Top-Builds.exe" 0
+    createShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\ESO-Log-Build-and-Buff-Summary.exe" "" "$INSTDIR\ESO-Log-Build-and-Buff-Summary.exe" 0
     createShortCut "$SMPROGRAMS\${APPNAME}\User Guide.lnk" "$INSTDIR\USAGE.md"
     createShortCut "$SMPROGRAMS\${APPNAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe"
     
     # Desktop shortcut
-    createShortCut "$DESKTOP\${APPNAME}.lnk" "$INSTDIR\ESO-Top-Builds.exe" "" "$INSTDIR\ESO-Top-Builds.exe" 0
+    createShortCut "$DESKTOP\${APPNAME}.lnk" "$INSTDIR\ESO-Log-Build-and-Buff-Summary.exe" "" "$INSTDIR\ESO-Log-Build-and-Buff-Summary.exe" 0
     
     # Registry entries for Add/Remove Programs
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$\"$INSTDIR$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$\"$INSTDIR\ESO-Top-Builds.exe$\""
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$\"$INSTDIR\ESO-Log-Build-and-Buff-Summary.exe$\""
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "Publisher" "${COMPANYNAME}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "HelpLink" "${HELPURL}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "URLUpdateInfo" "${UPDATEURL}"
@@ -197,14 +197,14 @@ section "install"
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "EstimatedSize" ${INSTALLSIZE}
     
     # Create .env template
-    FileOpen $0 "$APPDATA\ESO-Top-Builds\.env.template" w
+    FileOpen $0 "$APPDATA\ESO-Log-Build-and-Buff-Summary\.env.template" w
     FileWrite $0 "ESOLOGS_ID=your_client_id_here$\r$\n"
     FileWrite $0 "ESOLOGS_SECRET=your_client_secret_here$\r$\n"
     FileClose $0
 sectionEnd
 
 section "uninstall"
-    delete "$INSTDIR\ESO-Top-Builds.exe"
+    delete "$INSTDIR\ESO-Log-Build-and-Buff-Summary.exe"
     delete "$INSTDIR\README.md"
     delete "$INSTDIR\USAGE.md"
     delete "$INSTDIR\LICENSE.txt"
@@ -242,7 +242,7 @@ pip install pyinstaller
 
 echo.
 echo Step 3: Building executable...
-pyinstaller --onefile --name "ESO-Top-Builds" --console ^
+pyinstaller --onefile --name "ESO-Log-Build-and-Buff-Summary" --console ^
     --hidden-import reportlab ^
     --hidden-import httpx ^
     --hidden-import aiofiles ^
@@ -260,7 +260,7 @@ pyinstaller --onefile --name "ESO-Top-Builds" --console ^
     --add-data "USAGE.md;." ^
     single_report_tool.py
 
-if not exist "dist\ESO-Top-Builds.exe" (
+if not exist "dist\ESO-Log-Build-and-Buff-Summary.exe" (
     echo ERROR: Failed to create executable
     pause
     exit /b 1
@@ -270,9 +270,9 @@ echo.
 echo Step 4: Creating installer...
 if exist "installer.nsi" (
     makensis installer.nsi
-    if exist "ESO-Top-Builds-Installer.exe" (
+    if exist "ESO-Log-Build-and-Buff-Summary-Installer.exe" (
         echo.
-        echo SUCCESS: Installer created: ESO-Top-Builds-Installer.exe
+        echo SUCCESS: Installer created: ESO-Log-Build-and-Buff-Summary-Installer.exe
     ) else (
         echo ERROR: Failed to create installer
     )
@@ -427,7 +427,7 @@ To use this tool, you need ESO Logs API credentials:
 1. Go to: https://www.esologs.com/api/clients/
 2. Create a new API client
 3. Copy your Client ID and Secret
-4. Create a .env file in: %APPDATA%\\ESO-Top-Builds\\
+4. Create a .env file in: %APPDATA%\\ESO-Log-Build-and-Buff-Summary\\
 5. Add these lines:
    ESOLOGS_ID=your_client_id
    ESOLOGS_SECRET=your_client_secret
@@ -454,7 +454,7 @@ To use this tool, you need ESO Logs API credentials:
     def run_analysis(self, report_code):
         try:
             # Build command
-            cmd = ["ESO-Top-Builds.exe", report_code, "--output", self.format_var.get()]
+            cmd = ["ESO-Log-Build-and-Buff-Summary.exe", report_code, "--output", self.format_var.get()]
             
             if self.output_var.get():
                 cmd.extend(["--output-dir", self.output_var.get()])
@@ -505,7 +505,7 @@ if __name__ == "__main__":
 ```batch
 @echo off
 echo Building GUI version...
-pyinstaller --onefile --name "ESO-Top-Builds-GUI" --windowed ^
+pyinstaller --onefile --name "ESO-Log-Build-and-Buff-Summary-GUI" --windowed ^
     --hidden-import tkinter ^
     --hidden-import tkinter.ttk ^
     --hidden-import tkinter.messagebox ^
@@ -522,14 +522,14 @@ For a quick portable version without installer:
 ```batch
 @echo off
 echo Creating portable version...
-pyinstaller --onefile --name "ESO-Top-Builds-Portable" --console ^
+pyinstaller --onefile --name "ESO-Log-Build-and-Buff-Summary-Portable" --console ^
     --add-data "src/eso_builds;src/eso_builds" ^
     --add-data "README.md;." ^
     --add-data "USAGE.md;." ^
     single_report_tool.py
 
 echo.
-echo Portable version created: dist\ESO-Top-Builds-Portable.exe
+echo Portable version created: dist\ESO-Log-Build-and-Buff-Summary-Portable.exe
 echo Users can run this directly without installation.
 ```
 
@@ -554,13 +554,13 @@ echo Users can run this directly without installation.
 
 ```bash
 # Test basic functionality
-ESO-Top-Builds.exe --help
+ESO-Log-Build-and-Buff-Summary.exe --help
 
 # Test with a real report
-ESO-Top-Builds.exe mtFqVzQPNBcCrd1h --output all
+ESO-Log-Build-and-Buff-Summary.exe mtFqVzQPNBcCrd1h --output all
 
 # Test error handling
-ESO-Top-Builds.exe invalidcode
+ESO-Log-Build-and-Buff-Summary.exe invalidcode
 ```
 
 ## 🎨 Optional Enhancements
@@ -578,7 +578,7 @@ ESO-Top-Builds.exe invalidcode
 def check_for_updates():
     """Check for application updates."""
     try:
-        response = requests.get("https://api.github.com/repos/your-repo/ESO-Top-Builds/releases/latest")
+        response = requests.get("https://api.github.com/repos/your-repo/ESO-Log-Build-and-Buff-Summary/releases/latest")
         if response.status_code == 200:
             latest_version = response.json()["tag_name"]
             current_version = "1.0.0"  # Your current version
@@ -617,8 +617,8 @@ Create a settings file for user preferences:
 - Provide multiple download mirrors
 
 ### 3. Package Managers
-- Chocolatey: `choco install eso-top-builds`
-- Scoop: `scoop install eso-top-builds`
+- Chocolatey: `choco install eso-log-build-and-buff-summary`
+- Scoop: `scoop install eso-log-build-and-buff-summary`
 
 ## 🔧 Troubleshooting
 
