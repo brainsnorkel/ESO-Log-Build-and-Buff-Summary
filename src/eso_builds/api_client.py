@@ -749,10 +749,11 @@ class ESOLogsClient:
             # Target buff/debuff names we want to track
             target_buffs = [
                 'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
-                'Minor Toughness', 'Major Resolve'
+                'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault'
             ]
             target_debuffs = [
-                'Major Breach', 'Major Vulnerability', 'Minor Brittle'
+                'Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 
+                'Crusher', 'Off Balance', 'Weakening'
             ]
             
             # Process buff table data

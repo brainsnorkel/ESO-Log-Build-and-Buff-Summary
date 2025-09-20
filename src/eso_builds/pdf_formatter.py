@@ -7,7 +7,7 @@ This module formats TrialReport objects into PDF documents using ReportLab.
 from typing import List
 from datetime import datetime
 from reportlab.lib.pagesizes import letter, A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
@@ -135,15 +135,20 @@ class PDFReportFormatter:
         story.append(Spacer(1, 16))
         
         # Process encounters
-        for encounter in ranking.encounters:
-            story.extend(self._format_encounter_pdf(encounter))
+        for i, encounter in enumerate(ranking.encounters):
+            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0)))
             story.append(Spacer(1, 12))
         
         return story
     
-    def _format_encounter_pdf(self, encounter: EncounterResult) -> List:
+    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False) -> List:
         """Format a single encounter as PDF elements."""
         story = []
+        
+        # Add page break before each encounter (except the first one)
+        # This ensures each encounter starts fresh and tables don't cross page boundaries
+        if not is_first:
+            story.append(PageBreak())
         
         # Encounter title with kill/wipe status
         if encounter.kill or encounter.boss_percentage <= 0.1:
@@ -153,12 +158,12 @@ class PDFReportFormatter:
         
         encounter_title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}"
         story.append(Paragraph(encounter_title, self.styles['EncounterHeading']))
-        story.append(Spacer(1, 8))
+        story.append(Spacer(1, 12))
         
         # Buff/Debuff uptimes table
         if encounter.buff_uptimes:
             story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes))
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 16))
         
         # Player tables by role
         tanks = encounter.tanks
@@ -167,15 +172,15 @@ class PDFReportFormatter:
         
         if tanks:
             story.extend(self._format_role_table_pdf("🛡️ Tanks", tanks))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 12))
         
         if healers:
             story.extend(self._format_role_table_pdf("💚 Healers", healers))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 12))
         
         if dps:
             story.extend(self._format_role_table_pdf("⚔️ DPS", dps))
-            story.append(Spacer(1, 8))
+            story.append(Spacer(1, 12))
         
         return story
     
@@ -188,11 +193,16 @@ class PDFReportFormatter:
         story.append(Spacer(1, 6))
         
         # Define all tracked buffs and debuffs
-        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle']
+        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault']
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
-        # Create table data
-        table_data = [['🔺 Buffs', 'Uptime', '🔻 Debuffs', 'Uptime']]
+        # Create table data with Paragraph objects for text wrapping
+        table_data = [
+            [Paragraph('<b>🔺 Buffs</b>', self.styles['Normal']), 
+             Paragraph('<b>Uptime</b>', self.styles['Normal']), 
+             Paragraph('<b>🔻 Debuffs</b>', self.styles['Normal']), 
+             Paragraph('<b>Uptime</b>', self.styles['Normal'])]
+        ]
         
         max_rows = max(len(buffs), len(debuffs))
         for i in range(max_rows):
@@ -200,21 +210,25 @@ class PDFReportFormatter:
             if i < len(buffs):
                 buff_name = buffs[i]
                 buff_uptime = f"{buff_uptimes.get(buff_name, 0.0):.1f}%"
+                buff_cell = Paragraph(buff_name, self.styles['Normal'])
+                buff_uptime_cell = Paragraph(buff_uptime, self.styles['Normal'])
             else:
-                buff_name = ""
-                buff_uptime = ""
+                buff_cell = Paragraph("", self.styles['Normal'])
+                buff_uptime_cell = Paragraph("", self.styles['Normal'])
             
             # Get debuff info for this row
             if i < len(debuffs):
                 debuff_name = debuffs[i]
                 debuff_uptime = f"{buff_uptimes.get(debuff_name, 0.0):.1f}%"
+                debuff_cell = Paragraph(debuff_name, self.styles['Normal'])
+                debuff_uptime_cell = Paragraph(debuff_uptime, self.styles['Normal'])
             else:
-                debuff_name = ""
-                debuff_uptime = ""
+                debuff_cell = Paragraph("", self.styles['Normal'])
+                debuff_uptime_cell = Paragraph("", self.styles['Normal'])
             
-            table_data.append([buff_name, buff_uptime, debuff_name, debuff_uptime])
+            table_data.append([buff_cell, buff_uptime_cell, debuff_cell, debuff_uptime_cell])
         
-        # Create and style the table
+        # Create and style the table with text wrapping
         table = Table(table_data, colWidths=[2.0*inch, 0.8*inch, 2.0*inch, 0.8*inch])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
@@ -226,10 +240,14 @@ class PDFReportFormatter:
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('FONTSIZE', (0, 1), (-1, -1), 9),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
         
-        story.append(table)
+        # Wrap table in KeepTogether to prevent page breaks within the table
+        story.append(KeepTogether([table]))
         return story
     
     def _format_role_table_pdf(self, role_title: str, players: List[PlayerBuild]) -> List:
@@ -240,14 +258,22 @@ class PDFReportFormatter:
         story.append(Paragraph(role_title, self.styles['RoleHeading']))
         story.append(Spacer(1, 6))
         
-        # Create table data
-        table_data = [['Player', 'Class', 'Gear Sets']]
+        # Create table data with Paragraph objects for text wrapping
+        table_data = [
+            [Paragraph('<b>Player</b>', self.styles['Normal']), 
+             Paragraph('<b>Class</b>', self.styles['Normal']), 
+             Paragraph('<b>Gear Sets</b>', self.styles['Normal'])]
+        ]
         
         for player in players:
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
-            table_data.append([player.name, player.character_class, gear_str])
+            table_data.append([
+                Paragraph(player.name, self.styles['Normal']),
+                Paragraph(player.character_class, self.styles['Normal']),
+                Paragraph(gear_str, self.styles['Normal'])
+            ])
         
-        # Create and style the table
+        # Create and style the table with proper wrapping
         table = Table(table_data, colWidths=[1.5*inch, 1.2*inch, 4.0*inch])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
@@ -256,12 +282,16 @@ class PDFReportFormatter:
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('TOPPADDING', (0, 0), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+            ('LEFTPADDING', (0, 0), (-1, -1), 6),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
         
-        story.append(table)
+        # Wrap table in KeepTogether to prevent page breaks within the table
+        story.append(KeepTogether([table]))
         return story
     
     def _format_gear_sets_for_pdf(self, gear_sets: List) -> str:

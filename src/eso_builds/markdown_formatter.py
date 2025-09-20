@@ -248,8 +248,8 @@ class MarkdownFormatter:
         ]
         
         # Define all tracked buffs and debuffs
-        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle']
+        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault']
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Create rows for the table (pad with empty entries if needed)
         max_rows = max(len(buffs), len(debuffs))
