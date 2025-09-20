@@ -159,21 +159,28 @@ class GearParser:
         gear_sets = []
         
         for set_name, count in set_counts.items():
-            # Include single-piece sets if they are mythics or arena weapons
-            if count < 2 and not self._is_mythic_or_arena_weapon(set_name):
-                continue
-                
             info = set_info[set_name]
+            original_name = info.get('original_name', set_name)
+            
+            # Include single-piece sets if they are mythics or arena weapons
+            if count < 2 and not self._is_mythic_or_arena_weapon(original_name):
+                logger.debug(f"Skipping single-piece non-mythic/arena set: {set_name} (original: {original_name})")
+                continue
             slots = slot_info[set_name]
             
             # Validate the set makes sense (not just random pieces)
-            if self._is_valid_set_combination(count, slots):
+            # Special handling for arena weapons and mythics - always valid
+            is_special_item = self._is_mythic_or_arena_weapon(original_name)
+            
+            if is_special_item or self._is_valid_set_combination(count, slots):
                 gear_set = GearSet(
                     name=info['name'],
                     piece_count=count,
                     is_perfected=info['is_perfected']
                 )
                 gear_sets.append(gear_set)
+                if is_special_item:
+                    logger.debug(f"Added special item (mythic/arena): {count}pc {info['name']}")
         
         # Sort by piece count (descending) for consistent ordering
         gear_sets.sort(key=lambda x: x.piece_count, reverse=True)
