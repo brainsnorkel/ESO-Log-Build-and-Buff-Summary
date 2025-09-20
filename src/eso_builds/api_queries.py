@@ -20,7 +20,8 @@ query GetReportByCode($code: String!) {
         endTime
         difficulty
         kill
-        percentage
+        bossPercentage
+        fightPercentage
         maps {
           id
         }

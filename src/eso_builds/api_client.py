@@ -181,8 +181,86 @@ class ESOLogsClient:
         logger.info(f"Getting encounter details for report {report_code}")
         
         try:
-            # Get the full report data
-            report_response = await self._make_request("get_report_by_code", code=report_code)
+            # Get the full report data with detailed fight information
+            query = """
+            query GetDetailedReport($code: String!) {
+              reportData {
+                report(code: $code) {
+                  code
+                  title
+                  startTime
+                  endTime
+                  zone {
+                    id
+                    name
+                  }
+                  fights {
+                    id
+                    name
+                    startTime
+                    endTime
+                    difficulty
+                    kill
+                    bossPercentage
+                    fightPercentage
+                    encounterID
+                    size
+                    averageItemLevel
+                  }
+                }
+              }
+            }
+            """
+            
+            # Execute the custom query to get detailed fight data
+            http_response = await self._client.execute(query, variables={'code': report_code})
+            
+            if http_response.status_code != 200:
+                logger.error(f"HTTP error {http_response.status_code}: {http_response.text}")
+                return []
+            
+            response_data = http_response.json()
+            
+            if 'errors' in response_data:
+                logger.error(f"GraphQL errors: {response_data['errors']}")
+                return []
+            
+            # Extract fight data from the response
+            if ('data' in response_data and 
+                'reportData' in response_data['data'] and 
+                response_data['data']['reportData'] and
+                'report' in response_data['data']['reportData'] and
+                response_data['data']['reportData']['report'] and
+                'fights' in response_data['data']['reportData']['report']):
+                
+                fights_data = response_data['data']['reportData']['report']['fights']
+                
+                # Convert to a format similar to the old response
+                class FightData:
+                    def __init__(self, fight_dict):
+                        for key, value in fight_dict.items():
+                            # Convert camelCase to snake_case for consistency
+                            if key == 'startTime':
+                                setattr(self, 'start_time', value)
+                            elif key == 'endTime':
+                                setattr(self, 'end_time', value)
+                            elif key == 'bossPercentage':
+                                setattr(self, 'boss_percentage', value)
+                            elif key == 'fightPercentage':
+                                setattr(self, 'fight_percentage', value)
+                            elif key == 'encounterID':
+                                setattr(self, 'encounter_id', value)
+                            elif key == 'averageItemLevel':
+                                setattr(self, 'average_item_level', value)
+                            else:
+                                setattr(self, key, value)
+                
+                # Create fight objects
+                fights = [FightData(fight_dict) for fight_dict in fights_data]
+                
+            else:
+                logger.warning(f"No fight data found in response structure")
+                return []
             
             if not report_response or not hasattr(report_response, 'report_data'):
                 logger.warning(f"No report data found for report {report_code}")
@@ -639,7 +717,107 @@ class ESOLogsClient:
             logger.error(f"Failed to get master data: {e}")
             return {"abilities": [], "actors": []}
 
+    async def get_buff_debuff_uptimes_graph(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+        """
+        Get buff/debuff uptimes using the graph API method.
+        
+        Returns a dictionary mapping buff/debuff names to their uptime percentages.
+        """
+        try:
+            from esologs import GraphDataType
+            
+            uptimes = {}
+            
+            # Get buff data using graph API
+            buff_graph = await self._client.get_report_graph(
+                code=report_code,
+                data_type=GraphDataType.Buffs,
+                start_time=float(start_time),
+                end_time=float(end_time),
+                hostility_type='Friendlies'
+            )
+            
+            # Get debuff data using graph API  
+            debuff_graph = await self._client.get_report_graph(
+                code=report_code,
+                data_type=GraphDataType.Debuffs,
+                start_time=float(start_time),
+                end_time=float(end_time),
+                hostility_type='Friendlies'
+            )
+            
+            # Target buff/debuff names we want to track
+            target_buffs = [
+                'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
+                'Minor Toughness', 'Major Resolve', 'Major Breach', 
+                'Major Vulnerability', 'Minor Brittle'
+            ]
+            
+            # Process buff graph data
+            if (buff_graph and buff_graph.report_data and buff_graph.report_data.report and 
+                hasattr(buff_graph.report_data.report, 'graph') and buff_graph.report_data.report.graph):
+                
+                graph_data = buff_graph.report_data.report.graph
+                if isinstance(graph_data, dict) and 'data' in graph_data:
+                    series_data = graph_data['data'].get('series', [])
+                    
+                    for series in series_data:
+                        if isinstance(series, dict) and 'name' in series:
+                            ability_name = series['name']
+                            
+                            # Check if this matches any target buff
+                            for target_buff in target_buffs:
+                                if target_buff.lower() in ability_name.lower():
+                                    # Calculate uptime from graph data
+                                    if 'total' in series and 'totalTime' in graph_data['data']:
+                                        total_time = graph_data['data']['totalTime']
+                                        if total_time > 0:
+                                            uptime_percentage = (series['total'] / total_time) * 100
+                                            uptimes[target_buff] = uptime_percentage
+                                            logger.info(f"Graph buff {target_buff}: {uptime_percentage:.1f}% uptime")
+                                    break
+            
+            # Process debuff graph data
+            if (debuff_graph and debuff_graph.report_data and debuff_graph.report_data.report and 
+                hasattr(debuff_graph.report_data.report, 'graph') and debuff_graph.report_data.report.graph):
+                
+                graph_data = debuff_graph.report_data.report.graph
+                if isinstance(graph_data, dict) and 'data' in graph_data:
+                    series_data = graph_data['data'].get('series', [])
+                    
+                    for series in series_data:
+                        if isinstance(series, dict) and 'name' in series:
+                            ability_name = series['name']
+                            
+                            # Check if this matches any target debuff
+                            for target_buff in target_buffs:
+                                if target_buff.lower() in ability_name.lower():
+                                    # Calculate uptime from graph data
+                                    if 'total' in series and 'totalTime' in graph_data['data']:
+                                        total_time = graph_data['data']['totalTime']
+                                        if total_time > 0:
+                                            uptime_percentage = (series['total'] / total_time) * 100
+                                            uptimes[target_buff] = uptime_percentage
+                                            logger.info(f"Graph debuff {target_buff}: {uptime_percentage:.1f}% uptime")
+                                    break
+            
+            logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes using graph API")
+            return uptimes
+            
+        except Exception as e:
+            logger.error(f"Failed to get buff/debuff uptimes via graph API: {e}")
+            # Fall back to event-based method
+            return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
+
     async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+        """
+        Get buff/debuff uptimes for a specific fight.
+        
+        Primary method that tries graph API first, falls back to events.
+        """
+        return await self.get_buff_debuff_uptimes_graph(report_code, start_time, end_time)
+
+    async def get_buff_debuff_uptimes_events(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
         Get buff/debuff uptimes for a specific fight.
         

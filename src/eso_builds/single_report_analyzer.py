@@ -76,13 +76,89 @@ class SingleReportAnalyzer:
             logger.error(f"Failed to get report info: {e}")
             raise ESOLogsAPIError(f"Could not retrieve report {report_code}: {e}")
     
+    async def _get_detailed_fight_data(self, client: ESOLogsClient, report_code: str) -> List:
+        """Get detailed fight data with kill/percentage information."""
+        try:
+            # Custom GraphQL query for detailed fight data
+            query = """
+            query GetDetailedFights($code: String!) {
+              reportData {
+                report(code: $code) {
+                  fights {
+                    id
+                    name
+                    startTime
+                    endTime
+                    difficulty
+                    kill
+                    bossPercentage
+                    fightPercentage
+                    encounterID
+                    size
+                  }
+                }
+              }
+            }
+            """
+            
+            # Execute the query
+            http_response = await client._client.execute(query, variables={'code': report_code})
+            
+            if http_response.status_code != 200:
+                logger.error(f"HTTP error {http_response.status_code}: {http_response.text}")
+                return []
+            
+            response_data = http_response.json()
+            
+            if 'errors' in response_data:
+                logger.error(f"GraphQL errors: {response_data['errors']}")
+                return []
+            
+            # Extract fight data
+            if ('data' in response_data and 
+                'reportData' in response_data['data'] and 
+                response_data['data']['reportData'] and
+                'report' in response_data['data']['reportData'] and
+                response_data['data']['reportData']['report'] and
+                'fights' in response_data['data']['reportData']['report']):
+                
+                fights_data = response_data['data']['reportData']['report']['fights']
+                
+                # Convert to fight objects with proper field names
+                class DetailedFight:
+                    def __init__(self, fight_dict):
+                        self.id = fight_dict['id']
+                        self.name = fight_dict['name']
+                        self.start_time = fight_dict['startTime']
+                        self.end_time = fight_dict['endTime']
+                        self.difficulty = fight_dict.get('difficulty')
+                        self.kill = fight_dict.get('kill', False)
+                        self.boss_percentage = fight_dict.get('bossPercentage', 0.0)
+                        self.fight_percentage = fight_dict.get('fightPercentage', 0.0)
+                        self.encounter_id = fight_dict.get('encounterID', 0)
+                        self.size = fight_dict.get('size', 12)
+                
+                fights = [DetailedFight(fight_dict) for fight_dict in fights_data]
+                logger.info(f"Retrieved detailed data for {len(fights)} fights")
+                return fights
+            else:
+                logger.warning("No fight data found in detailed query response")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Failed to get detailed fight data: {e}")
+            return []
+    
     async def _extract_encounters_with_players(self, client: ESOLogsClient, report_code: str, report_info: Dict) -> List[EncounterResult]:
         """Extract encounters with real player data using the table approach."""
         encounters = []
         
+        # Get detailed fight data with kill/percentage information
+        detailed_fights = await self._get_detailed_fight_data(client, report_code)
+        
         # Focus on boss encounters
         boss_fights = []
-        for fight in report_info['fights']:
+        for fight in detailed_fights:
             if hasattr(fight, 'difficulty') and fight.difficulty is not None:
                 boss_names = ['Hall of Fleshcraft', 'Jynorah and Skorkhif', 'Overfiend Kazpian']
                 if any(boss in fight.name for boss in boss_names):
@@ -104,12 +180,12 @@ class SingleReportAnalyzer:
                 
                 # Get kill status and boss percentage
                 kill_status = getattr(fight, 'kill', False)
-                boss_percentage = getattr(fight, 'percentage', 0.0)
+                boss_percentage = getattr(fight, 'boss_percentage', 0.0)
                 
-                # Get buff/debuff uptimes for this fight
+                # Get buff/debuff uptimes for this fight using graph API
                 start_time = int(getattr(fight, 'start_time', 0))
                 end_time = int(getattr(fight, 'end_time', start_time + 300000))
-                buff_uptimes = await client.get_buff_debuff_uptimes(
+                buff_uptimes = await client.get_buff_debuff_uptimes_graph(
                     report_code, start_time, end_time
                 )
                 
