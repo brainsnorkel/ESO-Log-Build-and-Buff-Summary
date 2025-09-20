@@ -64,18 +64,23 @@ class GearParser:
                     logger.info(f"🔍 Arena weapon detection result: {is_arena}")
                 
                 if individual_name and self._is_mythic_or_arena_weapon(individual_name):
-                    # Use the individual item name for arena weapons
-                    cleaned_name = self._clean_set_name(individual_name)
-                    logger.info(f"🎯 FOUND ARENA WEAPON: '{individual_name}' -> '{cleaned_name}'")
+                    logger.info(f"🎯 FOUND ARENA WEAPON: '{individual_name}' from set '{set_name}'")
                     
-                    # 2-handed weapons and staves count as 2 pieces
+                    # For 2-handed arena weapons, always use individual names (they're unique)
+                    # For 1-handed arena weapons, use set name to group them together
                     if self._is_two_handed_weapon(individual_name):
+                        # 2-handed weapons are unique, use individual name
+                        cleaned_name = self._clean_set_name(individual_name)
+                        logger.info(f"🎯 2H arena weapon (individual): '{individual_name}' -> '{cleaned_name}'")
                         piece_count = 2
                         logger.info(f"🗡️ 2H WEAPON: '{individual_name}' counts as 2 pieces")
                     else:
+                        # 1-handed weapons should be grouped by set name
+                        cleaned_name = self._clean_set_name(set_name)
+                        logger.info(f"🔗 1H arena weapon (grouped): '{individual_name}' -> '{cleaned_name}' (from set '{set_name}')")
                         piece_count = 1
                         
-                    # Set the count for arena weapons (don't increment, set directly)
+                    # Add or increment the count for arena weapons
                     if cleaned_name not in set_counts:
                         set_counts[cleaned_name] = piece_count
                         slot_info[cleaned_name] = [slot]
@@ -83,11 +88,14 @@ class GearParser:
                         set_info[cleaned_name] = {
                             'name': cleaned_name,
                             'is_perfected': False,
-                            'original_name': individual_name
+                            'original_name': set_name if not self._is_two_handed_weapon(individual_name) else individual_name
                         }
                         logger.info(f"✅ Added arena weapon: {piece_count}pc {cleaned_name}")
                     else:
-                        logger.debug(f"Arena weapon already processed: {cleaned_name}")
+                        # Increment count for grouped arena weapons (like multiple 1H weapons from same set)
+                        set_counts[cleaned_name] += piece_count
+                        slot_info[cleaned_name].append(slot)
+                        logger.info(f"✅ Added to arena weapon set: {piece_count}pc -> {set_counts[cleaned_name]}pc total {cleaned_name}")
                     
                     continue  # Skip the normal set processing for this item
                 else:
@@ -255,6 +263,7 @@ class GearParser:
             logger.warning(f"Set pieces ({set_pieces}) exceed expected gear slots ({expected_gear_slots})")
         
         return gear_sets
+    
     
     def _clean_set_name(self, set_name: str) -> str:
         """Clean and normalize set names."""
