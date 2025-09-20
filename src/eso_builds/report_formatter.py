@@ -1,5 +1,5 @@
 """
-Report formatting for ESO Top Builds.
+Report formatting for ESO Logs Build and Buff Summary.
 
 This module handles formatting the trial reports into the exact output format
 specified in the project overview.

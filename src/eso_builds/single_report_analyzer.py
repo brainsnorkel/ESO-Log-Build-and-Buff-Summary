@@ -213,6 +213,17 @@ class SingleReportAnalyzer:
                 player_specific_buffs = await client.get_player_specific_buffs(
                     report_code, start_time, end_time
                 )
+
+                # Try to get raw PLAYER_INFO events with actual action bar data
+                raw_action_bars = await client.get_raw_player_info_events(report_code)
+                if raw_action_bars:
+                    logger.info(f"Found raw action bar data for {len(raw_action_bars)} players!")
+                    for player_name, bars in raw_action_bars.items():
+                        front_bar = bars.get('front_bar', [])
+                        back_bar = bars.get('back_bar', [])
+                        logger.info(f"Player {player_name}: Front bar {front_bar}, Back bar {back_bar}")
+                else:
+                    logger.info("No raw action bar data available through API")
                 
                 # Extract all buffs for mundus detection (including Boon buffs)
                 all_buffs_for_mundus = []

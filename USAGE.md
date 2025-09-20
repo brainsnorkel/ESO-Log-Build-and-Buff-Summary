@@ -1,6 +1,6 @@
-# ESO Top Builds - Usage Guide
+# ESO Logs Build and Buff Summary - Usage Guide
 
-This guide provides detailed instructions and examples for using the ESO Top Builds analyzer.
+This guide provides detailed instructions and examples for using the ESO Logs Build and Buff Summary analyzer.
 
 ## 📚 Table of Contents
 

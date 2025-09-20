@@ -1465,17 +1465,139 @@ class ESOLogsClient:
             # Fall back to event-based method
             return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
 
+    async def get_raw_player_info_events(self, report_code: str, start_time: int = None, end_time: int = None) -> Dict[str, Dict[str, List[int]]]:
+        """
+        Attempt to get raw PLAYER_INFO events containing action bar data.
+
+        The PLAYER_INFO event in raw ESO logs contains:
+        [primaryAbilityId,...] - Front bar abilities (6 slots)
+        [backupAbilityId,...] - Back bar abilities (6 slots)
+
+        Returns a dictionary mapping player names to their action bar setups:
+        {
+            "player_name": {
+                "front_bar": [42060, 39018, 61505, 77182, 77369, 23492],
+                "back_bar": [39018, 42028, 23231, 77182, 77369, 23492]
+            }
+        }
+
+        Note: Since the forum issue was fixed, this should now work for all players.
+        """
+        try:
+            # Get report fights if no time range provided
+            if start_time is None or end_time is None:
+                report_info = await self._make_request("get_report_by_code", code=report_code)
+                if report_info and hasattr(report_info, 'report_data') and report_info.report_data.report:
+                    fights = report_info.report_data.report.fights
+                    if fights:
+                        # Use the first fight's time range
+                        first_fight = fights[0]
+                        start_time = getattr(first_fight, 'start_time', 0)
+                        end_time = getattr(first_fight, 'end_time', start_time + 300000)
+                        logger.info(f"Using first fight time range: {start_time} to {end_time}")
+
+            if start_time is None:
+                start_time = 0
+            if end_time is None:
+                end_time = start_time + 300000
+
+            # Try to access raw events with time range
+            query = """
+            query GetRawPlayerInfoEvents($code: String!, $startTime: Float!, $endTime: Float!) {
+              reportData {
+                report(code: $code) {
+                  events(
+                    dataType: All
+                    startTime: $startTime
+                    endTime: $endTime
+                    filterExpression: "type = 'PLAYER_INFO'"
+                    limit: 100
+                  ) {
+                    data
+                  }
+                }
+              }
+            }
+            """
+
+            http_response = await self._client.execute(query, variables={
+                'code': report_code,
+                'startTime': float(start_time),
+                'endTime': float(end_time)
+            })
+
+            if http_response.status_code != 200:
+                logger.warning(f"Failed to get raw PLAYER_INFO events: {http_response.status_code}")
+                return {}
+
+            response_data = http_response.json()
+
+            if 'errors' in response_data:
+                logger.warning(f"GraphQL errors getting PLAYER_INFO: {response_data['errors']}")
+                return {}
+
+            player_bars = {}
+
+            if ('data' in response_data and
+                'reportData' in response_data['data'] and
+                response_data['data']['reportData'] and
+                'report' in response_data['data']['reportData'] and
+                response_data['data']['reportData']['report'] and
+                'events' in response_data['data']['reportData']['report']):
+
+                events = response_data['data']['reportData']['report']['events']
+
+                if 'data' in events and events['data']:
+                    events_data = events['data']
+                    logger.info(f"Found {len(events_data)} potential PLAYER_INFO events")
+
+                    for event in events_data:
+                        if isinstance(event, dict):
+                            # Look for PLAYER_INFO event structure
+                            event_type = event.get('type', '')
+
+                            if event_type == 'PLAYER_INFO':
+                                # Extract player info and ability bars
+                                source = event.get('source', {})
+                                if isinstance(source, dict):
+                                    player_name = source.get('name', 'Unknown')
+
+                                    # Look for ability bar data in the event
+                                    # The exact structure may vary depending on API formatting
+                                    primary_abilities = event.get('primaryAbilities', [])
+                                    backup_abilities = event.get('backupAbilities', [])
+
+                                    # Also check alternative field names
+                                    if not primary_abilities:
+                                        primary_abilities = event.get('frontBar', [])
+                                    if not backup_abilities:
+                                        backup_abilities = event.get('backBar', [])
+
+                                    if primary_abilities or backup_abilities:
+                                        player_bars[player_name] = {
+                                            'front_bar': primary_abilities,
+                                            'back_bar': backup_abilities
+                                        }
+                                        logger.info(f"Found action bars for {player_name}: {len(primary_abilities)} front, {len(backup_abilities)} back")
+
+            logger.info(f"Retrieved action bar data for {len(player_bars)} players")
+            return player_bars
+
+        except Exception as e:
+            logger.warning(f"Raw PLAYER_INFO events not available via API: {e}")
+            return {}
+
     async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
         Get buff/debuff uptimes for a specific fight.
-        
+
         Primary method that tries table API first, falls back to events.
         """
         # Try table API first (most reliable)
         table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time)
         if table_uptimes:
             return table_uptimes
-        
+
         # Fall back to events API if table fails
         return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
 

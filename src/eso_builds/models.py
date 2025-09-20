@@ -1,5 +1,5 @@
 """
-Data models for ESO Top Builds analysis.
+Data models for ESO Logs Build and Buff Summary analysis.
 
 This module defines the core data structures for representing trials, encounters,
 players, and their gear builds.

@@ -1,5 +1,5 @@
 """
-Discord markup formatting for ESO Top Builds.
+Discord markup formatting for ESO Logs Build and Buff Summary.
 
 This module handles formatting trial reports into Discord-friendly markup format
 optimized for chat readability with proper Discord formatting syntax.
@@ -194,7 +194,7 @@ class DiscordReportFormatter:
     def format_multiple_trials(self, trial_reports: List[TrialReport]) -> str:
         """Format multiple trial reports for Discord (future expansion)."""
         lines = [
-            "# **ESO Top Builds - Multi-Trial Analysis**",
+            "# **ESO Logs Build and Buff Summary - Multi-Trial Analysis**",
             "",
             f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC",
             f"**Trials Analyzed:** {len(trial_reports)}",

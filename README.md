@@ -1,4 +1,4 @@
-# ESO Top Builds
+# ESO Logs Build and Buff Summary
 
 A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs](https://www.esologs.com) to generate detailed build and buff analysis reports.
 
@@ -28,8 +28,8 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/brainsnorkel/ESO-Top-Builds.git
-cd ESO-Top-Builds
+git clone https://github.com/brainsnorkel/ESO-Logs-Build-and-Buff-Summary.git
+cd ESO-Logs-Build-and-Buff-Summary
 ```
 
 2. **Create and activate a virtual environment:**
@@ -165,7 +165,7 @@ ESO Logs report codes can be found in the URL of any log:
 ## 🏗️ Project Structure
 
 ```
-ESO-Top-Builds/
+ESO-Logs-Build-and-Buff-Summary/
 ├── src/eso_builds/           # Main package
 │   ├── api_client.py         # ESO Logs API client
 │   ├── models.py             # Data models
@@ -249,7 +249,7 @@ python -m pytest tests/ --cov=src
 
 ### Getting Help
 
-- Check the [Issues](https://github.com/brainsnorkel/ESO-Top-Builds/issues) page
+- Check the [Issues](https://github.com/brainsnorkel/ESO-Logs-Build-and-Buff-Summary/issues) page
 - Create a new issue with:
   - Your Python version
   - Complete error message
