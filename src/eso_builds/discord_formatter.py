@@ -97,27 +97,26 @@ class DiscordReportFormatter:
         return lines
     
     def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float]) -> List[str]:
-        """Format buff/debuff uptimes for Discord in two columns."""
-        lines = [
-            "#### 📊 **Buff/Debuff Uptimes**",
-            ""
-        ]
+        """Format buff/debuff uptimes for Discord as simple lists."""
+        lines = []
         
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault']
         debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
-        # Create two-column layout for Discord
-        lines.append("**🔺 Buffs:**")
+        # Format buffs as simple list
+        buff_items = []
         for buff_name in buffs:
             uptime = buff_uptimes.get(buff_name, 0.0)
-            lines.append(f"• **{buff_name}**: {uptime:.1f}%")
+            buff_items.append(f"{buff_name} {uptime:.1f}%")
+        lines.append(f"Buffs: {', '.join(buff_items)}")
         
-        lines.append("")
-        lines.append("**🔻 Debuffs:**")
+        # Format debuffs as simple list
+        debuff_items = []
         for debuff_name in debuffs:
             uptime = buff_uptimes.get(debuff_name, 0.0)
-            lines.append(f"• **{debuff_name}**: {uptime:.1f}%")
+            debuff_items.append(f"{debuff_name} {uptime:.1f}%")
+        lines.append(f"Debuffs: {', '.join(debuff_items)}")
         
         return lines
     

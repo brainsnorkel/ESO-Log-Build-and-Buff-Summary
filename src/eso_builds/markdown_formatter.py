@@ -240,8 +240,6 @@ class MarkdownFormatter:
     def _format_buff_debuff_table(self, buff_uptimes: Dict[str, float]) -> List[str]:
         """Format buff/debuff uptimes as a two-column markdown table."""
         lines = [
-            "#### 📊 Buff/Debuff Uptimes",
-            "",
             "| 🔺 **Buffs** | **Uptime** | 🔻 **Debuffs** | **Uptime** |",
             "|--------------|------------|-----------------|------------|"
         ]
