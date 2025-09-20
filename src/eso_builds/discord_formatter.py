@@ -139,7 +139,7 @@ class DiscordReportFormatter:
         for i, player in enumerate(players, 1):
             # Player header
             player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
-            lines.append(f"**{role_header.split()[1]} {i} {player_name}:** {player.character_class}")
+            lines.append(f"**{player_name}:** {player.character_class}")
             
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)

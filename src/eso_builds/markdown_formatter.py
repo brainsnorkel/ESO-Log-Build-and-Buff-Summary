@@ -138,12 +138,12 @@ class MarkdownFormatter:
         
         for i, player in enumerate(players, 1):
             gear_str = self._format_gear_sets_for_table(player.gear_sets)
-            lines.append(f"| {role_title.split()[1]} {i} {player.name} | {player.character_class} | {gear_str} |")
+            lines.append(f"| {player.name} | {player.character_class} | {gear_str} |")
         
         # Add empty rows for missing players (especially DPS up to 8)
         if "DPS" in role_title:
             for i in range(len(players) + 1, 9):
-                lines.append(f"| DPS {i} @anonymous{i} | - | - |")
+                lines.append(f"| @anonymous{i} | - | - |")
         
         return lines
     
