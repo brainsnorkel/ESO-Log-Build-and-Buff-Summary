@@ -201,10 +201,10 @@ class SingleReportAnalyzer:
                 kill_status = getattr(fight, 'kill', False)
                 boss_percentage = getattr(fight, 'boss_percentage', 0.0)
                 
-                # Get buff/debuff uptimes for this fight using graph API
+                # Get buff/debuff uptimes for this fight (tries table API first, falls back to events)
                 start_time = int(getattr(fight, 'start_time', 0))
                 end_time = int(getattr(fight, 'end_time', start_time + 300000))
-                buff_uptimes = await client.get_buff_debuff_uptimes_graph(
+                buff_uptimes = await client.get_buff_debuff_uptimes(
                     report_code, start_time, end_time
                 )
                 
