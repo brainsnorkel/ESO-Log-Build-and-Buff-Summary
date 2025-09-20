@@ -238,6 +238,10 @@ jobs:
         # Copy executable
         cp dist/ESO-Log-Build-and-Buff-Summary ESO-Log-Build-and-Buff-Summary.AppDir/usr/bin/
         
+        # Create a simple icon first
+        echo "Creating simple icon..."
+        convert -size 256x256 xc:lightblue -pointsize 24 -fill black -gravity center -annotate +0+0 "ESO\nLog\nTool" ESO-Log-Build-and-Buff-Summary.AppDir/icon.png 2>/dev/null || echo "ImageMagick not available, creating placeholder"
+        
         # Create desktop file (AppImage expects it in AppDir root)
         cat > ESO-Log-Build-and-Buff-Summary.AppDir/eso-log-build-and-buff-summary.desktop << EOF
         [Desktop Entry]
@@ -245,6 +249,7 @@ jobs:
         Name=ESO Log Build and Buff Summary
         Comment=Analyze ESO trial logs and generate build reports
         Exec=ESO-Log-Build-and-Buff-Summary
+        Icon=icon
         Terminal=true
         Categories=Game;
         EOF
@@ -257,28 +262,24 @@ jobs:
         EOF
         chmod +x ESO-Log-Build-and-Buff-Summary.AppDir/AppRun
         
-               # Create a simple icon to satisfy appimagetool validation
-               echo "Creating simple icon..."
-               convert -size 256x256 xc:lightblue -pointsize 24 -fill black -gravity center -annotate +0+0 "ESO\nLog\nTool" ESO-Log-Build-and-Buff-Summary.AppDir/icon.png 2>/dev/null || echo "ImageMagick not available, creating placeholder"
-               
-               # Create AppImage with proper filename
-               TAG_NAME="${{ github.event.release.tag_name }}"
-               if [ -z "$TAG_NAME" ]; then
-                 TAG_NAME="latest"
-               fi
-               ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${TAG_NAME}.AppImage
+        # Create AppImage with proper filename
+        TAG_NAME="${{ github.event.release.tag_name }}"
+        if [ -z "$TAG_NAME" ]; then
+          TAG_NAME="latest"
+        fi
+        ./appimagetool-x86_64.AppImage ESO-Log-Build-and-Buff-Summary.AppDir ESO-Log-Build-and-Buff-Summary-Linux-${TAG_NAME}.AppImage
         
-           - name: Upload Linux AppImage artifact
-             uses: actions/upload-artifact@v4
-             with:
-               name: ESO-Log-Build-and-Buff-Summary-Linux-AppImage-${{ github.event.release.tag_name || 'latest' }}
-               path: ESO-Log-Build-and-Buff-Summary-Linux-*.AppImage
+    - name: Upload Linux AppImage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-Linux-AppImage-${{ github.event.release.tag_name || 'latest' }}
+        path: ESO-Log-Build-and-Buff-Summary-Linux-*.AppImage
         
-           - name: Upload Linux portable artifact
-             uses: actions/upload-artifact@v4
-             with:
-               name: ESO-Log-Build-and-Buff-Summary-Linux-Portable-${{ github.event.release.tag_name || 'latest' }}
-               path: dist/ESO-Log-Build-and-Buff-Summary
+    - name: Upload Linux portable artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ESO-Log-Build-and-Buff-Summary-Linux-Portable-${{ github.event.release.tag_name || 'latest' }}
+        path: dist/ESO-Log-Build-and-Buff-Summary
 
   attach-to-release:
     needs: [build-windows, build-macos, build-linux]
