@@ -107,13 +107,11 @@ class SingleReportAnalyzer:
                 boss_percentage = getattr(fight, 'percentage', 0.0)
                 
                 # Get buff/debuff uptimes for this fight
-                # TODO: Fix fight timing attributes - for now skip buff/debuff data
-                buff_uptimes = {}
-                # start_time = getattr(fight, 'startTime', getattr(fight, 'start_time', 0))
-                # end_time = getattr(fight, 'endTime', getattr(fight, 'end_time', start_time + 300000))
-                # buff_uptimes = await client.get_buff_debuff_uptimes(
-                #     report_code, start_time, end_time
-                # )
+                start_time = int(getattr(fight, 'start_time', 0))
+                end_time = int(getattr(fight, 'end_time', start_time + 300000))
+                buff_uptimes = await client.get_buff_debuff_uptimes(
+                    report_code, start_time, end_time
+                )
                 
                 encounter = EncounterResult(
                     encounter_name=fight.name,
