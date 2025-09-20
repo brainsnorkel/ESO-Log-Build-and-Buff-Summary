@@ -721,11 +721,9 @@ class ESOLogsClient:
         """
         Get buff/debuff uptimes using the table API method.
         
-        Special handling:
-        - Major Vulnerability: Finds all sources and uses the highest percentage
-        - Off Balance: Aggregates all variations into a single value
+        For each buff/debuff, finds the largest percentage among all variations and sources.
         
-        Returns a dictionary mapping buff/debuff names to their uptime percentages.
+        Returns a dictionary mapping buff/debuff names to their highest uptime percentages.
         """
         try:
             from esologs import TableDataType
@@ -760,11 +758,27 @@ class ESOLogsClient:
                 'Crusher', 'Off Balance', 'Weakening'
             ]
             
-            # Off Balance variations to aggregate
-            off_balance_variations = ['Off Balance', 'off-balance', 'offbalance', 'Off-Balance', 'OffBalance']
+            # Define all possible variations for each buff/debuff
+            buff_variations = {
+                'Major Courage': ['Major Courage', 'major-courage', 'majorcourage', 'Major-Courage', 'MajorCourage'],
+                'Major Slayer': ['Major Slayer', 'major-slayer', 'majorslayer', 'Major-Slayer', 'MajorSlayer'],
+                'Major Berserk': ['Major Berserk', 'major-berserk', 'majorberserk', 'Major-Berserk', 'MajorBerserk'],
+                'Major Force': ['Major Force', 'major-force', 'majorforce', 'Major-Force', 'MajorForce'],
+                'Minor Toughness': ['Minor Toughness', 'minor-toughness', 'minortoughness', 'Minor-Toughness', 'MinorToughness'],
+                'Major Resolve': ['Major Resolve', 'major-resolve', 'majorresolve', 'Major-Resolve', 'MajorResolve'],
+                'Pillager\'s Profit': ['Pillager\'s Profit', 'pillagers-profit', 'pillagersprofit', 'Pillagers-Profit', 'PillagersProfit'],
+                'Powerful Assault': ['Powerful Assault', 'powerful-assault', 'powerfulassault', 'Powerful-Assault', 'PowerfulAssault']
+            }
             
-            # Major Vulnerability variations/sources to find highest %
-            major_vulnerability_variations = ['Major Vulnerability', 'major-vulnerability', 'majorvulnerability', 'Major-Vulnerability', 'MajorVulnerability']
+            debuff_variations = {
+                'Major Breach': ['Major Breach', 'major-breach', 'majorbreach', 'Major-Breach', 'MajorBreach'],
+                'Major Vulnerability': ['Major Vulnerability', 'major-vulnerability', 'majorvulnerability', 'Major-Vulnerability', 'MajorVulnerability'],
+                'Minor Brittle': ['Minor Brittle', 'minor-brittle', 'minorbrittle', 'Minor-Brittle', 'MinorBrittle'],
+                'Stagger': ['Stagger', 'stagger'],
+                'Crusher': ['Crusher', 'crusher'],
+                'Off Balance': ['Off Balance', 'off-balance', 'offbalance', 'Off-Balance', 'OffBalance'],
+                'Weakening': ['Weakening', 'weakening']
+            }
             
             # Process buff table data
             if (buff_table and hasattr(buff_table, 'report_data') and 
@@ -781,10 +795,19 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
-                                if aura_name in target_buffs and 'totalUptime' in aura:
-                                    uptime_ms = aura['totalUptime']
-                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
-                                    uptimes[aura_name] = uptime_percent
+                                
+                                # Check each target buff and its variations
+                                for target_buff, variations in buff_variations.items():
+                                    if aura_name in variations and 'totalUptime' in aura:
+                                        uptime_ms = aura['totalUptime']
+                                        uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
+                                        
+                                        # Keep the highest percentage for this buff
+                                        if target_buff in uptimes:
+                                            uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
+                                        else:
+                                            uptimes[target_buff] = uptime_percent
+                                        logger.debug(f"Found {target_buff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             # Process debuff table data
             if (debuff_table and hasattr(debuff_table, 'report_data') and 
@@ -802,43 +825,26 @@ class ESOLogsClient:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
                                 
-                                # Check for exact matches first (including Major Vulnerability)
-                                if aura_name in target_debuffs and 'totalUptime' in aura:
-                                    uptime_ms = aura['totalUptime']
-                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
-                                    
-                                    # Special handling for Major Vulnerability - find all sources and use highest %
-                                    if aura_name == 'Major Vulnerability':
-                                        if 'Major Vulnerability' in uptimes:
-                                            # Keep the highest percentage
-                                            uptimes['Major Vulnerability'] = max(uptimes['Major Vulnerability'], uptime_percent)
+                                # Check each target debuff and its variations
+                                for target_debuff, variations in debuff_variations.items():
+                                    if aura_name in variations and 'totalUptime' in aura:
+                                        uptime_ms = aura['totalUptime']
+                                        uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
+                                        
+                                        # Special handling for Off Balance - aggregate all variations
+                                        if target_debuff == 'Off Balance':
+                                            if 'Off Balance' in uptimes:
+                                                uptimes['Off Balance'] += uptime_percent
+                                            else:
+                                                uptimes['Off Balance'] = uptime_percent
+                                            logger.debug(f"Found Off Balance variation '{aura_name}': {uptime_percent:.1f}% (aggregated)")
                                         else:
-                                            uptimes['Major Vulnerability'] = uptime_percent
-                                        logger.debug(f"Found Major Vulnerability source '{aura_name}': {uptime_percent:.1f}%")
-                                    else:
-                                        uptimes[aura_name] = uptime_percent
-                                
-                                # Check for Major Vulnerability variations (that aren't exact matches)
-                                elif aura_name in major_vulnerability_variations and 'totalUptime' in aura:
-                                    uptime_ms = aura['totalUptime']
-                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
-                                    if 'Major Vulnerability' in uptimes:
-                                        # Keep the highest percentage
-                                        uptimes['Major Vulnerability'] = max(uptimes['Major Vulnerability'], uptime_percent)
-                                    else:
-                                        uptimes['Major Vulnerability'] = uptime_percent
-                                    logger.debug(f"Found Major Vulnerability source '{aura_name}': {uptime_percent:.1f}%")
-                                
-                                # Special handling for Off Balance variations
-                                elif aura_name in off_balance_variations and 'totalUptime' in aura:
-                                    uptime_ms = aura['totalUptime']
-                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
-                                    # Aggregate all variations under 'Off Balance'
-                                    if 'Off Balance' in uptimes:
-                                        uptimes['Off Balance'] += uptime_percent
-                                    else:
-                                        uptimes['Off Balance'] = uptime_percent
-                                    logger.debug(f"Found Off Balance variation '{aura_name}': {uptime_percent:.1f}%")
+                                            # Keep the highest percentage for other debuffs
+                                            if target_debuff in uptimes:
+                                                uptimes[target_debuff] = max(uptimes[target_debuff], uptime_percent)
+                                            else:
+                                                uptimes[target_debuff] = uptime_percent
+                                            logger.debug(f"Found {target_debuff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes using table API")
             return uptimes
