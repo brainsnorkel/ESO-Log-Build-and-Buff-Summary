@@ -211,10 +211,6 @@ class PDFReportFormatter:
         """Format buff/debuff uptimes as a PDF table."""
         story = []
         
-        # Table title
-        story.append(Paragraph("📊 Buff/Debuff Uptimes", self.styles['RoleHeading']))
-        story.append(Spacer(1, 3))
-        
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault']
         debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
