@@ -379,8 +379,8 @@ class PDFReportFormatter:
         story = []
         
         # Role title
-        story.append(Paragraph(role_title, self.styles['RoleHeading']))
-        story.append(Spacer(1, 3))
+        title_paragraph = Paragraph(role_title, self.styles['RoleHeading'])
+        spacer = Spacer(1, 3)
         
         # Create table data with Paragraph objects for text wrapping
         table_data = [
@@ -419,8 +419,8 @@ class PDFReportFormatter:
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
         
-        # Wrap table in KeepTogether to prevent page breaks within the table
-        story.append(KeepTogether([table]))
+        # Wrap title, spacer, and table together to keep them on the same page
+        story.append(KeepTogether([title_paragraph, spacer, table]))
         return story
     
     def _format_gear_sets_for_pdf(self, gear_sets: List) -> str:

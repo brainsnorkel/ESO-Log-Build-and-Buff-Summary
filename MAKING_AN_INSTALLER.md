@@ -113,9 +113,9 @@ Create `installer.nsi`:
 !define VERSIONMAJOR 1
 !define VERSIONMINOR 0
 !define VERSIONBUILD 0
-!define HELPURL "https://github.com/your-repo/ESO-Log-Build-and-Buff-Summary"
-!define UPDATEURL "https://github.com/your-repo/ESO-Log-Build-and-Buff-Summary"
-!define ABOUTURL "https://github.com/your-repo/ESO-Log-Build-and-Buff-Summary"
+!define HELPURL "https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary"
+!define UPDATEURL "https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary"
+!define ABOUTURL "https://github.com/brainsnorkel/ESO-Log-Build-and-Buff-Summary"
 !define INSTALLSIZE 50000
 
 RequestExecutionLevel admin
@@ -578,7 +578,7 @@ ESO-Log-Build-and-Buff-Summary.exe invalidcode
 def check_for_updates():
     """Check for application updates."""
     try:
-        response = requests.get("https://api.github.com/repos/your-repo/ESO-Log-Build-and-Buff-Summary/releases/latest")
+        response = requests.get("https://api.github.com/repos/brainsnorkel/ESO-Log-Build-and-Buff-Summary/releases/latest")
         if response.status_code == 200:
             latest_version = response.json()["tag_name"]
             current_version = "1.0.0"  # Your current version
