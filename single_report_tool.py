@@ -62,32 +62,48 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             print("=" * 60)
             print(console_output)
         
-        if output_format in ["markdown", "both"]:
+        # Generate file outputs if requested
+        if output_format in ["markdown", "pdf", "all"]:
             os.makedirs(output_dir, exist_ok=True)
             from datetime import datetime
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             
             # Generate Markdown report
-            markdown_formatter = MarkdownFormatter()
-            markdown_filename = f"single_report_{report_code}_{timestamp}.md"
-            markdown_filepath = os.path.join(output_dir, markdown_filename)
+            if output_format in ["markdown", "all"]:
+                markdown_formatter = MarkdownFormatter()
+                markdown_filename = f"single_report_{report_code}_{timestamp}.md"
+                markdown_filepath = os.path.join(output_dir, markdown_filename)
+                
+                markdown_content = markdown_formatter.format_trial_report(trial_report)
+                with open(markdown_filepath, 'w', encoding='utf-8') as f:
+                    f.write(markdown_content)
+                
+                print(f"\n💾 Markdown report saved to: {markdown_filepath}")
+                
+                # Generate Discord report
+                discord_formatter = DiscordReportFormatter()
+                discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
+                discord_filepath = os.path.join(output_dir, discord_filename)
+                
+                discord_content = discord_formatter.format_trial_report(trial_report)
+                with open(discord_filepath, 'w', encoding='utf-8') as f:
+                    f.write(discord_content)
+                
+                print(f"💬 Discord report saved to: {discord_filepath}")
             
-            markdown_content = markdown_formatter.format_trial_report(trial_report)
-            with open(markdown_filepath, 'w', encoding='utf-8') as f:
-                f.write(markdown_content)
-            
-            print(f"\n💾 Markdown report saved to: {markdown_filepath}")
-            
-            # Generate Discord report
-            discord_formatter = DiscordReportFormatter()
-            discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
-            discord_filepath = os.path.join(output_dir, discord_filename)
-            
-            discord_content = discord_formatter.format_trial_report(trial_report)
-            with open(discord_filepath, 'w', encoding='utf-8') as f:
-                f.write(discord_content)
-            
-            print(f"💬 Discord report saved to: {discord_filepath}")
+            # Generate PDF report
+            if output_format in ["pdf", "all"]:
+                from src.eso_builds.pdf_formatter import PDFReportFormatter
+                
+                pdf_formatter = PDFReportFormatter()
+                pdf_filename = f"single_report_{report_code}_{timestamp}.pdf"
+                pdf_filepath = os.path.join(output_dir, pdf_filename)
+                
+                pdf_content = pdf_formatter.format_trial_report(trial_report)
+                with open(pdf_filepath, 'wb') as f:
+                    f.write(pdf_content)
+                
+                print(f"📄 PDF report saved to: {pdf_filepath}")
         
         return True
         
@@ -117,8 +133,8 @@ Examples:
     parser.add_argument('report_code', type=str,
                        help='ESO Logs report code (e.g. mtFqVzQPNBcCrd1h)')
     
-    parser.add_argument('--output', choices=['console', 'markdown', 'both'], default='console',
-                       help='Output format (default: console)')
+    parser.add_argument('--output', choices=['console', 'markdown', 'pdf', 'all'], default='console',
+                       help='Output format: console, markdown, pdf, or all (default: console)')
     
     parser.add_argument('--output-dir', type=str, default='reports',
                        help='Directory for output files (default: reports)')
