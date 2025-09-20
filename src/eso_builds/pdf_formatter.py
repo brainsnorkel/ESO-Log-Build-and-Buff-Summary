@@ -51,6 +51,44 @@ class PDFReportFormatter:
         
         return mapped_class
     
+    def _has_oakensoul_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has Oakensoul Ring equipped."""
+        for player in encounter.players:
+            for gear_set in player.gear_sets:
+                if 'oakensoul' in gear_set.name.lower():
+                    return True
+        return False
+    
+    def _has_spaulder_of_ruin_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has Spaulder of Ruin equipped."""
+        for player in encounter.players:
+            for gear_set in player.gear_sets:
+                if 'spaulder of ruin' in gear_set.name.lower():
+                    return True
+        return False
+    
+    def _has_tremorscale_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has 2pc+ Tremorscale equipped."""
+        for player in encounter.players:
+            tremorscale_count = 0
+            for gear_set in player.gear_sets:
+                if 'tremorscale' in gear_set.name.lower():
+                    tremorscale_count += gear_set.piece_count
+            if tremorscale_count >= 2:
+                return True
+        return False
+    
+    def _has_alkosh_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has 5pc+ Alkosh equipped."""
+        for player in encounter.players:
+            alkosh_count = 0
+            for gear_set in player.gear_sets:
+                if 'alkosh' in gear_set.name.lower():
+                    alkosh_count += gear_set.piece_count
+            if alkosh_count >= 5:
+                return True
+        return False
+    
     def _setup_custom_styles(self):
         """Set up custom paragraph styles for the PDF."""
         # Title style
@@ -130,7 +168,7 @@ class PDFReportFormatter:
         story = []
         
         # Add title
-        title_text = f"{trial_report.trial_name} - Summary Report"
+        title_text = f"{trial_report.trial_name} - Summary Report - Logged by Unknown"
         title = Paragraph(title_text, self.styles['CustomTitle'])
         story.append(title)
         story.append(Spacer(1, 6))
@@ -213,7 +251,7 @@ class PDFReportFormatter:
         
         # Buff/Debuff uptimes table
         if encounter.buff_uptimes:
-            story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes))
+            story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes, encounter))
             story.append(Spacer(1, 8))
         
         # Player tables by role
@@ -235,13 +273,38 @@ class PDFReportFormatter:
         
         return story
     
-    def _format_buff_debuff_table_pdf(self, buff_uptimes: dict) -> List:
+    def _format_buff_debuff_table_pdf(self, buff_uptimes: dict, encounter: 'EncounterResult') -> List:
         """Format buff/debuff uptimes as a PDF table."""
         story = []
         
+        # Check if any player has Oakensoul Ring
+        has_oakensoul = self._has_oakensoul_wearers(encounter)
+        
+        # Check if any player has Spaulder of Ruin
+        has_spaulder = self._has_spaulder_of_ruin_wearers(encounter)
+        
+        # Check if any player has 2pc+ Tremorscale
+        has_tremorscale = self._has_tremorscale_wearers(encounter)
+        
+        # Check if any player has 5pc+ Alkosh
+        has_alkosh = self._has_alkosh_wearers(encounter)
+        
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
+        
+        # Only add Aura of Pride if Spaulder of Ruin is detected
+        if has_spaulder:
+            buffs.append('Aura of Pride')
+        
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening', 'Runic Sunder']
+        
+        # Only add Tremorscale if 2pc+ Tremorscale is detected
+        if has_tremorscale:
+            debuffs.append('Tremorscale')
+        
+        # Only add Line-Breaker if 5pc+ Alkosh is detected
+        if has_alkosh:
+            debuffs.append('Line-Breaker')
         
         # Create table data with Paragraph objects for text wrapping
         table_data = [
@@ -256,7 +319,12 @@ class PDFReportFormatter:
             # Get buff info for this row
             if i < len(buffs):
                 buff_name = buffs[i]
-                buff_uptime = f"{buff_uptimes.get(buff_name, 0.0):.1f}%"
+                buff_uptime_value = buff_uptimes.get(buff_name, 0.0)
+                # Add asterisk for Major Courage and Major Resolve if Oakensoul wearers present
+                if has_oakensoul and buff_name in ['Major Courage', 'Major Resolve']:
+                    buff_uptime = f"{buff_uptime_value:.1f}%*"
+                else:
+                    buff_uptime = f"{buff_uptime_value:.1f}%"
                 buff_cell = Paragraph(buff_name, self.styles['Normal'])
                 buff_uptime_cell = Paragraph(buff_uptime, self.styles['Normal'])
             else:

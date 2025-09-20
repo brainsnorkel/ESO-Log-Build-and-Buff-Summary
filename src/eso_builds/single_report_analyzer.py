@@ -264,7 +264,7 @@ class SingleReportAnalyzer:
                 
                 # Get buff/debuff uptimes for this fight (tries table API first, falls back to events)
                 buff_uptimes = await client.get_buff_debuff_uptimes(
-                    report_code, start_time, end_time
+                    report_code, start_time, end_time, players
                 )
                 
                 encounter = EncounterResult(

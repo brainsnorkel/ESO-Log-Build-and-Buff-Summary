@@ -30,7 +30,8 @@ python single_report_tool.py "https://www.esologs.com/reports/3gjVGWB2dxCL8XAw"
 This will:
 - Analyze all boss encounters in the log
 - Display results in the console
-- Show player builds and buff/debuff uptimes
+- Show player builds and intelligent buff/debuff uptimes
+- Conditionally track effects based on equipped gear
 
 ### 2. Generate Files
 
@@ -199,14 +200,41 @@ done
 - **Special Items**: Arena weapons, mythics, monster sets
 
 #### Buff/Debuff Tracking
-**Buffs Tracked:**
+
+**🟢 Buffs (Always Tracked):**
 - Major Courage, Major Slayer, Major Berserk
 - Major Force, Minor Toughness, Major Resolve
-- Pillager's Profit, Powerful Assault
+- Powerful Assault
 
-**Debuffs Tracked:**
+**🟢 Conditional Buffs (Tracked Only When Present):**
+- **Aura of Pride** - Only when a player wears **Spaulder of Ruin**
+
+**🔴 Debuffs (Always Tracked):**
 - Major Breach, Major Vulnerability, Minor Brittle
 - Stagger, Crusher, Off Balance, Weakening
+
+**🔴 Conditional Debuffs (Tracked Only When Present):**
+- **Tremorscale** - Only when a player wears **2pc Tremorscale**
+- **Line-Breaker** - Only when a player wears **5pc Alkosh**
+- **Runic Sunder** - Only when it appears in the fight's debuff list
+
+**⚠️ Special Indicators:**
+- **Asterisk (*)** on Major Courage/Major Resolve = Oakensoul Ring wearer in group (may inflate %)
+- **0.0%** = Effect not detected or not present in fight
+
+**📊 Calculation Methods:**
+- **Powerful Assault**: Uses specific ability ID `61771` only (ignores other variations)
+- **All Other Effects**: Uses largest percentage among all ability ID variations
+- **Multiple Sources**: Each buff/debuff can have multiple ability IDs from different spells/sources
+
+### Class Name Mapping
+
+**Automatic Class Abbreviations:**
+- Arcanist → Arc, Sorcerer → Sorc, DragonKnight → DK
+- Necromancer → Cro, Templar → Plar, Warden → Den, Nightblade → NB
+
+**Special Prefixes:**
+- **Oaken** prefix added when player wears Oakensoul Ring (e.g., "OakenSorc")
 
 ### Gear Set Detection
 

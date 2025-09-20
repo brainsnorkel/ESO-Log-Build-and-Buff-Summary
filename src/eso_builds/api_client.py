@@ -718,7 +718,7 @@ class ESOLogsClient:
             logger.error(f"Failed to get master data: {e}")
             return {"abilities": [], "actors": []}
 
-    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int, players: List = None) -> Dict[str, float]:
         """
         Get buff/debuff uptimes using the table API method.
         
@@ -726,16 +726,16 @@ class ESOLogsClient:
         
         Returns a dictionary mapping buff/debuff names to their highest uptime percentages.
         """
-        result = await self._get_buff_debuff_data_table(report_code, start_time, end_time)
+        result = await self._get_buff_debuff_data_table(report_code, start_time, end_time, players)
         return result['uptimes']
 
-    async def get_all_buff_names_table(self, report_code: str, start_time: int, end_time: int) -> List[str]:
+    async def get_all_buff_names_table(self, report_code: str, start_time: int, end_time: int, players: List = None) -> List[str]:
         """
         Get all buff names from the table API method.
         
         Returns a list of all buff names including "Boon:" prefixed mundus stones.
         """
-        result = await self._get_buff_debuff_data_table(report_code, start_time, end_time)
+        result = await self._get_buff_debuff_data_table(report_code, start_time, end_time, players)
         return result['all_buff_names']
 
     async def get_player_specific_buffs(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
@@ -1231,7 +1231,7 @@ class ESOLogsClient:
         
         return player_abilities
 
-    async def _get_buff_debuff_data_table(self, report_code: str, start_time: int, end_time: int) -> Dict[str, any]:
+    async def _get_buff_debuff_data_table(self, report_code: str, start_time: int, end_time: int, players: List = None) -> Dict[str, any]:
         """
         Get buff/debuff data using the table API method.
         
@@ -1261,15 +1261,67 @@ class ESOLogsClient:
                 hostility_type='Enemies'
             )
             
+            # Check if any player is wearing Spaulder of Ruin
+            has_spaulder_of_ruin = False
+            if players:
+                for player in players:
+                    for gear_set in player.gear_sets:
+                        if 'spaulder of ruin' in gear_set.name.lower():
+                            has_spaulder_of_ruin = True
+                            logger.debug(f"Found Spaulder of Ruin on player {player.name}")
+                            break
+                    if has_spaulder_of_ruin:
+                        break
+            
+            # Check if any player is wearing 2pc Tremorscale
+            has_tremorscale = False
+            if players:
+                for player in players:
+                    tremorscale_count = 0
+                    for gear_set in player.gear_sets:
+                        if 'tremorscale' in gear_set.name.lower():
+                            tremorscale_count += gear_set.piece_count
+                    if tremorscale_count >= 2:
+                        has_tremorscale = True
+                        logger.debug(f"Found 2pc+ Tremorscale on player {player.name} ({tremorscale_count} pieces)")
+                        break
+            
+            # Check if any player is wearing 5pc+ Alkosh
+            has_alkosh = False
+            if players:
+                for player in players:
+                    alkosh_count = 0
+                    for gear_set in player.gear_sets:
+                        if 'alkosh' in gear_set.name.lower():
+                            alkosh_count += gear_set.piece_count
+                    if alkosh_count >= 5:
+                        has_alkosh = True
+                        logger.debug(f"Found 5pc+ Alkosh on player {player.name} ({alkosh_count} pieces)")
+                        break
+            
             # Target buff/debuff names we want to track
             target_buffs = [
                 'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
                 'Minor Toughness', 'Major Resolve', 'Powerful Assault'
             ]
+            
+            # Only add Aura of Pride if Spaulder of Ruin is detected
+            if has_spaulder_of_ruin:
+                target_buffs.append('Aura of Pride')
             target_debuffs = [
                 'Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 
                 'Crusher', 'Off Balance', 'Weakening'
             ]
+            
+            # Only add Tremorscale if 2pc+ Tremorscale is detected
+            if has_tremorscale:
+                target_debuffs.append('Tremorscale')
+            
+            # Only add Line-Breaker if 5pc+ Alkosh is detected
+            if has_alkosh:
+                target_debuffs.append('Line-Breaker')
+            
+            # We'll check for Runic Sunder during processing instead of upfront
             
             # Define all possible variations for each buff/debuff
             buff_variations = {
@@ -1282,6 +1334,10 @@ class ESOLogsClient:
                 'Powerful Assault': ['Powerful Assault', 'powerful-assault', 'powerfulassault', 'Powerful-Assault', 'PowerfulAssault']
             }
             
+            # Only add Aura of Pride variations if Spaulder of Ruin is detected
+            if has_spaulder_of_ruin:
+                buff_variations['Aura of Pride'] = ['Aura of Pride', 'aura-of-pride', 'auraofpride', 'Aura-of-Pride', 'AuraOfPride']
+            
             debuff_variations = {
                 'Major Breach': ['Major Breach', 'major-breach', 'majorbreach', 'Major-Breach', 'MajorBreach'],
                 'Major Vulnerability': ['Major Vulnerability', 'major-vulnerability', 'majorvulnerability', 'Major-Vulnerability', 'MajorVulnerability'],
@@ -1291,6 +1347,16 @@ class ESOLogsClient:
                 'Off Balance': ['Off Balance', 'off-balance', 'offbalance', 'Off-Balance', 'OffBalance'],
                 'Weakening': ['Weakening', 'weakening']
             }
+            
+            # Only add Tremorscale variations if 2pc+ Tremorscale is detected
+            if has_tremorscale:
+                debuff_variations['Tremorscale'] = ['Tremorscale', 'tremorscale', 'Tremor Scale', 'tremor-scale', 'tremorscale']
+            
+            # Only add Line-Breaker variations if 5pc+ Alkosh is detected
+            if has_alkosh:
+                debuff_variations['Line-Breaker'] = ['Line-Breaker', 'line-breaker', 'linebreaker', 'Line Breaker', 'LineBreaker', 'line breaker']
+            
+            # Runic Sunder variations will be added dynamically if found during processing
             
             # Process buff table data
             if (buff_table and hasattr(buff_table, 'report_data') and 
@@ -1307,10 +1373,11 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
-                                aura_id = aura.get('id', None)  # Get ability ID if available
+                                aura_id = aura.get('guid', None)  # Get ability ID if available
                                 
                                 # Collect all buff names for mundus detection
                                 all_buff_names.append(aura_name)
+                                
                                 
                                 # Check each target buff and its variations
                                 for target_buff, variations in buff_variations.items():
@@ -1318,11 +1385,25 @@ class ESOLogsClient:
                                         uptime_ms = aura['totalUptime']
                                         uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
                                         
-                                        # Keep the highest percentage for this buff
-                                        if target_buff in uptimes:
-                                            uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
+                                        # Special handling for Powerful Assault - use higher of ability ID 61771 or 61763
+                                        if target_buff == 'Powerful Assault':
+                                            if aura_id in [61771, 61763]:
+                                                # Keep the higher percentage between the two ability IDs
+                                                if target_buff in uptimes:
+                                                    uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
+                                                else:
+                                                    uptimes[target_buff] = uptime_percent
+                                                logger.debug(f"Found Powerful Assault (ID {aura_id}): {uptime_percent:.1f}%")
+                                            else:
+                                                # Skip other Powerful Assault variations
+                                                logger.debug(f"Skipping Powerful Assault variation (ID {aura_id}): {uptime_percent:.1f}%")
+                                                continue
                                         else:
-                                            uptimes[target_buff] = uptime_percent
+                                            # Keep the highest percentage for other buffs
+                                            if target_buff in uptimes:
+                                                uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
+                                            else:
+                                                uptimes[target_buff] = uptime_percent
                                         logger.debug(f"Found {target_buff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             # Process debuff table data
@@ -1340,6 +1421,13 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
+                                
+                                # Check if this is Runic Sunder and add it dynamically if found
+                                if any(variation in aura_name.lower() for variation in ['runic sunder', 'runic-sunder', 'runicsunder']):
+                                    if 'Runic Sunder' not in target_debuffs:
+                                        target_debuffs.append('Runic Sunder')
+                                        debuff_variations['Runic Sunder'] = ['Runic Sunder', 'runic-sunder', 'runicsunder', 'Runic-Sunder', 'RunicSunder']
+                                        logger.debug(f"Found Runic Sunder in debuff data, adding to tracking: {aura_name}")
                                 
                                 # Check each target debuff and its variations
                                 for target_debuff, variations in debuff_variations.items():
@@ -1587,14 +1675,14 @@ class ESOLogsClient:
             logger.warning(f"Raw PLAYER_INFO events not available via API: {e}")
             return {}
 
-    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int, players: List = None) -> Dict[str, float]:
         """
         Get buff/debuff uptimes for a specific fight.
 
         Primary method that tries table API first, falls back to events.
         """
         # Try table API first (most reliable)
-        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time)
+        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time, players)
         if table_uptimes:
             return table_uptimes
 

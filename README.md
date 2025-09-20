@@ -11,7 +11,10 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
   - Player gear sets with proper piece counting (2H weapons = 2 pieces)
   - Arena weapons, mythic items, and monster sets
   - Perfected and non-perfected set merging
-- **Buff/Debuff Tracking**: Track important raid buffs and debuffs with uptime percentages
+- **Intelligent Buff/Debuff Tracking**: 
+  - Track important raid buffs and debuffs with uptime percentages
+  - Conditional tracking based on equipped gear (Aura of Pride, Tremorscale, Line-Breaker)
+  - Oakensoul Ring detection with visual indicators
 - **Professional PDF Reports**: 
   - Table of contents with navigation
   - Proper page breaks between encounters
@@ -138,9 +141,7 @@ ESO Logs report codes can be found in the URL of any log:
   - Arena weapons (Maelstrom, Master's, etc.)
   - Mythic items (Oakensoul, Velothi Ur-Mage's Amulet, etc.)
   - Monster sets (1-piece and 2-piece)
-- **Buff/Debuff Uptimes**: 
-  - **Buffs**: Major Courage, Major Slayer, Major Berserk, Major Force, Minor Toughness, Major Resolve, Pillager's Profit, Powerful Assault
-  - **Debuffs**: Major Breach, Major Vulnerability, Minor Brittle, Stagger, Crusher, Off Balance, Weakening
+- **Buff/Debuff Uptimes**: Comprehensive tracking with intelligent detection and calculation logic
 
 ### Report Formats
 
@@ -161,6 +162,120 @@ ESO Logs report codes can be found in the URL of any log:
 - Each encounter on separate page
 - Text wrapping in tables
 - Proper page break control
+
+## 📊 Buff and Debuff Tracking Logic
+
+The tool uses intelligent detection and calculation logic for buff and debuff uptimes. Here's how it works:
+
+### 🟢 Buff Tracking
+
+#### **Standard Buffs (Always Tracked)**
+- **Major Courage** - Damage buff for group
+- **Major Slayer** - Damage buff for group  
+- **Major Berserk** - Damage buff for group
+- **Major Force** - Damage buff for group
+- **Minor Toughness** - Health buff for group
+- **Major Resolve** - Damage mitigation buff for group
+- **Powerful Assault** - Damage buff for group
+
+#### **Conditional Buffs (Tracked Only When Present)**
+- **Aura of Pride** - Only shown when a player is wearing **Spaulder of Ruin**
+
+#### **Special Calculation Rules**
+
+**Powerful Assault:**
+- **Specific Ability ID**: Only uses uptime from ability ID `61771` (the main Powerful Assault buff)
+- **Ignores Other Variations**: Skips other Powerful Assault ability IDs to avoid double-counting
+- **Fallback**: If ability ID 61771 is not found, uses the highest uptime among all variations
+
+**Oakensoul Ring Detection:**
+- When any player in the group has **Oakensoul Ring** equipped:
+  - **Major Courage** and **Major Resolve** percentages show an asterisk (*)
+  - The asterisk indicates these values may be inflated due to Oakensoul's passive nature
+
+**All Other Buffs:**
+- **Largest Percentage Method**: Finds the highest uptime among all variations of each named effect
+- **Multiple Ability IDs**: Each buff can have multiple ability IDs (different sources/spells)
+- **Variation Handling**: Handles different naming conventions (spaces, hyphens, capitalization)
+
+### 🔴 Debuff Tracking
+
+#### **Standard Debuffs (Always Tracked)**
+- **Major Breach** - Armor reduction on enemies
+- **Major Vulnerability** - Damage taken increase on enemies
+- **Minor Brittle** - Critical damage increase on enemies
+- **Stagger** - Damage over time debuff
+- **Crusher** - Armor reduction from weapon enchantments
+- **Off Balance** - Damage increase on enemies
+- **Weakening** - Damage reduction on enemies
+
+#### **Conditional Debuffs (Tracked Only When Present)**
+- **Tremorscale** - Only shown when a player is wearing **2pc Tremorscale**
+- **Line-Breaker** - Only shown when a player is wearing **5pc Alkosh**
+- **Runic Sunder** - Only shown when it appears in the fight's debuff list
+
+#### **Special Calculation Rules**
+
+**Major Vulnerability:**
+- **Largest Percentage Method**: Uses the **highest percentage** from all variations found
+- **Multiple Ability IDs**: Handles multiple sources (different ability IDs) correctly
+- **Variation Aggregation**: Combines all Major Vulnerability variations and takes the highest
+
+**All Other Debuffs:**
+- **Largest Percentage Method**: Finds the **highest percentage** among all variations of each named effect
+- **Multiple Ability IDs**: Each debuff can have multiple ability IDs (different sources/spells)
+- **Variation Handling**: Handles different naming conventions (spaces, hyphens, capitalization)
+- **Prevents Double-Counting**: Avoids counting similar effects multiple times
+
+### 🎯 Detection Logic
+
+#### **Gear-Based Detection**
+The tool scans all player gear sets to detect:
+- **Spaulder of Ruin** → Enables "Aura of Pride" buff tracking
+- **2pc Tremorscale** → Enables "Tremorscale" debuff tracking  
+- **5pc Alkosh** → Enables "Line-Breaker" debuff tracking
+- **Oakensoul Ring** → Adds asterisk (*) to Major Courage and Major Resolve
+
+#### **API-Based Detection**
+- **Runic Sunder** → Detected from the fight's debuff list in ESO Logs data
+- **All other buffs/debuffs** → Detected from ESO Logs buff/debuff tables
+
+### 📈 Uptime Calculation
+
+1. **Data Source**: ESO Logs buff/debuff table API
+2. **Calculation**: `(total_uptime_ms / fight_duration_ms) × 100`
+3. **Aggregation Methods**:
+   - **Specific Ability ID**: Powerful Assault uses only ability ID `61771`
+   - **Largest Percentage**: Most buffs/debuffs use the highest uptime among all variations
+   - **Summation**: Off Balance may sum multiple sources (if applicable)
+4. **Ability ID Tracking**: Each effect can have multiple ability IDs representing different sources:
+   - **Multiple Spells**: Same effect from different abilities (e.g., Major Courage from different sources)
+   - **Different Sources**: Same effect from different players or gear sets
+   - **Variation Handling**: Combines all variations and selects the highest percentage
+
+### ⚠️ Important Notes
+
+- **Asterisk (*)**: Indicates buffs that may be inflated due to Oakensoul Ring passive effects
+- **0.0% Values**: May indicate the effect wasn't present or detected in the fight
+- **Conditional Effects**: Only appear when the required gear/conditions are met
+- **Accuracy**: Uptime percentages reflect actual in-combat uptime, not theoretical maximums
+
+## 🎭 Class Name Mapping
+
+The tool automatically maps ESO class names to shorter, more readable formats:
+
+| ESO Class | Display Name |
+|-----------|--------------|
+| Arcanist | Arc |
+| Sorcerer | Sorc |
+| DragonKnight | DK |
+| Necromancer | Cro |
+| Templar | Plar |
+| Warden | Den |
+| Nightblade | NB |
+
+**Special Prefixes:**
+- **Oaken Prefix**: When a player has **Oakensoul Ring** equipped, their class name gets an "Oaken" prefix (e.g., "OakenSorc", "OakenDK")
 
 ## 🏗️ Project Structure
 
@@ -246,6 +361,14 @@ python -m pytest tests/ --cov=src
 **"HTTP 429 - Rate Limited"**
 - The tool respects ESO Logs rate limits
 - Wait a few minutes and try again
+
+**"Missing Expected Buffs/Debuffs"**
+- **Conditional Effects**: Some buffs/debuffs only appear when specific gear is worn:
+  - Aura of Pride requires Spaulder of Ruin
+  - Tremorscale requires 2pc+ Tremorscale
+  - Line-Breaker requires 5pc+ Alkosh
+- **0.0% Values**: May indicate the effect wasn't present or detected in the fight
+- **Gear Detection**: Verify players are wearing the expected gear sets
 
 ### Getting Help
 

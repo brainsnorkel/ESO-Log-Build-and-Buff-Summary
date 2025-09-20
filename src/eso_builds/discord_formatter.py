@@ -50,7 +50,7 @@ class DiscordReportFormatter:
         lines = []
         
         # Main header with Discord formatting
-        title = f"**{trial_report.trial_name} - Summary Report**"
+        title = f"**{trial_report.trial_name} - Summary Report - Logged by Unknown**"
         lines.extend([
             title,
             "",
@@ -97,7 +97,7 @@ class DiscordReportFormatter:
         
         # Add Buff/Debuff Uptime Table
         if encounter.buff_uptimes:
-            lines.extend(self._format_buff_debuff_discord(encounter.buff_uptimes))
+            lines.extend(self._format_buff_debuff_discord(encounter.buff_uptimes, encounter))
             lines.append("")
         
         # Get player role groups
@@ -120,19 +120,86 @@ class DiscordReportFormatter:
         
         return lines
     
-    def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float]) -> List[str]:
+    def _has_oakensoul_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has Oakensoul Ring equipped."""
+        for player in encounter.players:
+            for gear_set in player.gear_sets:
+                if 'oakensoul' in gear_set.name.lower():
+                    return True
+        return False
+    
+    def _has_spaulder_of_ruin_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has Spaulder of Ruin equipped."""
+        for player in encounter.players:
+            for gear_set in player.gear_sets:
+                if 'spaulder of ruin' in gear_set.name.lower():
+                    return True
+        return False
+    
+    def _has_tremorscale_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has 2pc+ Tremorscale equipped."""
+        for player in encounter.players:
+            tremorscale_count = 0
+            for gear_set in player.gear_sets:
+                if 'tremorscale' in gear_set.name.lower():
+                    tremorscale_count += gear_set.piece_count
+            if tremorscale_count >= 2:
+                return True
+        return False
+    
+    def _has_alkosh_wearers(self, encounter: 'EncounterResult') -> bool:
+        """Check if any player in the encounter has 5pc+ Alkosh equipped."""
+        for player in encounter.players:
+            alkosh_count = 0
+            for gear_set in player.gear_sets:
+                if 'alkosh' in gear_set.name.lower():
+                    alkosh_count += gear_set.piece_count
+            if alkosh_count >= 5:
+                return True
+        return False
+    
+    def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float], encounter: 'EncounterResult') -> List[str]:
         """Format buff/debuff uptimes for Discord as simple lists."""
         lines = []
         
+        # Check if any player has Oakensoul Ring
+        has_oakensoul = self._has_oakensoul_wearers(encounter)
+        
+        # Check if any player has Spaulder of Ruin
+        has_spaulder = self._has_spaulder_of_ruin_wearers(encounter)
+        
+        # Check if any player has 2pc+ Tremorscale
+        has_tremorscale = self._has_tremorscale_wearers(encounter)
+        
+        # Check if any player has 5pc+ Alkosh
+        has_alkosh = self._has_alkosh_wearers(encounter)
+        
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
+        
+        # Only add Aura of Pride if Spaulder of Ruin is detected
+        if has_spaulder:
+            buffs.append('Aura of Pride')
+        
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening', 'Runic Sunder']
+        
+        # Only add Tremorscale if 2pc+ Tremorscale is detected
+        if has_tremorscale:
+            debuffs.append('Tremorscale')
+        
+        # Only add Line-Breaker if 5pc+ Alkosh is detected
+        if has_alkosh:
+            debuffs.append('Line-Breaker')
         
         # Format buffs as simple list
         buff_items = []
         for buff_name in buffs:
             uptime = buff_uptimes.get(buff_name, 0.0)
-            buff_items.append(f"{buff_name} {uptime:.1f}%")
+            # Add asterisk for Major Courage and Major Resolve if Oakensoul wearers present
+            if has_oakensoul and buff_name in ['Major Courage', 'Major Resolve']:
+                buff_items.append(f"{buff_name} {uptime:.1f}%*")
+            else:
+                buff_items.append(f"{buff_name} {uptime:.1f}%")
         lines.append(f"Buffs: {', '.join(buff_items)}")
         
         # Format debuffs as simple list
