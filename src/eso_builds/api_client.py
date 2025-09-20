@@ -638,3 +638,105 @@ class ESOLogsClient:
         except Exception as e:
             logger.error(f"Failed to get master data: {e}")
             return {"abilities": [], "actors": []}
+
+    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+        """
+        Get buff/debuff uptimes for a specific fight.
+        
+        Returns a dictionary mapping buff/debuff names to their uptime percentages:
+        {
+            "Major Courage": 85.5,
+            "Major Slayer": 92.1,
+            "Major Breach": 78.3,
+            ...
+        }
+        """
+        try:
+            # Use the execute method to run custom GraphQL query for buffs
+            query = """
+            query GetBuffDebuffUptimes($code: String!, $startTime: Float!, $endTime: Float!) {
+              reportData {
+                report(code: $code) {
+                  table(
+                    dataType: Buffs
+                    hostilityType: Friendlies
+                    startTime: $startTime
+                    endTime: $endTime
+                  ) {
+                    data {
+                      auras {
+                        name
+                        id
+                        guid
+                        totalUptime
+                        totalUses
+                      }
+                      totalTime
+                    }
+                  }
+                }
+              }
+            }
+            """
+            
+            # Execute the query
+            http_response = await self._client.execute(query, variables={
+                'code': report_code,
+                'startTime': float(start_time),
+                'endTime': float(end_time)
+            })
+            
+            if http_response.status_code != 200:
+                logger.error(f"HTTP error {http_response.status_code}: {http_response.text}")
+                return {}
+            
+            # Parse the JSON response
+            response_data = http_response.json()
+            
+            if 'errors' in response_data:
+                logger.error(f"GraphQL errors: {response_data['errors']}")
+                return {}
+            
+            # Extract buff/debuff data
+            uptimes = {}
+            
+            if ('data' in response_data and 
+                'reportData' in response_data['data'] and 
+                response_data['data']['reportData'] and
+                'report' in response_data['data']['reportData'] and
+                response_data['data']['reportData']['report'] and
+                'table' in response_data['data']['reportData']['report']):
+                
+                table = response_data['data']['reportData']['report']['table']
+                
+                if 'data' in table and table['data']:
+                    table_data = table['data']
+                    total_time = table_data.get('totalTime', 1)  # Avoid division by zero
+                    
+                    if 'auras' in table_data and table_data['auras']:
+                        # Target buff/debuff names we want to track
+                        target_buffs = [
+                            'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
+                            'Minor Toughness', 'Major Resolve', 'Major Breach', 
+                            'Major Vulnerability', 'Minor Brittle'
+                        ]
+                        
+                        for aura in table_data['auras']:
+                            aura_name = aura.get('name', '')
+                            total_uptime = aura.get('totalUptime', 0)
+                            
+                            # Check if this aura matches any of our target buffs/debuffs
+                            for target_buff in target_buffs:
+                                if target_buff.lower() in aura_name.lower():
+                                    # Calculate uptime percentage
+                                    uptime_percentage = (total_uptime / total_time) * 100 if total_time > 0 else 0
+                                    uptimes[target_buff] = uptime_percentage
+                                    logger.debug(f"Found {target_buff}: {uptime_percentage:.1f}% uptime")
+                                    break
+            
+            logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes for fight")
+            return uptimes
+            
+        except Exception as e:
+            logger.error(f"Failed to get buff/debuff uptimes: {e}")
+            return {}

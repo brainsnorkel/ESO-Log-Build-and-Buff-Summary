@@ -230,3 +230,30 @@ query GetReportMasterData($code: String!) {
   }
 }
 """
+
+# GraphQL query to get buff/debuff uptime data for a fight
+GET_BUFF_DEBUFF_UPTIMES_QUERY = """
+query GetBuffDebuffUptimes($code: String!, $startTime: Float!, $endTime: Float!) {
+  reportData {
+    report(code: $code) {
+      table(
+        dataType: Buffs
+        hostilityType: Friendlies
+        startTime: $startTime
+        endTime: $endTime
+      ) {
+        data {
+          auras {
+            name
+            id
+            guid
+            totalUptime
+            totalUses
+          }
+          totalTime
+        }
+      }
+    }
+  }
+}
+"""

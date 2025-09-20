@@ -107,8 +107,6 @@ class MarkdownFormatter:
         healers = encounter.healers
         dps = encounter.dps
         
-        lines.append(f"**Team Composition:** {len(tanks)} Tanks, {len(healers)} Healers, {len(dps)} DPS")
-        lines.append("")
         
         # Format as tables for better readability
         if tanks:

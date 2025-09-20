@@ -58,6 +58,7 @@ class EncounterResult:
     players: List[PlayerBuild] = field(default_factory=list)
     kill: bool = False
     boss_percentage: float = 0.0
+    buff_uptimes: Dict[str, float] = field(default_factory=dict)
     
     @property
     def tanks(self) -> List[PlayerBuild]:
