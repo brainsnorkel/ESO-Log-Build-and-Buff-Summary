@@ -59,7 +59,30 @@ jobs:
           
     - name: Create Windows installer
       run: |
-        "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
+        # Find NSIS installation
+        $nsisPath = Get-Command makensis -ErrorAction SilentlyContinue
+        if ($nsisPath) {
+          & makensis installer.nsi
+        } else {
+          # Try common installation paths
+          $commonPaths = @(
+            "C:\Program Files\NSIS\makensis.exe",
+            "C:\Program Files (x86)\NSIS\makensis.exe",
+            "C:\NSIS\makensis.exe"
+          )
+          $found = $false
+          foreach ($path in $commonPaths) {
+            if (Test-Path $path) {
+              & $path installer.nsi
+              $found = $true
+              break
+            }
+          }
+          if (-not $found) {
+            Write-Error "NSIS not found in any common location"
+            exit 1
+          }
+        }
         
     - name: Upload Windows installer artifact
       uses: actions/upload-artifact@v4
@@ -127,10 +150,14 @@ jobs:
         # Check what was actually created
         ls -la dist/
         
-        # Create a simple DMG without fancy positioning
+        # Create DMG (PyInstaller creates a regular executable, not .app bundle)
         create-dmg \
           --volname "ESO Log Build and Buff Summary" \
+          --window-pos 200 120 \
           --window-size 600 300 \
+          --icon-size 100 \
+          --icon "ESO-Log-Build-and-Buff-Summary" 175 120 \
+          --app-drop-link 425 120 \
           "ESO-Log-Build-and-Buff-Summary-macOS-${{ github.event.release.tag_name }}.dmg" \
           "dist/"
         
@@ -218,7 +245,6 @@ jobs:
         Name=ESO Log Build and Buff Summary
         Comment=Analyze ESO trial logs and generate build reports
         Exec=ESO-Log-Build-and-Buff-Summary
-        Icon=eso-log-build-and-buff-summary
         Terminal=true
         Categories=Game;
         EOF
