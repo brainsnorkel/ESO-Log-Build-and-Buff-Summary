@@ -168,9 +168,11 @@ class SingleReportAnalyzer:
                                         gear_data = {'gear': []}
                                         for gear_item in gear_items:
                                             if gear_item.get('setID', 0) > 0:
+                                                # Include the individual item name for arena weapon detection
                                                 gear_data['gear'].append({
                                                     'setID': gear_item.get('setID'),
                                                     'setName': gear_item.get('setName'),
+                                                    'name': gear_item.get('name', ''),  # Add individual item name
                                                     'slot': gear_item.get('slot', 'unknown')
                                                 })
                                         
@@ -190,6 +192,15 @@ class SingleReportAnalyzer:
                                     # Replace @nil with @anonymous for better readability
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
+                                    
+                                    # Special debug logging for brainsnorkel
+                                    if 'brainsnorkel' in final_name.lower():
+                                        logger.info(f"🎯 BRAINSNORKEL GEAR DEBUG: Player {final_name}")
+                                        logger.info(f"   Raw gear items count: {len(gear_items)}")
+                                        for idx, g_item in enumerate(gear_items):
+                                            logger.info(f"   Gear #{idx}: {g_item}")
+                                        logger.info(f"   Processed gear sets: {gear_sets}")
+                                        logger.info(f"   Final gear count: {len(gear_sets)}")
                                     
                                     player = PlayerBuild(
                                         name=final_name,

@@ -39,10 +39,62 @@ class GearParser:
                 
             set_id = item.get('setID')
             set_name = item.get('setName')
+            item_name = item.get('name', '')  # Individual item name (for arena weapons)
             slot = item.get('slot', 'unknown')
             
+            # Debug: Log all gear items to see what we're getting
+            logger.debug(f"Processing gear item: setID={set_id}, setName='{set_name}', itemName='{item_name}', slot={slot}")
+            # Log all available fields for debugging
+            if hasattr(item, '__dict__'):
+                logger.debug(f"  All item fields: {list(item.__dict__.keys())}")
+            elif isinstance(item, dict):
+                logger.debug(f"  All item fields: {list(item.keys())}")
+                # Log the full item for debugging
+                logger.debug(f"  Full item data: {item}")
+            
+            # Handle set-based items (normal sets)
             if set_id and set_name:
-                cleaned_name = self._clean_set_name(set_name)
+                # Check if this is an arena weapon by individual item name
+                individual_name = item.get('name', '')
+                
+                # Special debug for Maelstrom items
+                if 'maelstrom' in str(individual_name).lower():
+                    logger.info(f"🔍 MAELSTROM ITEM FOUND: name='{individual_name}', setName='{set_name}'")
+                    is_arena = self._is_mythic_or_arena_weapon(individual_name)
+                    logger.info(f"🔍 Arena weapon detection result: {is_arena}")
+                
+                if individual_name and self._is_mythic_or_arena_weapon(individual_name):
+                    # Use the individual item name for arena weapons
+                    cleaned_name = self._clean_set_name(individual_name)
+                    logger.info(f"🎯 FOUND ARENA WEAPON: '{individual_name}' -> '{cleaned_name}'")
+                    
+                    # 2-handed weapons and staves count as 2 pieces
+                    if self._is_two_handed_weapon(individual_name):
+                        piece_count = 2
+                        logger.info(f"🗡️ 2H WEAPON: '{individual_name}' counts as 2 pieces")
+                    else:
+                        piece_count = 1
+                        
+                    # Set the count for arena weapons (don't increment, set directly)
+                    if cleaned_name not in set_counts:
+                        set_counts[cleaned_name] = piece_count
+                        slot_info[cleaned_name] = [slot]
+                        
+                        set_info[cleaned_name] = {
+                            'name': cleaned_name,
+                            'is_perfected': False,
+                            'original_name': individual_name
+                        }
+                        logger.info(f"✅ Added arena weapon: {piece_count}pc {cleaned_name}")
+                    else:
+                        logger.debug(f"Arena weapon already processed: {cleaned_name}")
+                    
+                    continue  # Skip the normal set processing for this item
+                else:
+                    # Use set name for regular sets
+                    cleaned_name = self._clean_set_name(set_name)
+                    if individual_name and 'maelstrom' in str(individual_name).lower():
+                        logger.info(f"❌ MAELSTROM NOT DETECTED AS ARENA: '{individual_name}' -> using setName '{set_name}'")
                 
                 # Use cleaned name as key to merge perfected/non-perfected
                 set_counts[cleaned_name] += 1
@@ -52,8 +104,44 @@ class GearParser:
                     set_info[cleaned_name] = {
                         'name': cleaned_name,
                         'is_perfected': False,  # Treat all sets the same
-                        'original_name': set_name
+                        'original_name': individual_name if individual_name and self._is_mythic_or_arena_weapon(individual_name) else set_name
                     }
+            
+            # Handle individual items (arena weapons, mythics) that might not have setID
+            elif item_name and self._is_mythic_or_arena_weapon(item_name):
+                cleaned_name = self._clean_set_name(item_name)
+                logger.debug(f"Found individual mythic/arena item: '{item_name}' -> '{cleaned_name}'")
+                
+                set_counts[cleaned_name] += 1
+                slot_info[cleaned_name].append(slot)
+                
+                if cleaned_name not in set_info:
+                    set_info[cleaned_name] = {
+                        'name': cleaned_name,
+                        'is_perfected': False,
+                        'original_name': item_name
+                    }
+            
+            # Handle items without setID but might have setName (possible arena weapons)
+            elif not set_id and set_name:
+                logger.debug(f"Found item without setID but with setName: '{set_name}', slot={slot}")
+                if self._is_mythic_or_arena_weapon(set_name):
+                    cleaned_name = self._clean_set_name(set_name)
+                    logger.debug(f"Detected as mythic/arena weapon: '{set_name}' -> '{cleaned_name}'")
+                    
+                    set_counts[cleaned_name] += 1
+                    slot_info[cleaned_name].append(slot)
+                    
+                    if cleaned_name not in set_info:
+                        set_info[cleaned_name] = {
+                            'name': cleaned_name,
+                            'is_perfected': False,
+                            'original_name': set_name
+                        }
+            
+            # Log items that don't match any category
+            else:
+                logger.debug(f"Unhandled item: setID={set_id}, setName='{set_name}', itemName='{item_name}', slot={slot}")
         
         # Validate and create gear sets
         gear_sets = self._create_validated_gear_sets(set_counts, set_info, slot_info)
@@ -209,7 +297,8 @@ class GearParser:
         # Arena weapons (Maelstrom, Dragonstar, Blackrose Prison, Vateshran Hollows)
         arena_weapon_indicators = [
             'maelstrom', 'dragonstar', 'blackrose prison', 'vateshran hollows',
-            'master\'s', 'perfected master\'s'
+            'master\'s', 'perfected master\'s', 'perfected maelstrom', 'perfected dragonstar',
+            'perfected blackrose', 'perfected vateshran'
         ]
         
         # Check for mythic items
@@ -225,6 +314,22 @@ class GearParser:
             return True
             
         return False
+    
+    def _is_two_handed_weapon(self, item_name: str) -> bool:
+        """Check if an item is a 2-handed weapon or staff (counts as 2 pieces)."""
+        if not item_name:
+            return False
+            
+        item_lower = item_name.lower()
+        
+        # 2-handed weapon indicators
+        two_handed_indicators = [
+            'greatsword', 'maul', 'battle axe', 'battleaxe', 'two handed',
+            'staff', 'inferno staff', 'ice staff', 'lightning staff',
+            'restoration staff', 'destruction staff', 'bow'
+        ]
+        
+        return any(indicator in item_lower for indicator in two_handed_indicators)
     
     def detect_build_archetype(self, gear_sets: List[GearSet], player_role: Optional[str] = None) -> str:
         """Detect the build archetype based on gear sets and role."""

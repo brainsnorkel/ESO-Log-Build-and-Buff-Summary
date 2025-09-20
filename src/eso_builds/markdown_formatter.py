@@ -28,9 +28,9 @@ class MarkdownFormatter:
         lines.extend(self._format_table_of_contents(trial_report))
         lines.append("")
         
-        # Process each ranking
-        for i, ranking in enumerate(trial_report.rankings, 1):
-            lines.extend(self._format_ranking_markdown(ranking, i))
+        # Process each report
+        for ranking in trial_report.rankings:
+            lines.extend(self._format_ranking_markdown(ranking, 1))
             lines.append("")
         
         # Footer with generation info
@@ -41,11 +41,11 @@ class MarkdownFormatter:
     def _format_header(self, trial_report: TrialReport) -> List[str]:
         """Format the markdown header."""
         lines = [
-            f"# {trial_report.trial_name} - Top Builds Report",
+            f"# {trial_report.trial_name} - Build Analysis Report",
             "",
             f"**Generated:** {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}  ",
             f"**Zone ID:** {trial_report.zone_id}  ",
-            f"**Rankings Analyzed:** {len(trial_report.rankings)}  ",
+            f"**Reports Analyzed:** {len(trial_report.rankings)}  ",
             "",
             "---"
         ]
@@ -58,13 +58,12 @@ class MarkdownFormatter:
             ""
         ]
         
-        for i, ranking in enumerate(trial_report.rankings, 1):
-            rank_anchor = f"rank-{i}"
-            lines.append(f"- [Rank {i} - Score: {ranking.score:.1f}](#{rank_anchor})")
+        for ranking in trial_report.rankings:
+            lines.append(f"- [Report Analysis](#report-analysis)")
             
             for encounter in ranking.encounters:
                 clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
-                encounter_anchor = f"rank-{i}-{clean_name}"
+                encounter_anchor = f"encounter-{clean_name}"
                 lines.append(f"  - [{encounter.encounter_name} ({encounter.difficulty.value})](#{encounter_anchor})")
         
         return lines
@@ -72,7 +71,7 @@ class MarkdownFormatter:
     def _format_ranking_markdown(self, ranking: LogRanking, rank_num: int) -> List[str]:
         """Format a single ranking as markdown."""
         lines = [
-            f"## Rank {rank_num} - Score: {ranking.score:.1f} {{#rank-{rank_num}}}",
+            f"## Report Analysis {{#report-analysis}}",
             "",
             f"**🔗 Log URL:** [{ranking.log_code}]({ranking.log_url})  "
         ]
@@ -96,7 +95,7 @@ class MarkdownFormatter:
     def _format_encounter_markdown(self, encounter: EncounterResult, rank_num: int) -> List[str]:
         """Format a single encounter as markdown with tables."""
         clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
-        encounter_anchor = f"rank-{rank_num}-{clean_name}"
+        encounter_anchor = f"encounter-{clean_name}"
         
         lines = [
             f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) {{#{encounter_anchor}}}",
