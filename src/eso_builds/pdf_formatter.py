@@ -31,8 +31,8 @@ class PDFReportFormatter:
         self.styles.add(ParagraphStyle(
             name='CustomTitle',
             parent=self.styles['Title'],
-            fontSize=20,
-            spaceAfter=30,
+            fontSize=18,
+            spaceAfter=12,
             alignment=TA_CENTER,
             textColor=colors.darkblue
         ))
@@ -41,8 +41,8 @@ class PDFReportFormatter:
         self.styles.add(ParagraphStyle(
             name='Subtitle',
             parent=self.styles['Heading2'],
-            fontSize=14,
-            spaceAfter=12,
+            fontSize=12,
+            spaceAfter=6,
             textColor=colors.darkgreen
         ))
         
@@ -50,8 +50,8 @@ class PDFReportFormatter:
         self.styles.add(ParagraphStyle(
             name='EncounterHeading',
             parent=self.styles['Heading3'],
-            fontSize=12,
-            spaceAfter=8,
+            fontSize=11,
+            spaceAfter=4,
             textColor=colors.darkred
         ))
         
@@ -59,8 +59,8 @@ class PDFReportFormatter:
         self.styles.add(ParagraphStyle(
             name='RoleHeading',
             parent=self.styles['Heading4'],
-            fontSize=10,
-            spaceAfter=6,
+            fontSize=9,
+            spaceAfter=3,
             textColor=colors.black
         ))
         
@@ -68,19 +68,19 @@ class PDFReportFormatter:
         self.styles.add(ParagraphStyle(
             name='TOCHeading',
             fontName='Helvetica-Bold',
-            fontSize=16,
-            leading=20,
-            spaceBefore=12,
-            spaceAfter=12,
+            fontSize=14,
+            leading=16,
+            spaceBefore=8,
+            spaceAfter=8,
             alignment=TA_CENTER
         ))
         
         self.styles.add(ParagraphStyle(
             name='TOCEntry',
             fontName='Helvetica',
-            fontSize=10,
-            leading=14,
-            leftIndent=20
+            fontSize=9,
+            leading=12,
+            leftIndent=15
         ))
     
     def format_trial_report(self, trial_report: TrialReport) -> bytes:
@@ -94,10 +94,10 @@ class PDFReportFormatter:
         doc = SimpleDocTemplate(
             buffer,
             pagesize=A4,
-            rightMargin=72,
-            leftMargin=72,
-            topMargin=72,
-            bottomMargin=18
+            rightMargin=54,
+            leftMargin=54,
+            topMargin=54,
+            bottomMargin=36
         )
         
         # Build the story (content)
@@ -106,7 +106,7 @@ class PDFReportFormatter:
         # Add title
         title = Paragraph(trial_report.trial_name, self.styles['CustomTitle'])
         story.append(title)
-        story.append(Spacer(1, 12))
+        story.append(Spacer(1, 6))
         
         # Add metadata
         metadata_text = f"""
@@ -115,7 +115,7 @@ class PDFReportFormatter:
         """
         metadata = Paragraph(metadata_text, self.styles['Normal'])
         story.append(metadata)
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 12))
         
         # Add Table of Contents
         story.extend(self._format_table_of_contents_pdf(trial_report))
@@ -151,12 +151,12 @@ class PDFReportFormatter:
             date_text = f"<b>Date:</b> {ranking.date.strftime('%Y-%m-%d %H:%M UTC')}"
             story.append(Paragraph(date_text, self.styles['Normal']))
         
-        story.append(Spacer(1, 16))
+        story.append(Spacer(1, 8))
         
         # Process encounters with index for linking
         for i, encounter in enumerate(ranking.encounters):
             story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i))
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 6))
         
         return story
     
@@ -181,12 +181,12 @@ class PDFReportFormatter:
         
         encounter_title = f'<a name="{encounter_anchor}"/>⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}'
         story.append(Paragraph(encounter_title, self.styles['EncounterHeading']))
-        story.append(Spacer(1, 12))
+        story.append(Spacer(1, 6))
         
         # Buff/Debuff uptimes table
         if encounter.buff_uptimes:
             story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes))
-            story.append(Spacer(1, 16))
+            story.append(Spacer(1, 8))
         
         # Player tables by role
         tanks = encounter.tanks
@@ -195,15 +195,15 @@ class PDFReportFormatter:
         
         if tanks:
             story.extend(self._format_role_table_pdf("🛡️ Tanks", tanks))
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 6))
         
         if healers:
             story.extend(self._format_role_table_pdf("💚 Healers", healers))
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 6))
         
         if dps:
             story.extend(self._format_role_table_pdf("⚔️ DPS", dps))
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 6))
         
         return story
     
@@ -213,7 +213,7 @@ class PDFReportFormatter:
         
         # Table title
         story.append(Paragraph("📊 Buff/Debuff Uptimes", self.styles['RoleHeading']))
-        story.append(Spacer(1, 6))
+        story.append(Spacer(1, 3))
         
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Pillager\'s Profit', 'Powerful Assault']
@@ -262,9 +262,9 @@ class PDFReportFormatter:
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('TOPPADDING', (0, 1), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('TOPPADDING', (0, 1), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
@@ -279,7 +279,7 @@ class PDFReportFormatter:
         
         # Role title
         story.append(Paragraph(role_title, self.styles['RoleHeading']))
-        story.append(Spacer(1, 6))
+        story.append(Spacer(1, 3))
         
         # Create table data with Paragraph objects for text wrapping
         table_data = [
@@ -305,10 +305,10 @@ class PDFReportFormatter:
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('FONTSIZE', (0, 1), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 6),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-            ('LEFTPADDING', (0, 0), (-1, -1), 6),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 6),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 4),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 4),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
@@ -336,7 +336,7 @@ class PDFReportFormatter:
         
         # TOC Title
         story.append(Paragraph("📋 Table of Contents", self.styles['TOCHeading']))
-        story.append(Spacer(1, 12))
+        story.append(Spacer(1, 8))
         
         # TOC entries
         if trial_report.rankings:
@@ -344,7 +344,7 @@ class PDFReportFormatter:
                 # Report Analysis entry (linked)
                 report_link = f'<link href="#report-analysis" color="blue">• Report Analysis</link>'
                 story.append(Paragraph(report_link, self.styles['TOCEntry']))
-                story.append(Spacer(1, 6))
+                story.append(Spacer(1, 4))
                 
                 # Encounter entries with clickable links
                 for i, encounter in enumerate(ranking.encounters):
@@ -361,7 +361,7 @@ class PDFReportFormatter:
                     # Create clickable link
                     entry_text = f'<link href="#{encounter_anchor}" color="blue">  - {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}</link>'
                     story.append(Paragraph(entry_text, self.styles['TOCEntry']))
-                    story.append(Spacer(1, 4))
+                    story.append(Spacer(1, 2))
         
         return story
     
