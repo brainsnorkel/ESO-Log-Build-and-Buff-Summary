@@ -16,6 +16,32 @@ logger = logging.getLogger(__name__)
 class MarkdownFormatter:
     """Formats trial reports into markdown format."""
     
+    # Class name mapping for shorter display names
+    CLASS_MAPPING = {
+        'Arcanist': 'Arc',
+        'Sorcerer': 'Sorc',
+        'DragonKnight': 'DK',
+        'Necromancer': 'Cro',
+        'Templar': 'Plar',
+        'Warden': 'Den',
+        'Nightblade': 'NB'
+    }
+    
+    def _get_class_display_name(self, class_name: str, player_build=None) -> str:
+        """Get the shortened display name for a class, with Oaken prefix if Oakensoul Ring equipped."""
+        mapped_class = self.CLASS_MAPPING.get(class_name, class_name)
+        
+        # Check for Oakensoul Ring if player_build is provided
+        if player_build and player_build.gear_sets:
+            has_oakensoul = any(
+                'oakensoul' in gear_set.name.lower() 
+                for gear_set in player_build.gear_sets
+            )
+            if has_oakensoul:
+                return f"Oaken{mapped_class}"
+        
+        return mapped_class
+    
     def format_trial_report(self, trial_report: TrialReport) -> str:
         """Format a complete trial report as markdown."""
         lines = []
@@ -41,10 +67,7 @@ class MarkdownFormatter:
     def _format_header(self, trial_report: TrialReport) -> List[str]:
         """Format the markdown header."""
         lines = [
-            f"# {trial_report.trial_name} - Builds and Buff Report",
-            "",
-            f"**Generated:** {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}  ",
-            f"**Zone ID:** {trial_report.zone_id}  ",
+            f"# {trial_report.trial_name} - Summary Report",
             "",
             "---"
         ]
@@ -124,15 +147,15 @@ class MarkdownFormatter:
         
         # Format as tables for better readability
         if tanks:
-            lines.extend(self._format_role_table("🛡️ Tanks", tanks))
+            lines.extend(self._format_role_table("Tanks", tanks))
             lines.append("")
         
         if healers:
-            lines.extend(self._format_role_table("💚 Healers", healers))
+            lines.extend(self._format_role_table("Healers", healers))
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_table("⚔️ DPS", dps))
+            lines.extend(self._format_role_table("DPS", dps))
             lines.append("")
         
         return lines
@@ -148,7 +171,8 @@ class MarkdownFormatter:
         
         for i, player in enumerate(players, 1):
             gear_str = self._format_gear_sets_for_table(player.gear_sets)
-            lines.append(f"| {player.name} | {player.character_class} | {gear_str} |")
+            class_name = self._get_class_display_name(player.character_class, player)
+            lines.append(f"| {player.name} | {class_name} | {gear_str} |")
         
         # Add empty rows for missing players (especially DPS up to 8)
         if "DPS" in role_title:

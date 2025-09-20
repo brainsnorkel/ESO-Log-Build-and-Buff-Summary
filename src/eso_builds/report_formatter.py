@@ -15,6 +15,21 @@ logger = logging.getLogger(__name__)
 class ReportFormatter:
     """Formats trial reports into the specified output format."""
     
+    # Class name mapping for shorter display names
+    CLASS_MAPPING = {
+        'Arcanist': 'Arc',
+        'Sorceror': 'Sorc',
+        'DragonKnight': 'DK',
+        'Necromancer': 'Cro',
+        'Templar': 'Plar',
+        'Warden': 'Warden',
+        'Nightblade': 'NB'
+    }
+    
+    def _get_class_display_name(self, class_name: str) -> str:
+        """Get the shortened display name for a class."""
+        return self.CLASS_MAPPING.get(class_name, class_name)
+    
     def format_trial_report(self, trial_report: TrialReport) -> str:
         """Format a complete trial report."""
         lines = []

@@ -15,21 +15,44 @@ logger = logging.getLogger(__name__)
 class DiscordReportFormatter:
     """Formats ESO trial reports for Discord chat using Discord markup."""
     
+    # Class name mapping for shorter display names
+    CLASS_MAPPING = {
+        'Arcanist': 'Arc',
+        'Sorcerer': 'Sorc',
+        'DragonKnight': 'DK',
+        'Necromancer': 'Cro',
+        'Templar': 'Plar',
+        'Warden': 'Den',
+        'Nightblade': 'NB'
+    }
+    
     def __init__(self):
         """Initialize the Discord formatter."""
         pass
+    
+    def _get_class_display_name(self, class_name: str, player_build=None) -> str:
+        """Get the shortened display name for a class, with Oaken prefix if Oakensoul Ring equipped."""
+        mapped_class = self.CLASS_MAPPING.get(class_name, class_name)
+        
+        # Check for Oakensoul Ring if player_build is provided
+        if player_build and player_build.gear_sets:
+            has_oakensoul = any(
+                'oakensoul' in gear_set.name.lower() 
+                for gear_set in player_build.gear_sets
+            )
+            if has_oakensoul:
+                return f"Oaken{mapped_class}"
+        
+        return mapped_class
     
     def format_trial_report(self, trial_report: TrialReport) -> str:
         """Format a complete trial report for Discord."""
         lines = []
         
         # Main header with Discord formatting
-        title = f"**{trial_report.trial_name} - Builds and Buff Report**"
+        title = f"**{trial_report.trial_name} - Summary Report**"
         lines.extend([
             title,
-            "",
-            f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC",
-            f"**Zone ID:** {trial_report.zone_id}",
             "",
             "─" * 50,
             ""
@@ -83,15 +106,15 @@ class DiscordReportFormatter:
         
         # Format role sections
         if tanks:
-            lines.extend(self._format_role_discord("🛡️ **Tanks**", tanks))
+            lines.extend(self._format_role_discord("**Tanks**", tanks))
             lines.append("")
         
         if healers:
-            lines.extend(self._format_role_discord("💚 **Healers**", healers))
+            lines.extend(self._format_role_discord("**Healers**", healers))
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_discord("⚔️ **DPS**", dps))
+            lines.extend(self._format_role_discord("**DPS**", dps))
             lines.append("")
         
         return lines
@@ -133,7 +156,8 @@ class DiscordReportFormatter:
             gear_text = self._format_gear_sets_discord(player.gear_sets)
             
             # Combine character class and gear sets on one line with a dash separator
-            lines.append(f"{escaped_name}: {player.character_class} - {gear_text}")
+            class_name = self._get_class_display_name(player.character_class, player)
+            lines.append(f"{escaped_name}: {class_name} - {gear_text}")
         
         return lines
     

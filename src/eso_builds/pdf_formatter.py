@@ -21,9 +21,35 @@ from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild
 class PDFReportFormatter:
     """Formats TrialReport objects into PDF documents."""
     
+    # Class name mapping for shorter display names
+    CLASS_MAPPING = {
+        'Arcanist': 'Arc',
+        'Sorcerer': 'Sorc',
+        'DragonKnight': 'DK',
+        'Necromancer': 'Cro',
+        'Templar': 'Plar',
+        'Warden': 'Den',
+        'Nightblade': 'NB'
+    }
+    
     def __init__(self):
         self.styles = getSampleStyleSheet()
         self._setup_custom_styles()
+    
+    def _get_class_display_name(self, class_name: str, player_build=None) -> str:
+        """Get the shortened display name for a class, with Oaken prefix if Oakensoul Ring equipped."""
+        mapped_class = self.CLASS_MAPPING.get(class_name, class_name)
+        
+        # Check for Oakensoul Ring if player_build is provided
+        if player_build and player_build.gear_sets:
+            has_oakensoul = any(
+                'oakensoul' in gear_set.name.lower() 
+                for gear_set in player_build.gear_sets
+            )
+            if has_oakensoul:
+                return f"Oaken{mapped_class}"
+        
+        return mapped_class
     
     def _setup_custom_styles(self):
         """Set up custom paragraph styles for the PDF."""
@@ -104,7 +130,8 @@ class PDFReportFormatter:
         story = []
         
         # Add title
-        title = Paragraph(trial_report.trial_name, self.styles['CustomTitle'])
+        title_text = f"{trial_report.trial_name} - Summary Report"
+        title = Paragraph(title_text, self.styles['CustomTitle'])
         story.append(title)
         story.append(Spacer(1, 6))
         
@@ -124,7 +151,7 @@ class PDFReportFormatter:
         # Process rankings (for single report, there's typically one ranking)
         if trial_report.rankings:
             for ranking in trial_report.rankings:
-                story.extend(self._format_ranking_pdf(ranking))
+                story.extend(self._format_ranking_pdf(ranking, trial_report.trial_name))
         
         # Build the PDF
         doc.build(story)
@@ -135,12 +162,12 @@ class PDFReportFormatter:
         
         return pdf_bytes
     
-    def _format_ranking_pdf(self, ranking: LogRanking) -> List:
+    def _format_ranking_pdf(self, ranking: LogRanking, trial_name: str) -> List:
         """Format a single ranking as PDF elements."""
         story = []
         
         # Add anchor for Report Analysis section with report title
-        report_analysis_title = f'<a name="report-analysis"/>Report Analysis - {ranking.log_code}'
+        report_analysis_title = f'<a name="report-analysis"/>Report Analysis - {trial_name}'
         story.append(Paragraph(report_analysis_title, self.styles['Subtitle']))
         
         # Log URL - make full URL clickable
@@ -194,15 +221,15 @@ class PDFReportFormatter:
         dps = encounter.dps
         
         if tanks:
-            story.extend(self._format_role_table_pdf("🛡️ Tanks", tanks))
+            story.extend(self._format_role_table_pdf("Tanks", tanks))
             story.append(Spacer(1, 6))
         
         if healers:
-            story.extend(self._format_role_table_pdf("💚 Healers", healers))
+            story.extend(self._format_role_table_pdf("Healers", healers))
             story.append(Spacer(1, 6))
         
         if dps:
-            story.extend(self._format_role_table_pdf("⚔️ DPS", dps))
+            story.extend(self._format_role_table_pdf("DPS", dps))
             story.append(Spacer(1, 6))
         
         return story
@@ -286,9 +313,10 @@ class PDFReportFormatter:
         
         for player in players:
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
+            class_name = self._get_class_display_name(player.character_class, player)
             table_data.append([
                 Paragraph(player.name, self.styles['Normal']),
-                Paragraph(player.character_class, self.styles['Normal']),
+                Paragraph(class_name, self.styles['Normal']),
                 Paragraph(gear_str, self.styles['Normal'])
             ])
         
@@ -338,7 +366,7 @@ class PDFReportFormatter:
         if trial_report.rankings:
             for ranking in trial_report.rankings:
                 # Report Analysis entry (linked)
-                report_link = f'<link href="#report-analysis" color="blue">• Report Analysis</link>'
+                report_link = f'<link href="#report-analysis" color="blue">Report Analysis</link>'
                 story.append(Paragraph(report_link, self.styles['TOCEntry']))
                 story.append(Spacer(1, 4))
                 
@@ -355,7 +383,7 @@ class PDFReportFormatter:
                     encounter_anchor = f"encounter-{i}-{clean_name}"
                     
                     # Create clickable link
-                    entry_text = f'<link href="#{encounter_anchor}" color="blue">  - {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}</link>'
+                    entry_text = f'<link href="#{encounter_anchor}" color="blue">{encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}</link>'
                     story.append(Paragraph(entry_text, self.styles['TOCEntry']))
                     story.append(Spacer(1, 2))
         
