@@ -12,6 +12,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.platypus.flowables import Flowable
+from reportlab.pdfgen.canvas import Canvas
 
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild
 
@@ -137,28 +139,28 @@ class PDFReportFormatter:
         """Format a single ranking as PDF elements."""
         story = []
         
-        # Report Analysis header (no rank/score for single reports)
-        story.append(Paragraph("Report Analysis", self.styles['Subtitle']))
+        # Add anchor for Report Analysis section with report title
+        report_analysis_title = f'<a name="report-analysis"/>Report Analysis: {ranking.log_code}'
+        story.append(Paragraph(report_analysis_title, self.styles['Subtitle']))
         
-        # Log URL
-        log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}">{ranking.log_code}</link>'
+        # Log URL - make full URL clickable
+        log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}" color="blue">{ranking.log_url}</link>'
         story.append(Paragraph(log_url_text, self.styles['Normal']))
         
-        # Date if available
         if ranking.date:
             date_text = f"<b>Date:</b> {ranking.date.strftime('%Y-%m-%d %H:%M UTC')}"
             story.append(Paragraph(date_text, self.styles['Normal']))
         
         story.append(Spacer(1, 16))
         
-        # Process encounters
+        # Process encounters with index for linking
         for i, encounter in enumerate(ranking.encounters):
-            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0)))
+            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i))
             story.append(Spacer(1, 12))
         
         return story
     
-    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False) -> List:
+    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False, encounter_index: int = 0) -> List:
         """Format a single encounter as PDF elements."""
         story = []
         
@@ -167,13 +169,17 @@ class PDFReportFormatter:
         if not is_first:
             story.append(PageBreak())
         
-        # Encounter title with kill/wipe status
+        # Create anchor for linking from TOC
+        clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
+        encounter_anchor = f"encounter-{encounter_index}-{clean_name}"
+        
+        # Encounter title with kill/wipe status and bookmark
         if encounter.kill or encounter.boss_percentage <= 0.1:
             status_text = "✅ KILL"
         else:
             status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
         
-        encounter_title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}"
+        encounter_title = f'<a name="{encounter_anchor}"/>⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}'
         story.append(Paragraph(encounter_title, self.styles['EncounterHeading']))
         story.append(Spacer(1, 12))
         
@@ -325,7 +331,7 @@ class PDFReportFormatter:
         return ", ".join(formatted_sets)
     
     def _format_table_of_contents_pdf(self, trial_report: TrialReport) -> List:
-        """Format a table of contents for the PDF."""
+        """Format a table of contents for the PDF with clickable links."""
         story = []
         
         # TOC Title
@@ -335,19 +341,25 @@ class PDFReportFormatter:
         # TOC entries
         if trial_report.rankings:
             for ranking in trial_report.rankings:
-                # Report Analysis entry
-                story.append(Paragraph("• Report Analysis", self.styles['TOCEntry']))
+                # Report Analysis entry (linked)
+                report_link = f'<link href="#report-analysis" color="blue">• Report Analysis</link>'
+                story.append(Paragraph(report_link, self.styles['TOCEntry']))
                 story.append(Spacer(1, 6))
                 
-                # Encounter entries
-                for encounter in ranking.encounters:
+                # Encounter entries with clickable links
+                for i, encounter in enumerate(ranking.encounters):
                     # Determine kill status
                     if encounter.kill or encounter.boss_percentage <= 0.1:
                         status_text = "✅ KILL"
                     else:
                         status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
                     
-                    entry_text = f"  - {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}"
+                    # Create anchor name for linking
+                    clean_name = encounter.encounter_name.lower().replace(' ', '-').replace("'", '')
+                    encounter_anchor = f"encounter-{i}-{clean_name}"
+                    
+                    # Create clickable link
+                    entry_text = f'<link href="#{encounter_anchor}" color="blue">  - {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text}</link>'
                     story.append(Paragraph(entry_text, self.styles['TOCEntry']))
                     story.append(Spacer(1, 4))
         

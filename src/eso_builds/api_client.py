@@ -756,6 +756,9 @@ class ESOLogsClient:
                 'Crusher', 'Off Balance', 'Weakening'
             ]
             
+            # Off Balance variations to aggregate
+            off_balance_variations = ['Off Balance', 'off-balance', 'offbalance', 'Off-Balance', 'OffBalance']
+            
             # Process buff table data
             if (buff_table and hasattr(buff_table, 'report_data') and 
                 buff_table.report_data and hasattr(buff_table.report_data, 'report') and
@@ -791,10 +794,23 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
+                                
+                                # Check for exact matches first
                                 if aura_name in target_debuffs and 'totalUptime' in aura:
                                     uptime_ms = aura['totalUptime']
                                     uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
                                     uptimes[aura_name] = uptime_percent
+                                
+                                # Special handling for Off Balance variations
+                                elif aura_name in off_balance_variations and 'totalUptime' in aura:
+                                    uptime_ms = aura['totalUptime']
+                                    uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
+                                    # Aggregate all variations under 'Off Balance'
+                                    if 'Off Balance' in uptimes:
+                                        uptimes['Off Balance'] += uptime_percent
+                                    else:
+                                        uptimes['Off Balance'] = uptime_percent
+                                    logger.debug(f"Found Off Balance variation '{aura_name}': {uptime_percent:.1f}%")
             
             logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes using table API")
             return uptimes

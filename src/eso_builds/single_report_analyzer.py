@@ -45,8 +45,11 @@ class SingleReportAnalyzer:
                 date=datetime.fromtimestamp(report_info.get('start_time', 0) / 1000) if report_info.get('start_time') else datetime.now()
             )
             
+            # Use the actual report title from the API
+            report_title = report_info.get('title', f'Report {report_code}')
+            
             trial_report = TrialReport(
-                trial_name=f"Report Analysis: {report_code}",
+                trial_name=report_title,
                 zone_id=report_info.get('zone_id', 0),
                 rankings=[ranking]
             )
