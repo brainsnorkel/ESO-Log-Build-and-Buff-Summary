@@ -210,12 +210,52 @@ class SingleReportAnalyzer:
                 kill_status = getattr(fight, 'kill', False)
                 boss_percentage = getattr(fight, 'boss_percentage', 0.0)
                 
+                # Check if any player is wearing Oakensoul Ring
+                has_oakensoul_wearer = any(
+                    any('oakensoul' in gear_set.name.lower() for gear_set in player.gear_sets)
+                    for player in players
+                )
+                
                 # Get buff/debuff uptimes for this fight (tries table API first, falls back to events)
                 start_time = int(getattr(fight, 'start_time', 0))
                 end_time = int(getattr(fight, 'end_time', start_time + 300000))
                 buff_uptimes = await client.get_buff_debuff_uptimes(
-                    report_code, start_time, end_time
+                    report_code, start_time, end_time, has_oakensoul_wearer
                 )
+                
+                # Get DPS data for this fight
+                dps_totals = await client.get_player_dps_totals(report_code, start_time, end_time)
+                group_dps_total = dps_totals.get('_group_total', 0) if dps_totals else 0
+                group_dps = dps_totals.get('_group_dps', 0) if dps_totals else 0
+                
+                # Add DPS data to players
+                for player in players:
+                    if player.role == Role.DPS:
+                        # Try to find DPS data by name first
+                        if player.name in dps_totals:
+                            player.dps_data = dps_totals[player.name]
+                        else:
+                            # Try to find by player ID (stored as 'id_<player_id>')
+                            player_id = getattr(player, 'player_id', None)
+                            if player_id and f"id_{player_id}" in dps_totals:
+                                player.dps_data = dps_totals[f"id_{player_id}"]
+                                logger.debug(f"Matched DPS player {player.name} by ID {player_id}")
+                            else:
+                                # Try to find by character name (without @ prefix)
+                                character_name = player.name.replace('@', '') if player.name.startswith('@') else player.name
+                                if character_name in dps_totals:
+                                    player.dps_data = dps_totals[character_name]
+                                    logger.debug(f"Matched DPS player {player.name} by character name {character_name}")
+                                else:
+                                    logger.debug(f"DPS player {player.name} not found in dps_totals. Available keys: {list(dps_totals.keys())}")
+                                    continue
+                        
+                        # Calculate percentage of group DPS
+                        if group_dps_total > 0:
+                            player.dps_data['dps_percentage'] = (player.dps_data['total_damage'] / group_dps_total) * 100
+                        else:
+                            player.dps_data['dps_percentage'] = 0.0
+                        logger.debug(f"Added DPS data for {player.name}: {player.dps_data}")
                 
                 encounter = EncounterResult(
                     encounter_name=fight.name,
@@ -223,7 +263,8 @@ class SingleReportAnalyzer:
                     players=players,
                     kill=kill_status,
                     boss_percentage=boss_percentage,
-                    buff_uptimes=buff_uptimes
+                    buff_uptimes=buff_uptimes,
+                    group_dps_total=int(group_dps)  # Store DPS instead of total damage
                 )
                 
                 encounters.append(encounter)
@@ -398,7 +439,8 @@ class SingleReportAnalyzer:
                                         character_class=character_class,
                                         role=role_enum,
                                         gear_sets=gear_sets,
-                                        abilities=abilities
+                                        abilities=abilities,
+                                        player_id=player_id
                                     )
                                     players.append(player)
                                     

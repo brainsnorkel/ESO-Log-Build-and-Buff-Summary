@@ -6,7 +6,7 @@ players, and their gear builds.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from enum import Enum
 import datetime
 
@@ -51,6 +51,8 @@ class PlayerBuild:
     role: Role
     gear_sets: List[GearSet] = field(default_factory=list)
     abilities: Dict[str, List[str]] = field(default_factory=lambda: {'bar1': [], 'bar2': []})
+    dps_data: Optional[Dict[str, Any]] = None  # DPS damage and percentage data
+    player_id: Optional[str] = None  # Player ID for matching across different APIs
     
     def __str__(self) -> str:
         gear_str = ", ".join(str(gear) for gear in self.gear_sets)
@@ -66,6 +68,7 @@ class EncounterResult:
     kill: bool = False
     boss_percentage: float = 0.0
     buff_uptimes: Dict[str, float] = field(default_factory=dict)
+    group_dps_total: Optional[int] = None  # Total group DPS damage
     
     @property
     def tanks(self) -> List[PlayerBuild]:
@@ -119,3 +122,22 @@ class BuildsReport:
     def add_trial(self, trial: TrialReport) -> None:
         """Add a trial report to this builds report."""
         self.trials.append(trial)
+
+
+def calculate_kills_and_wipes(encounters: List[EncounterResult]) -> Tuple[int, int]:
+    """
+    Calculate total kills and wipes from a list of encounters.
+    
+    Uses the same logic as PDF TOC generation:
+    - Kill: encounter.kill is True OR encounter.boss_percentage <= 0.1
+    - Wipe: everything else
+    
+    Args:
+        encounters: List of encounter results
+        
+    Returns:
+        Tuple of (total_kills, total_wipes)
+    """
+    kills = sum(1 for encounter in encounters if encounter.kill or encounter.boss_percentage <= 0.1)
+    wipes = len(encounters) - kills
+    return kills, wipes

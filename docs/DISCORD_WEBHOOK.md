@@ -144,7 +144,7 @@ DPS
 • @Katarany: OakenSorc - 1pc Oakensoul Ring, 4pc Sergeant's Mail
   ↳ Top Damage: Unstable Wall (18.7%), Lightning Flood (15.3%)
 
-ESO Log Build & Buff Summary v0.2.0
+ESO Log Build & Buff Summary v0.2.1
 ```
 
 ## 🐛 Troubleshooting

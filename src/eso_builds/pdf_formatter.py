@@ -15,7 +15,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus.flowables import Flowable
 from reportlab.pdfgen.canvas import Canvas
 
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, GearSet, Role
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, GearSet, Role, calculate_kills_and_wipes
 
 
 class PDFReportFormatter:
@@ -30,6 +30,13 @@ class PDFReportFormatter:
         'Templar': 'Plar',
         'Warden': 'Den',
         'Nightblade': 'NB'
+    }
+    
+    # Role icons for visual identification
+    ROLE_ICONS = {
+        Role.TANK: '🛡️',
+        Role.HEALER: '💚',
+        Role.DPS: '⚔️'
     }
     
     def __init__(self):
@@ -109,7 +116,7 @@ class PDFReportFormatter:
             leftIndent=15
         ))
     
-    def format_trial_report(self, trial_report: TrialReport) -> bytes:
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> bytes:
         """Format a complete trial report as a PDF document."""
         from io import BytesIO
         
@@ -142,6 +149,19 @@ class PDFReportFormatter:
         """
         metadata = Paragraph(metadata_text, self.styles['Normal'])
         story.append(metadata)
+        
+        # Add kill/wipe summary if we have encounters
+        if trial_report.rankings:
+            all_encounters = []
+            for ranking in trial_report.rankings:
+                all_encounters.extend(ranking.encounters)
+            
+            if all_encounters:
+                total_kills, total_wipes = calculate_kills_and_wipes(all_encounters)
+                summary_text = f"<b>📊 Trial Summary:</b> {total_kills} Kills, {total_wipes} Wipes"
+                summary = Paragraph(summary_text, self.styles['Normal'])
+                story.append(summary)
+        
         story.append(Spacer(1, 12))
         
         # Add Table of Contents
@@ -210,6 +230,12 @@ class PDFReportFormatter:
         story.append(Paragraph(encounter_title, self.styles['EncounterHeading']))
         story.append(Spacer(1, 6))
         
+        # Add group DPS if available
+        if encounter.group_dps_total:
+            group_dps_text = f"<b>Group DPS:</b> {encounter.group_dps_total:,}"
+            story.append(Paragraph(group_dps_text, self.styles['Normal']))
+            story.append(Spacer(1, 6))
+        
         # Buff/Debuff uptimes table
         if encounter.buff_uptimes:
             story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes))
@@ -229,18 +255,20 @@ class PDFReportFormatter:
             story.append(Spacer(1, 6))
         
         if dps:
-            story.extend(self._format_role_table_pdf("DPS", dps))
+            # Sort DPS players by damage percentage (highest first)
+            dps_sorted = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            story.extend(self._format_role_table_pdf("DPS", dps_sorted))
             story.append(Spacer(1, 6))
         
         return story
     
-    def _format_buff_debuff_table_pdf(self, buff_uptimes: dict) -> List:
+    def _format_buff_debuff_table_pdf(self, buff_uptimes: Dict[str, str]) -> List:
         """Format buff/debuff uptimes as a PDF table."""
         story = []
         
-        # Define all tracked buffs and debuffs
-        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
+        # Define all tracked buffs and debuffs (base names without asterisks)
+        base_buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
+        base_debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Create table data with Paragraph objects for text wrapping
         table_data = [
@@ -250,24 +278,42 @@ class PDFReportFormatter:
              Paragraph('<b>Uptime</b>', self.styles['Normal'])]
         ]
         
-        max_rows = max(len(buffs), len(debuffs))
+        max_rows = max(len(base_buffs), len(base_debuffs))
         for i in range(max_rows):
             # Get buff info for this row
-            if i < len(buffs):
-                buff_name = buffs[i]
-                buff_uptime = f"{buff_uptimes.get(buff_name, 0.0):.1f}%"
-                buff_cell = Paragraph(buff_name, self.styles['Normal'])
-                buff_uptime_cell = Paragraph(buff_uptime, self.styles['Normal'])
+            if i < len(base_buffs):
+                base_buff_name = base_buffs[i]
+                # Look for the buff with or without asterisk
+                buff_key = None
+                buff_uptime = 0.0
+                if base_buff_name in buff_uptimes:
+                    buff_key = base_buff_name
+                    buff_uptime = float(buff_uptimes[buff_key])
+                elif f"{base_buff_name}*" in buff_uptimes:
+                    buff_key = f"{base_buff_name}*"
+                    buff_uptime = float(buff_uptimes[buff_key])
+                
+                buff_cell = Paragraph(buff_key if buff_key else "", self.styles['Normal'])
+                buff_uptime_cell = Paragraph(f"{buff_uptime:.1f}%" if buff_key else "", self.styles['Normal'])
             else:
                 buff_cell = Paragraph("", self.styles['Normal'])
                 buff_uptime_cell = Paragraph("", self.styles['Normal'])
             
             # Get debuff info for this row
-            if i < len(debuffs):
-                debuff_name = debuffs[i]
-                debuff_uptime = f"{buff_uptimes.get(debuff_name, 0.0):.1f}%"
-                debuff_cell = Paragraph(debuff_name, self.styles['Normal'])
-                debuff_uptime_cell = Paragraph(debuff_uptime, self.styles['Normal'])
+            if i < len(base_debuffs):
+                base_debuff_name = base_debuffs[i]
+                # Look for the debuff with or without asterisk
+                debuff_key = None
+                debuff_uptime = 0.0
+                if base_debuff_name in buff_uptimes:
+                    debuff_key = base_debuff_name
+                    debuff_uptime = float(buff_uptimes[debuff_key])
+                elif f"{base_debuff_name}*" in buff_uptimes:
+                    debuff_key = f"{base_debuff_name}*"
+                    debuff_uptime = float(buff_uptimes[debuff_key])
+                
+                debuff_cell = Paragraph(debuff_key if debuff_key else "", self.styles['Normal'])
+                debuff_uptime_cell = Paragraph(f"{debuff_uptime:.1f}%" if debuff_key else "", self.styles['Normal'])
             else:
                 debuff_cell = Paragraph("", self.styles['Normal'])
                 debuff_uptime_cell = Paragraph("", self.styles['Normal'])
@@ -319,8 +365,16 @@ class PDFReportFormatter:
             if self._has_incomplete_sets(player.gear_sets):
                 gear_str = f"<b>Set Problem?:</b> {gear_str}"
             
+            # Add role icon and DPS percentage to player name
+            role_icon = self.ROLE_ICONS.get(player.role, '')
+            player_name = f"{role_icon} {player.name}"
+            
+            if player.role.value == "DPS" and player.dps_data and 'dps_percentage' in player.dps_data:
+                dps_percentage = player.dps_data['dps_percentage']
+                player_name = f"{role_icon} {player.name} ({dps_percentage:.1f}%)"
+            
             table_data.append([
-                Paragraph(player.name, self.styles['Normal']),
+                Paragraph(player_name, self.styles['Normal']),
                 Paragraph(class_name, self.styles['Normal']),
                 Paragraph(gear_str, self.styles['Normal'])
             ])

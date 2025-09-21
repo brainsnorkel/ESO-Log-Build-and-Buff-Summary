@@ -93,7 +93,7 @@ async def example_simple_message():
         print("🚀 Posting simple message to Discord...")
         
         success = await client.post_simple_message(
-            "🎮 ESO Log Build & Buff Summary v0.2.0 is ready!\n"
+            "🎮 ESO Log Build & Buff Summary v0.2.1 is ready!\n"
             "Use the new Discord webhook feature to post trial reports directly to Discord.\n\n"
             "New feature: --discord-webhook-post for individual boss fight analysis!"
         )

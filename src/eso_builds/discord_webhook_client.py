@@ -3,11 +3,19 @@ import asyncio
 import aiohttp
 from typing import Dict, Any, Optional
 import json
+from .models import Role
 
 logger = logging.getLogger(__name__)
 
 class DiscordWebhookClient:
     """Client for posting ESO trial reports to Discord via webhooks."""
+    
+    # Role icons for visual identification
+    ROLE_ICONS = {
+        Role.TANK: '🛡️',
+        Role.HEALER: '💚',
+        Role.DPS: '⚔️'
+    }
     
     def __init__(self, webhook_url: Optional[str] = None):
         """
@@ -34,7 +42,7 @@ class DiscordWebhookClient:
         Post individual boss fights as separate Discord messages.
         
         Args:
-            encounters: List of encounter objects (kill fights only)
+            encounters: List of encounter objects (both kill and wipe fights)
             report_title: Title for the report
             log_url: ESO Logs URL
             
@@ -50,31 +58,57 @@ class DiscordWebhookClient:
             return False
         
         try:
+            # Calculate kill and wipe counts using the same logic as PDF TOC
+            kill_fights = [e for e in encounters if e.kill or e.boss_percentage <= 0.1]
+            wipe_fights = [e for e in encounters if not (e.kill or e.boss_percentage <= 0.1)]
+            total_kills = len(kill_fights)
+            total_wipes = len(wipe_fights)
+            total_fights = total_kills + total_wipes
+            
+            fight_number = 1
+            
             # Post each kill fight as a separate message
-            for i, encounter in enumerate(encounters):
-                if not encounter.kill:
-                    continue  # Skip wipes
-                
+            for encounter in kill_fights:
                 # Format individual fight content
                 fight_content = self._format_individual_fight(encounter)
-                title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty}) - ✅ KILL"
+                title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - ✅ KILL"
                 
                 # Create embed for individual fight
-                embed = self._create_fight_embed(title, fight_content, i + 1, len([e for e in encounters if e.kill]))
+                embed = self._create_fight_embed(title, fight_content, fight_number, total_fights)
                 
                 payload = {"embeds": [embed]}
                 
                 async with self.session.post(self.webhook_url, json=payload) as response:
                     if response.status == 204:
-                        logger.info(f"Successfully posted fight {i+1} to Discord")
+                        logger.info(f"Successfully posted kill fight {fight_number} to Discord")
                     else:
                         logger.error(f"Failed to post fight to Discord: {response.status} - {await response.text()}")
                         return False
+                
+                fight_number += 1
+            
+            # Post each wipe fight as a separate message
+            for encounter in wipe_fights:
+                # Format individual fight content
+                fight_content = self._format_individual_fight(encounter)
+                title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - ❌ WIPE ({encounter.boss_percentage:.1f}%)"
+                
+                # Create embed for individual fight (red color for wipes)
+                embed = self._create_fight_embed(title, fight_content, fight_number, total_fights, color=0xff0000)
+                
+                payload = {"embeds": [embed]}
+                
+                async with self.session.post(self.webhook_url, json=payload) as response:
+                    if response.status == 204:
+                        logger.info(f"Successfully posted wipe fight {fight_number} to Discord")
+                    else:
+                        logger.error(f"Failed to post fight to Discord: {response.status} - {await response.text()}")
+                        return False
+                
+                fight_number += 1
             
             # Post summary with ESO logs URL
-            kill_fights = [e for e in encounters if e.kill]
-            wipe_fights = [e for e in encounters if not e.kill]
-            summary_embed = self._create_summary_embed(report_title, log_url, len(kill_fights), len(wipe_fights))
+            summary_embed = self._create_summary_embed(report_title, log_url, total_kills, total_wipes)
             summary_payload = {"embeds": [summary_embed]}
             
             async with self.session.post(self.webhook_url, json=summary_payload) as response:
@@ -84,7 +118,7 @@ class DiscordWebhookClient:
                     logger.error(f"Failed to post summary to Discord: {response.status} - {await response.text()}")
                     return False
             
-            logger.info(f"Successfully posted {len([e for e in encounters if e.kill])} individual fights and summary to Discord")
+            logger.info(f"Successfully posted {total_fights} individual fights ({total_kills} kills, {total_wipes} wipes) and summary to Discord")
             return True
             
         except Exception as e:
@@ -190,7 +224,7 @@ class DiscordWebhookClient:
             "color": 0x00ff00,  # Green color
             "timestamp": None,  # Will be set to current time by Discord
             "footer": {
-                "text": f"ESO Log Build & Buff Summary v0.2.0"
+                "text": f"ESO Log Build & Buff Summary v0.2.1"
             }
         }
         
@@ -212,6 +246,11 @@ class DiscordWebhookClient:
         """
         lines = []
         
+        # Group DPS if available
+        if encounter.group_dps_total:
+            lines.append(f"**Group DPS:** {encounter.group_dps_total:,}")
+            lines.append("")
+        
         # Buffs/Debuffs
         if encounter.buff_uptimes:
             # buff_uptimes is a Dict[str, float] where keys are buff names and values are uptime percentages
@@ -228,6 +267,7 @@ class DiscordWebhookClient:
         if tanks:
             lines.append("**Tanks**")
             for player in tanks:
+                role_icon = self.ROLE_ICONS.get(player.role, '')
                 player_name = f"`{player.name}`" if "@" in player.name else player.name
                 gear_text = self._format_gear_sets_compact(player.gear_sets)
                 
@@ -236,7 +276,7 @@ class DiscordWebhookClient:
                     gear_text = f"**Set Problem?:** {gear_text}"
                 
                 class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"• {player_name}: {class_name} - {gear_text}")
+                lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
                 
                 # Add top abilities for tanks
                 if player.abilities and player.abilities.get('top_abilities'):
@@ -248,6 +288,7 @@ class DiscordWebhookClient:
         if healers:
             lines.append("**Healers**")
             for player in healers:
+                role_icon = self.ROLE_ICONS.get(player.role, '')
                 player_name = f"`{player.name}`" if "@" in player.name else player.name
                 gear_text = self._format_gear_sets_compact(player.gear_sets)
                 
@@ -256,7 +297,7 @@ class DiscordWebhookClient:
                     gear_text = f"**Set Problem?:** {gear_text}"
                 
                 class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"• {player_name}: {class_name} - {gear_text}")
+                lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
                 
                 # Add top healing abilities
                 if player.abilities and player.abilities.get('top_abilities'):
@@ -267,8 +308,19 @@ class DiscordWebhookClient:
         
         if dps:
             lines.append("**DPS**")
-            for player in dps:
-                player_name = f"`{player.name}`" if "@" in player.name else player.name
+            # Sort DPS players by damage percentage (highest first)
+            dps_sorted = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            
+            for player in dps_sorted:
+                role_icon = self.ROLE_ICONS.get(player.role, '')
+                player_name = player.name
+                
+                # Add DPS percentage to player name for DPS players
+                if player.dps_data and 'dps_percentage' in player.dps_data:
+                    dps_percentage = player.dps_data['dps_percentage']
+                    player_name = f"{player_name} ({dps_percentage:.1f}%)"
+                
+                player_name = f"`{player_name}`" if "@" in player_name else player_name
                 gear_text = self._format_gear_sets_compact(player.gear_sets)
                 
                 # Add set problem indicator if needed
@@ -276,7 +328,7 @@ class DiscordWebhookClient:
                     gear_text = f"**Set Problem?:** {gear_text}"
                 
                 class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"• {player_name}: {class_name} - {gear_text}")
+                lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
                 
                 # Add top damage abilities
                 if player.abilities and player.abilities.get('top_abilities'):
@@ -354,7 +406,7 @@ class DiscordWebhookClient:
         
         return mapped_class
     
-    def _create_fight_embed(self, title: str, content: str, fight_number: int, total_fights: int) -> Dict[str, Any]:
+    def _create_fight_embed(self, title: str, content: str, fight_number: int, total_fights: int, color: int = 0x00ff00) -> Dict[str, Any]:
         """Create a Discord embed for an individual fight."""
         # Ensure content fits within Discord limits
         if len(content) > 4000:  # Discord embed description limit is 4096, leave some buffer
@@ -363,10 +415,10 @@ class DiscordWebhookClient:
         embed = {
             "title": title,
             "description": content,
-            "color": 0x00ff00,  # Green color for kills
+            "color": color,  # Green for kills (0x00ff00), red for wipes (0xff0000)
             "timestamp": None,  # Will be set to current time by Discord
             "footer": {
-                "text": f"ESO Log Build & Buff Summary v0.2.0 • Fight {fight_number}/{total_fights}"
+                "text": f"ESO Log Build & Buff Summary v0.2.1 • Fight {fight_number}/{total_fights}"
             }
         }
         
@@ -386,7 +438,7 @@ class DiscordWebhookClient:
             "color": 0x0099ff,  # Blue color for summary
             "timestamp": None,
             "footer": {
-                "text": "ESO Log Build & Buff Summary v0.2.0"
+                "text": "ESO Log Build & Buff Summary v0.2.1"
             }
         }
         

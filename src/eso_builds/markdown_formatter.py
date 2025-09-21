@@ -8,7 +8,7 @@ proper structure, tables, and links for better readability and sharing.
 import logging
 from typing import List, Dict, Any
 from datetime import datetime
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet, calculate_kills_and_wipes
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,13 @@ class MarkdownFormatter:
         'Nightblade': 'NB'
     }
     
+    # Role icons for visual identification
+    ROLE_ICONS = {
+        Role.TANK: '🛡️',
+        Role.HEALER: '💚',
+        Role.DPS: '⚔️'
+    }
+    
     def _get_class_display_name(self, class_name: str, player_build=None) -> str:
         """Get the shortened display name for a class, with Oaken prefix if Oakensoul Ring equipped."""
         mapped_class = self.CLASS_MAPPING.get(class_name, class_name)
@@ -42,7 +49,7 @@ class MarkdownFormatter:
         
         return mapped_class
     
-    def format_trial_report(self, trial_report: TrialReport) -> str:
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> str:
         """Format a complete trial report as markdown."""
         lines = []
         
@@ -68,9 +75,23 @@ class MarkdownFormatter:
         """Format the markdown header."""
         lines = [
             f"# {trial_report.trial_name} - Summary Report",
-            "",
-            "---"
+            ""
         ]
+        
+        # Add kill/wipe summary if we have encounters
+        if trial_report.rankings:
+            all_encounters = []
+            for ranking in trial_report.rankings:
+                all_encounters.extend(ranking.encounters)
+            
+            if all_encounters:
+                total_kills, total_wipes = calculate_kills_and_wipes(all_encounters)
+                lines.extend([
+                    f"**📊 Trial Summary:** {total_kills} Kills, {total_wipes} Wipes",
+                    ""
+                ])
+        
+        lines.append("---")
         return lines
     
     def _format_table_of_contents(self, trial_report: TrialReport) -> List[str]:
@@ -135,6 +156,11 @@ class MarkdownFormatter:
             ""
         ]
         
+        # Add group DPS if available
+        if encounter.group_dps_total:
+            lines.append(f"**Group DPS:** {encounter.group_dps_total:,}")
+            lines.append("")
+        
         # Add Buff/Debuff Uptime Table
         if encounter.buff_uptimes:
             lines.extend(self._format_buff_debuff_table(encounter.buff_uptimes))
@@ -155,7 +181,9 @@ class MarkdownFormatter:
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_table("DPS", dps))
+            # Sort DPS players by their DPS percentage (highest first)
+            sorted_dps = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            lines.extend(self._format_role_table("DPS", sorted_dps))
             lines.append("")
         
         return lines
@@ -175,11 +203,22 @@ class MarkdownFormatter:
                 gear_str = self._format_gear_sets_for_table(player.gear_sets)
                 class_name = self._get_class_display_name(player.character_class, player)
                 
+                # Add role icon and DPS percentage to player name
+                role_icon = self.ROLE_ICONS.get(player.role, '')
+                player_name = f"{role_icon} {player.name}"
+                
+                if player.role.value == "DPS" and player.dps_data and 'dps_percentage' in player.dps_data:
+                    dps_percentage = player.dps_data['dps_percentage']
+                    player_name = f"{role_icon} {player.name} ({dps_percentage:.1f}%)"
+                    logger.debug(f"Formatted DPS player {player.name} with percentage: {player_name}")
+                elif player.role.value == "DPS":
+                    logger.debug(f"DPS player {player.name} - dps_data: {player.dps_data}")
+                
                 # Add "Set Problem?:" indicator if player has incomplete sets
                 if self._has_incomplete_sets(player.gear_sets):
                     gear_str = f"**Set Problem?:** {gear_str}"
                 
-                lines.append(f"| {player.name} | {class_name} | {gear_str} |")
+                lines.append(f"| {player_name} | {class_name} | {gear_str} |")
                 
                 # Add top abilities row for DPS, healers, and tanks
                 if player.abilities and player.abilities.get('top_abilities'):
@@ -208,11 +247,15 @@ class MarkdownFormatter:
                 gear_str = self._format_gear_sets_for_table(player.gear_sets)
                 class_name = self._get_class_display_name(player.character_class, player)
                 
+                # Add role icon to player name
+                role_icon = self.ROLE_ICONS.get(player.role, '')
+                player_name = f"{role_icon} {player.name}"
+                
                 # Add "Set Problem?:" indicator if player has incomplete sets
                 if self._has_incomplete_sets(player.gear_sets):
                     gear_str = f"**Set Problem?:** {gear_str}"
                 
-                lines.append(f"| {player.name} | {class_name} | {gear_str} |")
+                lines.append(f"| {player_name} | {class_name} | {gear_str} |")
         
         return lines
     
@@ -344,37 +387,55 @@ class MarkdownFormatter:
         
         return "\n".join(lines)
     
-    def _format_buff_debuff_table(self, buff_uptimes: Dict[str, float]) -> List[str]:
+    def _format_buff_debuff_table(self, buff_uptimes: Dict[str, str]) -> List[str]:
         """Format buff/debuff uptimes as a two-column markdown table."""
         lines = [
             "| 🔺 **Buffs** | **Uptime** | 🔻 **Debuffs** | **Uptime** |",
             "|--------------|------------|-----------------|------------|"
         ]
         
-        # Define all tracked buffs and debuffs
-        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
+        # Define all tracked buffs and debuffs (base names without asterisks)
+        base_buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
+        base_debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Create rows for the table (pad with empty entries if needed)
-        max_rows = max(len(buffs), len(debuffs))
+        max_rows = max(len(base_buffs), len(base_debuffs))
         
         for i in range(max_rows):
             # Get buff info for this row
-            if i < len(buffs):
-                buff_name = buffs[i]
-                buff_uptime = buff_uptimes.get(buff_name, 0.0)
-                buff_cell = buff_name
-                buff_uptime_cell = f"{buff_uptime:.1f}%"
+            if i < len(base_buffs):
+                base_buff_name = base_buffs[i]
+                # Look for the buff with or without asterisk
+                buff_key = None
+                buff_uptime = 0.0
+                if base_buff_name in buff_uptimes:
+                    buff_key = base_buff_name
+                    buff_uptime = float(buff_uptimes[buff_key])
+                elif f"{base_buff_name}*" in buff_uptimes:
+                    buff_key = f"{base_buff_name}*"
+                    buff_uptime = float(buff_uptimes[buff_key])
+                
+                buff_cell = buff_key if buff_key else ""
+                buff_uptime_cell = f"{buff_uptime:.1f}%" if buff_key else ""
             else:
                 buff_cell = ""
                 buff_uptime_cell = ""
             
             # Get debuff info for this row
-            if i < len(debuffs):
-                debuff_name = debuffs[i]
-                debuff_uptime = buff_uptimes.get(debuff_name, 0.0)
-                debuff_cell = debuff_name
-                debuff_uptime_cell = f"{debuff_uptime:.1f}%"
+            if i < len(base_debuffs):
+                base_debuff_name = base_debuffs[i]
+                # Look for the debuff with or without asterisk
+                debuff_key = None
+                debuff_uptime = 0.0
+                if base_debuff_name in buff_uptimes:
+                    debuff_key = base_debuff_name
+                    debuff_uptime = float(buff_uptimes[debuff_key])
+                elif f"{base_debuff_name}*" in buff_uptimes:
+                    debuff_key = f"{base_debuff_name}*"
+                    debuff_uptime = float(buff_uptimes[debuff_key])
+                
+                debuff_cell = debuff_key if debuff_key else ""
+                debuff_uptime_cell = f"{debuff_uptime:.1f}%" if debuff_key else ""
             else:
                 debuff_cell = ""
                 debuff_uptime_cell = ""

@@ -159,7 +159,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
         
         # Handle Discord webhook posting (individual fights)
         if discord_webhook_post:
-            webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+            webhook_url = os.getenv('DISCORD_WEBHOOK_URL') or os.getenv('DISCORD_WEBHOOK')
             if not webhook_url:
                 print("❌ DISCORD_WEBHOOK_URL environment variable not set!")
                 print("\nPlease set up your Discord webhook:")
@@ -176,26 +176,24 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     ranking = trial_report.rankings[0]
                     encounters = ranking.encounters
                     
-                    # Filter to kill fights only
-                    kill_fights = [e for e in encounters if e.kill]
-                    
-                    if not kill_fights:
-                        print("❌ No kill fights found in this report")
+                    # Pass all encounters (both kills and wipes)
+                    if not encounters:
+                        print("❌ No encounters found in this report")
                         return False
                     
-                    print(f"🚀 Posting {len(kill_fights)} kill fights to Discord...")
+                    print(f"🚀 Posting {len(encounters)} fights to Discord...")
                     
                     report_title = f"{trial_report.trial_name} - {report_code}"
                     log_url = ranking.log_url
                     
                     success = await webhook_client.post_individual_fights(
-                        encounters=kill_fights,
+                        encounters=encounters,
                         report_title=report_title,
                         log_url=log_url
                     )
                     
                     if success:
-                        print(f"✅ Successfully posted {len(kill_fights)} individual fights and summary to Discord")
+                        print(f"✅ Successfully posted individual fights and summary to Discord")
                     else:
                         print(f"❌ Failed to post fights to Discord")
                         return False
@@ -257,7 +255,7 @@ Examples:
                        help='Discord webhook URL to post the report directly to Discord')
     
     parser.add_argument('--discord-webhook-post', action='store_true',
-                       help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (kill fights only)')
+                       help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (both kills and wipes)')
     
     args = parser.parse_args()
     

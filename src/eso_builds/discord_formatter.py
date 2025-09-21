@@ -8,7 +8,7 @@ optimized for chat readability with proper Discord formatting syntax.
 import logging
 from typing import List, Dict
 from datetime import datetime
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet, calculate_kills_and_wipes
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +24,13 @@ class DiscordReportFormatter:
         'Templar': 'Plar',
         'Warden': 'Den',
         'Nightblade': 'NB'
+    }
+    
+    # Role icons for visual identification
+    ROLE_ICONS = {
+        Role.TANK: '🛡️',
+        Role.HEALER: '💚',
+        Role.DPS: '⚔️'
     }
     
     def __init__(self):
@@ -45,7 +52,7 @@ class DiscordReportFormatter:
         
         return mapped_class
     
-    def format_trial_report(self, trial_report: TrialReport) -> str:
+    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> str:
         """Format a complete trial report for Discord."""
         lines = []
         
@@ -68,6 +75,14 @@ class DiscordReportFormatter:
                 f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
                 ""
             ])
+            
+            # Add kill/wipe summary
+            if ranking.encounters:
+                total_kills, total_wipes = calculate_kills_and_wipes(ranking.encounters)
+                lines.extend([
+                    f"**📊 Trial Summary:** {total_kills} Kills, {total_wipes} Wipes",
+                    ""
+                ])
             
             for encounter in ranking.encounters:
                 lines.extend(self._format_encounter_discord(encounter))
@@ -94,6 +109,11 @@ class DiscordReportFormatter:
             ""
         ]
         
+        # Add group DPS if available
+        if encounter.group_dps_total:
+            lines.append(f"**Group DPS:** {encounter.group_dps_total:,}")
+            lines.append("")
+        
         # Add Buff/Debuff Uptime Table
         if encounter.buff_uptimes:
             lines.extend(self._format_buff_debuff_discord(encounter.buff_uptimes))
@@ -114,31 +134,53 @@ class DiscordReportFormatter:
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_discord("**DPS**", dps))
+            # Sort DPS players by damage percentage (highest first)
+            dps_sorted = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            lines.extend(self._format_role_discord("**DPS**", dps_sorted))
             lines.append("")
         
         return lines
     
-    def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float]) -> List[str]:
+    def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, str]) -> List[str]:
         """Format buff/debuff uptimes for Discord as simple lists."""
         lines = []
         
-        # Define all tracked buffs and debuffs
-        buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
+        # Define all tracked buffs and debuffs (base names without asterisks)
+        base_buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
+        base_debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Format buffs as simple list
         buff_items = []
-        for buff_name in buffs:
-            uptime = buff_uptimes.get(buff_name, 0.0)
-            buff_items.append(f"{buff_name} {uptime:.1f}%")
+        for base_buff_name in base_buffs:
+            # Look for the buff with or without asterisk
+            buff_key = None
+            uptime = 0.0
+            if base_buff_name in buff_uptimes:
+                buff_key = base_buff_name
+                uptime = float(buff_uptimes[buff_key])
+            elif f"{base_buff_name}*" in buff_uptimes:
+                buff_key = f"{base_buff_name}*"
+                uptime = float(buff_uptimes[buff_key])
+            
+            if buff_key:
+                buff_items.append(f"{buff_key} {uptime:.1f}%")
         lines.append(f"Buffs: {', '.join(buff_items)}")
         
         # Format debuffs as simple list
         debuff_items = []
-        for debuff_name in debuffs:
-            uptime = buff_uptimes.get(debuff_name, 0.0)
-            debuff_items.append(f"{debuff_name} {uptime:.1f}%")
+        for base_debuff_name in base_debuffs:
+            # Look for the debuff with or without asterisk
+            debuff_key = None
+            uptime = 0.0
+            if base_debuff_name in buff_uptimes:
+                debuff_key = base_debuff_name
+                uptime = float(buff_uptimes[debuff_key])
+            elif f"{base_debuff_name}*" in buff_uptimes:
+                debuff_key = f"{base_debuff_name}*"
+                uptime = float(buff_uptimes[debuff_key])
+            
+            if debuff_key:
+                debuff_items.append(f"{debuff_key} {uptime:.1f}%")
         lines.append(f"Debuffs: {', '.join(debuff_items)}")
         
         return lines
@@ -149,7 +191,15 @@ class DiscordReportFormatter:
         
         for i, player in enumerate(players, 1):
             # Player header - escape @ symbols with backticks to prevent Discord pings
-            player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
+            base_name = player.name if player.name != "anonymous" else f"anonymous{i}"
+            
+            # Add role icon and DPS percentage to player name
+            role_icon = self.ROLE_ICONS.get(player.role, '')
+            player_name = f"{role_icon} {base_name}"
+            
+            if player.role.value == "DPS" and player.dps_data and 'dps_percentage' in player.dps_data:
+                dps_percentage = player.dps_data['dps_percentage']
+                player_name = f"{role_icon} {base_name} ({dps_percentage:.1f}%)"
             
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
