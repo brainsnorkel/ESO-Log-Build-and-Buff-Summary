@@ -6,9 +6,9 @@ proper structure, tables, and links for better readability and sharing.
 """
 
 import logging
-from typing import List, Dict
+from typing import List, Dict, Any
 from datetime import datetime
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet
 
 logger = logging.getLogger(__name__)
 
@@ -162,22 +162,59 @@ class MarkdownFormatter:
     
     def _format_role_table(self, role_title: str, players: List[PlayerBuild]) -> List[str]:
         """Format a role section as a markdown table."""
-        lines = [
-            f"#### {role_title}",
-            "",
-            "| Player | Class | Gear Sets |",
-            "|--------|-------|-----------|"
-        ]
-        
-        for i, player in enumerate(players, 1):
-            gear_str = self._format_gear_sets_for_table(player.gear_sets)
-            class_name = self._get_class_display_name(player.character_class, player)
-            lines.append(f"| {player.name} | {class_name} | {gear_str} |")
-        
-        # Add empty rows for missing players (especially DPS up to 8)
-        if "DPS" in role_title:
+        # Use different table structure for DPS, Healers, and Tanks to include abilities
+        if "DPS" in role_title or "Healers" in role_title or "Tanks" in role_title:
+            lines = [
+                f"#### {role_title}",
+                "",
+                "| Player | Class | Gear Sets |",
+                "|--------|-------|-----------|"
+            ]
+            
+            for i, player in enumerate(players, 1):
+                gear_str = self._format_gear_sets_for_table(player.gear_sets)
+                class_name = self._get_class_display_name(player.character_class, player)
+                
+                # Add "!" indicator if player has incomplete sets
+                player_name = player.name
+                if self._has_incomplete_sets(player.gear_sets):
+                    player_name = f"!{player_name}"
+                
+                lines.append(f"| {player_name} | {class_name} | {gear_str} |")
+                
+                # Add top abilities row for DPS, healers, and tanks
+                if player.abilities and player.abilities.get('top_abilities'):
+                    abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
+                    if player.role.value == "DPS":
+                        ability_type = "Top Damage"
+                    elif player.role.value == "HEALER":
+                        ability_type = "Top Healing"
+                    else:  # TANK
+                        ability_type = "Top Cast Skills"
+                    lines.append(f"| ↳ {ability_type} | {abilities_str} |")
+            
+            # Add empty rows for missing players (especially DPS up to 8)
             for i in range(len(players) + 1, 9):
                 lines.append(f"| @anonymous{i} | - | - |")
+        else:
+            # Regular table for other roles (if any)
+            lines = [
+                f"#### {role_title}",
+                "",
+                "| Player | Class | Gear Sets |",
+                "|--------|-------|-----------|"
+            ]
+            
+            for i, player in enumerate(players, 1):
+                gear_str = self._format_gear_sets_for_table(player.gear_sets)
+                class_name = self._get_class_display_name(player.character_class, player)
+                
+                # Add "!" indicator if player has incomplete sets
+                player_name = player.name
+                if self._has_incomplete_sets(player.gear_sets):
+                    player_name = f"!{player_name}"
+                
+                lines.append(f"| {player_name} | {class_name} | {gear_str} |")
         
         return lines
     
@@ -194,6 +231,40 @@ class MarkdownFormatter:
         
         return ", ".join(formatted_sets)
     
+    def _format_abilities_for_table(self, abilities: List[str]) -> str:
+        """Format abilities list for markdown table cell."""
+        if not abilities:
+            return "*No abilities*"
+        
+        # Show all abilities without truncation or abbreviation
+        return ", ".join(abilities)
+    
+    def _format_top_abilities_for_table(self, top_abilities: List[Dict[str, Any]]) -> str:
+        """Format top abilities with damage/healing numbers for markdown table cell."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its percentage
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            percentage = ability.get('percentage', 0)
+            formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+
+    def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
+        """Check if a player has incomplete 5-piece sets that should be flagged."""
+        for gear_set in gear_sets:
+            # Only flag 5-piece sets that are missing pieces
+            # This matches the user's request: "fewer than five pieces of a set that requires 5 pieces"
+            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+                missing_pieces = gear_set.max_pieces - gear_set.piece_count
+                # Flag if missing any pieces from a 5-piece set
+                if missing_pieces > 0:
+                    return True
+        return False
+
     def _format_footer(self, trial_report: TrialReport) -> List[str]:
         """Format the markdown footer."""
         lines = [

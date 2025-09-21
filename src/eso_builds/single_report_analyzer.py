@@ -22,10 +22,16 @@ class SingleReportAnalyzer:
     def __init__(self):
         """Initialize the analyzer."""
         self.gear_parser = GearParser()
+        self.libsets_initialized = False
     
     async def analyze_report(self, report_code: str) -> TrialReport:
         """Analyze a single ESO Logs report and extract all encounter data."""
         logger.info(f"Analyzing single report: {report_code}")
+        
+        # Initialize LibSets data if not already done
+        if not self.libsets_initialized:
+            await self.gear_parser.initialize_libsets()
+            self.libsets_initialized = True
         
         async with ESOLogsClient() as client:
             # Get basic report info
@@ -265,6 +271,9 @@ class SingleReportAnalyzer:
                                     name = player_data.get('name', 'Unknown')
                                     display_name = player_data.get('displayName', '')
                                     character_class = player_data.get('type', 'Unknown')
+                                    player_id = player_data.get('id', None)
+                                    
+                                    logger.info(f"Player data: name='{name}', display_name='{display_name}', id='{player_id}', class='{character_class}'")
                                     
                                     # Extract gear sets
                                     gear_sets = []
@@ -300,12 +309,68 @@ class SingleReportAnalyzer:
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
                                     
+                                    # Get player top abilities based on role
+                                    abilities = {'top_abilities': []}
+                                    if role_enum in [Role.DPS, Role.HEALER, Role.TANK]:
+                                        try:
+                                            if role_enum == Role.DPS:
+                                                ability_type = 'damage'
+                                            elif role_enum == Role.HEALER:
+                                                ability_type = 'healing'
+                                            else:  # TANK
+                                                ability_type = 'damage'  # Use damage data for tank cast skills
+                                            logger.debug(f"Fetching top {ability_type} abilities for {role_enum.value} player: {final_name}")
+                                            
+                                            player_abilities = await client.get_player_top_abilities(
+                                                report_code, 
+                                                int(fight.start_time), 
+                                                int(fight.end_time),
+                                                ability_type=ability_type
+                                            )
+                                            logger.info(f"Retrieved top {ability_type} abilities for {len(player_abilities)} players: {list(player_abilities.keys())}")
+                                            logger.info(f"Looking for top {ability_type} abilities for player: '{final_name}' (ID: {player_id})")
+                                            
+                                            # Try to match by player ID first (most reliable)
+                                            if player_id and f"id_{player_id}" in player_abilities:
+                                                abilities = player_abilities[f"id_{player_id}"]
+                                                logger.info(f"Matched {final_name} by player ID {player_id} for top {ability_type} abilities")
+                                            elif final_name in player_abilities:
+                                                abilities = player_abilities[final_name]
+                                                logger.info(f"Matched {final_name} by exact name for top {ability_type} abilities")
+                                            else:
+                                                # Try to match by character name without @ prefix
+                                                character_name = final_name.lstrip('@')
+                                                matched = False
+                                                logger.debug(f"Trying to match '{character_name}' (without @) against ability player names...")
+                                                
+                                                for ability_player_name, ability_data in player_abilities.items():
+                                                    if ability_player_name.startswith('id_'):
+                                                        continue  # Skip ID-based entries
+                                                    logger.debug(f"Comparing '{character_name}' with '{ability_player_name}'")
+                                                    # Try exact match first
+                                                    if character_name.lower() == ability_player_name.lower():
+                                                        abilities = ability_data
+                                                        matched = True
+                                                        logger.info(f"Matched {final_name} to {ability_player_name} by exact name for top {ability_type} abilities")
+                                                        break
+                                                    # Try partial match (for cases where names might be truncated)
+                                                    if character_name.lower() in ability_player_name.lower() or ability_player_name.lower() in character_name.lower():
+                                                        abilities = ability_data
+                                                        matched = True
+                                                        logger.info(f"Matched {final_name} to {ability_player_name} by partial name for top {ability_type} abilities")
+                                                        break
+                                                
+                                                if not matched:
+                                                    logger.warning(f"No top {ability_type} abilities found for {final_name} (character: {character_name}, ID: {player_id})")
+                                        except Exception as e:
+                                            logger.warning(f"Failed to get top abilities for {final_name}: {e}")
                                     
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
                                         role=role_enum,
-                                        gear_sets=gear_sets
+                                        gear_sets=gear_sets,
+                                        abilities=abilities
                                     )
                                     players.append(player)
                                     
