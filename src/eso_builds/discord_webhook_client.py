@@ -72,7 +72,9 @@ class DiscordWebhookClient:
                         return False
             
             # Post summary with ESO logs URL
-            summary_embed = self._create_summary_embed(report_title, log_url, len([e for e in encounters if e.kill]))
+            kill_fights = [e for e in encounters if e.kill]
+            wipe_fights = [e for e in encounters if not e.kill]
+            summary_embed = self._create_summary_embed(report_title, log_url, len(kill_fights), len(wipe_fights))
             summary_payload = {"embeds": [summary_embed]}
             
             async with self.session.post(self.webhook_url, json=summary_payload) as response:
