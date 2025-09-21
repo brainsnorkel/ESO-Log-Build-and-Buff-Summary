@@ -195,10 +195,7 @@ class MarkdownFormatter:
                         abilities_str = self._format_cast_counts_for_table(player.abilities.get('top_abilities', []))
                     lines.append(f"| ↳ {ability_type} | {abilities_str} |")
             
-            # Add empty rows for missing players only for DPS (up to 8)
-            if "DPS" in role_title:
-                for i in range(len(players) + 1, 9):
-                    lines.append(f"| @anonymous{i} | - | - |")
+            # No need to pad tables to fixed numbers - show only actual players
         else:
             # Regular table for other roles (if any)
             lines = [
