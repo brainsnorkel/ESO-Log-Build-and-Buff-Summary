@@ -177,7 +177,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     encounters = ranking.encounters
                     
                     # Filter to kill fights only
-                    kill_fights = [e for e in encounters if e.is_kill]
+                    kill_fights = [e for e in encounters if e.kill]
                     
                     if not kill_fights:
                         print("❌ No kill fights found in this report")
@@ -185,8 +185,8 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     
                     print(f"🚀 Posting {len(kill_fights)} kill fights to Discord...")
                     
-                    report_title = f"{trial_report.title} - {report_code}"
-                    log_url = trial_report.log_url
+                    report_title = f"{trial_report.trial_name} - {report_code}"
+                    log_url = ranking.log_url
                     
                     success = await webhook_client.post_individual_fights(
                         encounters=kill_fights,
