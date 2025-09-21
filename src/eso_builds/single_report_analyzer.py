@@ -313,30 +313,49 @@ class SingleReportAnalyzer:
                                     abilities = {'top_abilities': []}
                                     if role_enum in [Role.DPS, Role.HEALER, Role.TANK]:
                                         try:
-                                            if role_enum == Role.DPS:
-                                                ability_type = 'damage'
-                                            elif role_enum == Role.HEALER:
-                                                ability_type = 'healing'
-                                            else:  # TANK
-                                                ability_type = 'damage'  # Use damage data for tank cast skills
-                                            logger.debug(f"Fetching top {ability_type} abilities for {role_enum.value} player: {final_name}")
-                                            
-                                            player_abilities = await client.get_player_top_abilities(
-                                                report_code, 
-                                                int(fight.start_time), 
-                                                int(fight.end_time),
-                                                ability_type=ability_type
-                                            )
-                                            logger.info(f"Retrieved top {ability_type} abilities for {len(player_abilities)} players: {list(player_abilities.keys())}")
-                                            logger.info(f"Looking for top {ability_type} abilities for player: '{final_name}' (ID: {player_id})")
+                                            if role_enum == Role.TANK:
+                                                # For tanks, get cast counts instead of damage/healing
+                                                logger.debug(f"Fetching cast counts for TANK player: {final_name}")
+                                                
+                                                player_abilities = await client.get_player_cast_counts(
+                                                    report_code, 
+                                                    int(fight.start_time), 
+                                                    int(fight.end_time)
+                                                )
+                                            else:
+                                                # For DPS and healers, use damage/healing data
+                                                if role_enum == Role.DPS:
+                                                    ability_type = 'damage'
+                                                elif role_enum == Role.HEALER:
+                                                    ability_type = 'healing'
+                                                logger.debug(f"Fetching top {ability_type} abilities for {role_enum.value} player: {final_name}")
+                                                
+                                                player_abilities = await client.get_player_top_abilities(
+                                                    report_code, 
+                                                    int(fight.start_time), 
+                                                    int(fight.end_time),
+                                                    ability_type=ability_type
+                                                )
+                                            if role_enum == Role.TANK:
+                                                logger.info(f"Retrieved cast counts for {len(player_abilities)} players: {list(player_abilities.keys())}")
+                                                logger.info(f"Looking for cast counts for player: '{final_name}' (ID: {player_id})")
+                                            else:
+                                                logger.info(f"Retrieved top {ability_type} abilities for {len(player_abilities)} players: {list(player_abilities.keys())}")
+                                                logger.info(f"Looking for top {ability_type} abilities for player: '{final_name}' (ID: {player_id})")
                                             
                                             # Try to match by player ID first (most reliable)
                                             if player_id and f"id_{player_id}" in player_abilities:
                                                 abilities = player_abilities[f"id_{player_id}"]
-                                                logger.info(f"Matched {final_name} by player ID {player_id} for top {ability_type} abilities")
+                                                if role_enum == Role.TANK:
+                                                    logger.info(f"Matched {final_name} by player ID {player_id} for cast counts")
+                                                else:
+                                                    logger.info(f"Matched {final_name} by player ID {player_id} for top {ability_type} abilities")
                                             elif final_name in player_abilities:
                                                 abilities = player_abilities[final_name]
-                                                logger.info(f"Matched {final_name} by exact name for top {ability_type} abilities")
+                                                if role_enum == Role.TANK:
+                                                    logger.info(f"Matched {final_name} by exact name for cast counts")
+                                                else:
+                                                    logger.info(f"Matched {final_name} by exact name for top {ability_type} abilities")
                                             else:
                                                 # Try to match by character name without @ prefix
                                                 character_name = final_name.lstrip('@')
@@ -351,17 +370,26 @@ class SingleReportAnalyzer:
                                                     if character_name.lower() == ability_player_name.lower():
                                                         abilities = ability_data
                                                         matched = True
-                                                        logger.info(f"Matched {final_name} to {ability_player_name} by exact name for top {ability_type} abilities")
+                                                        if role_enum == Role.TANK:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by exact name for cast counts")
+                                                        else:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by exact name for top {ability_type} abilities")
                                                         break
                                                     # Try partial match (for cases where names might be truncated)
                                                     if character_name.lower() in ability_player_name.lower() or ability_player_name.lower() in character_name.lower():
                                                         abilities = ability_data
                                                         matched = True
-                                                        logger.info(f"Matched {final_name} to {ability_player_name} by partial name for top {ability_type} abilities")
+                                                        if role_enum == Role.TANK:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by partial name for cast counts")
+                                                        else:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by partial name for top {ability_type} abilities")
                                                         break
                                                 
                                                 if not matched:
-                                                    logger.warning(f"No top {ability_type} abilities found for {final_name} (character: {character_name}, ID: {player_id})")
+                                                    if role_enum == Role.TANK:
+                                                        logger.warning(f"No cast counts found for {final_name} (character: {character_name}, ID: {player_id})")
+                                                    else:
+                                                        logger.warning(f"No top {ability_type} abilities found for {final_name} (character: {character_name}, ID: {player_id})")
                                         except Exception as e:
                                             logger.warning(f"Failed to get top abilities for {final_name}: {e}")
                                     

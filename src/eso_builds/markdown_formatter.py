@@ -184,13 +184,15 @@ class MarkdownFormatter:
                 
                 # Add top abilities row for DPS, healers, and tanks
                 if player.abilities and player.abilities.get('top_abilities'):
-                    abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
                     if player.role.value == "DPS":
                         ability_type = "Top Damage"
+                        abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
                     elif player.role.value == "HEALER":
                         ability_type = "Top Healing"
+                        abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
                     else:  # TANK
                         ability_type = "Top Cast Skills"
+                        abilities_str = self._format_cast_counts_for_table(player.abilities.get('top_abilities', []))
                     lines.append(f"| ↳ {ability_type} | {abilities_str} |")
             
             # Add empty rows for missing players (especially DPS up to 8)
@@ -250,6 +252,20 @@ class MarkdownFormatter:
             name = ability.get('name', 'Unknown')
             percentage = ability.get('percentage', 0)
             formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+
+    def _format_cast_counts_for_table(self, top_abilities: List[Dict[str, Any]]) -> str:
+        """Format top abilities with cast counts for markdown table cell."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its cast count
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            casts = ability.get('casts', 0)
+            formatted_abilities.append(f"{name} ({casts})")
         
         return ", ".join(formatted_abilities)
 

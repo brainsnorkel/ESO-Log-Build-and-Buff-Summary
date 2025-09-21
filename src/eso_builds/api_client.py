@@ -534,7 +534,291 @@ class ESOLogsClient:
         }
         """
         try:
-            # Get cast data for the fight
+            # Use the dedicated GraphQL query for abilities
+            response = await self._make_request(
+                'get_report_table',
+                code=report_code,
+                data_type='Casts',
+                hostility_type='Friendlies',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            # Debug: log the full response structure
+            logger.debug(f"Full response: {response}")
+            logger.debug(f"Response type: {type(response)}")
+            logger.debug(f"Response attributes: {dir(response)}")
+            
+            if not response:
+                logger.warning(f"No response returned for report {report_code}")
+                return {}
+            
+            if not hasattr(response, 'report_data'):
+                logger.warning(f"No report_data in response for report {report_code}")
+                logger.debug(f"Response structure: {response}")
+                return {}
+            
+            table = response.report_data.report.table
+            logger.debug(f"Table: {table}")
+            logger.debug(f"Table type: {type(table)}")
+            
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for report {report_code}")
+                    logger.debug(f"Table attributes: {dir(table)}")
+                    return {}
+                table_data = table.data
+            
+            # Debug: log what we got
+            logger.debug(f"Table data: {table_data}")
+            logger.debug(f"Table data type: {type(table_data)}")
+            
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+                player_details = table_data.get('playerDetails', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No cast entries found for report {report_code}")
+                    logger.debug(f"Table data structure: {table_data}")
+                    return {}
+                entries = table_data.entries
+                player_details = table_data.playerDetails if hasattr(table_data, 'playerDetails') else []
+            
+            # Process cast data to extract abilities per player
+            player_abilities = {}
+            
+            logger.info(f"Processing {len(entries)} entries for abilities")
+            
+            # Process entries - each entry represents a player with their abilities
+            for i, entry in enumerate(entries):
+                logger.debug(f"Processing entry {i}: {entry}")
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    abilities_data = entry.get('abilities', [])
+                    logger.info(f"Entry {i} - Dict: player_name='{player_name}', player_id='{player_id}', abilities_count={len(abilities_data)}")
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    abilities_data = getattr(entry, 'abilities', [])
+                    logger.info(f"Entry {i} - Object: player_name='{player_name}', player_id='{player_id}', abilities_count={len(abilities_data)}")
+                
+                if player_name and abilities_data:
+                    # Extract ability names from abilities data
+                    ability_names = []
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            ability_name = ability.get('name')
+                        else:
+                            ability_name = getattr(ability, 'name', None)
+                        
+                        if ability_name and ability_name not in ['Swap Weapons', 'Light Attack (Dual Wield)', 'Light Attack (Two Handed)', 'Light Attack (Inferno)', 'Light Attack (Lightning)']:
+                            ability_names.append(ability_name)
+                    
+                    # Split abilities between bars
+                    # ESO typically has 5 abilities per bar, but we'll be flexible
+                    if ability_names:
+                        # If we have exactly 10 abilities, split evenly
+                        if len(ability_names) == 10:
+                            bar1_abilities = ability_names[:5]
+                            bar2_abilities = ability_names[5:]
+                        # If we have more than 10, take first 10 and split
+                        elif len(ability_names) > 10:
+                            bar1_abilities = ability_names[:5]
+                            bar2_abilities = ability_names[5:10]
+                        # If we have less than 10, put all in bar1
+                        else:
+                            bar1_abilities = ability_names
+                            bar2_abilities = []
+                        
+                        # Store by both name and ID for flexible lookup
+                        player_abilities[player_name] = {
+                            'bar1': bar1_abilities,
+                            'bar2': bar2_abilities,
+                            'player_id': player_id
+                        }
+                        
+                        # Also store by ID for direct lookup
+                        if player_id != 'Unknown':
+                            player_abilities[f"id_{player_id}"] = {
+                                'bar1': bar1_abilities,
+                                'bar2': bar2_abilities,
+                                'player_name': player_name
+                            }
+                        
+                        logger.debug(f"Player {player_name}: {len(ability_names)} total abilities -> bar1: {len(bar1_abilities)}, bar2: {len(bar2_abilities)}")
+            
+            
+            logger.debug(f"Extracted abilities for {len(player_abilities)} players")
+            return player_abilities
+            
+        except Exception as e:
+            logger.error(f"Failed to get player abilities: {e}")
+            return {}
+
+    async def get_player_top_abilities(self, report_code: str, start_time: int, end_time: int, ability_type: str = 'damage') -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """
+        Get top abilities for each player by damage or healing.
+        
+        Args:
+            report_code: The report code
+            start_time: Fight start time
+            end_time: Fight end time
+            ability_type: 'damage' for DPS abilities, 'healing' for healing abilities
+        
+        Returns:
+            Dictionary mapping player names to their top abilities:
+            {
+                "player_name": {
+                    "top_abilities": [
+                        {"name": "Ability Name", "total": 12345, "percentage": 25.5}
+                    ]
+                }
+            }
+        """
+        try:
+            # Determine data type based on ability type
+            if ability_type == 'damage':
+                data_type = 'DamageDone'
+            elif ability_type == 'healing':
+                data_type = 'Healing'  # Fixed: was 'HealingDone', should be 'Healing'
+            else:
+                raise ValueError(f"Invalid ability_type: {ability_type}. Must be 'damage' or 'healing'")
+            
+            # Use the dedicated GraphQL query for ability performance
+            response = await self._make_request(
+                'get_report_table',
+                code=report_code,
+                data_type=data_type,
+                hostility_type='Friendlies',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            if not response or not hasattr(response, 'report_data'):
+                logger.warning(f"No response returned for {ability_type} abilities in report {report_code}")
+                return {}
+            
+            table = response.report_data.report.table
+            
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for {ability_type} abilities in report {report_code}")
+                    return {}
+                table_data = table.data
+            
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No {ability_type} entries found for report {report_code}")
+                    return {}
+                entries = table_data.entries
+            
+            # Process ability performance data
+            player_abilities = {}
+            
+            logger.info(f"Processing {len(entries)} entries for {ability_type} abilities")
+            
+            for entry in entries:
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    abilities_data = entry.get('abilities', [])
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    abilities_data = getattr(entry, 'abilities', [])
+                
+                if player_name and abilities_data:
+                    # Extract top abilities by total damage/healing
+                    top_abilities = []
+                    logger.debug(f"Processing {len(abilities_data)} abilities for {player_name}")
+                    
+                    # First pass: collect all abilities and calculate total damage/healing
+                    total_damage_healing = 0
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            total_value = ability.get('total', 0)
+                        else:
+                            total_value = getattr(ability, 'total', 0)
+                        total_damage_healing += total_value
+                    
+                    # Second pass: calculate percentages and collect abilities
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            ability_name = ability.get('name', '')
+                            total_value = ability.get('total', 0)
+                        else:
+                            ability_name = getattr(ability, 'name', '')
+                            total_value = getattr(ability, 'total', 0)
+                        
+                        if ability_name and total_value > 0:
+                            # Calculate percentage of total damage/healing
+                            percentage = (total_value / total_damage_healing * 100) if total_damage_healing > 0 else 0
+                            top_abilities.append({
+                                'name': ability_name,
+                                'total': total_value,
+                                'percentage': percentage
+                            })
+                            logger.debug(f"Added ability: {ability_name} - total: {total_value}, percentage: {percentage:.1f}%")
+                    
+                    # Sort by total value and take top 5
+                    top_abilities.sort(key=lambda x: x['total'], reverse=True)
+                    top_abilities = top_abilities[:5]
+                    
+                    if top_abilities:
+                        # Store by both name and ID for flexible lookup
+                        player_abilities[player_name] = {
+                            'top_abilities': top_abilities,
+                            'player_id': player_id
+                        }
+                        
+                        # Also store by ID for direct lookup
+                        if player_id != 'Unknown':
+                            player_abilities[f"id_{player_id}"] = {
+                                'top_abilities': top_abilities,
+                                'player_name': player_name
+                            }
+                        
+                        logger.debug(f"Player {player_name}: {len(top_abilities)} top {ability_type} abilities")
+            
+            logger.info(f"Extracted top {ability_type} abilities for {len([k for k in player_abilities.keys() if not k.startswith('id_')])} players")
+            return player_abilities
+            
+        except Exception as e:
+            logger.error(f"Failed to get top {ability_type} abilities: {e}")
+            return {}
+
+    async def get_player_cast_counts(self, report_code: str, start_time: int, end_time: int) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """
+        Get cast counts for each player's abilities.
+        
+        Args:
+            report_code: The report code
+            start_time: Fight start time
+            end_time: Fight end time
+        
+        Returns:
+            Dictionary mapping player names to their cast counts:
+            {
+                "player_name": {
+                    "top_abilities": [
+                        {"name": "Ability Name", "casts": 45}
+                    ]
+                }
+            }
+        """
+        try:
+            # Use the Casts data type to get cast counts
             response = await self._make_request(
                 'get_report_table',
                 code=report_code,
@@ -545,65 +829,91 @@ class ESOLogsClient:
             )
             
             if not response or not hasattr(response, 'report_data'):
-                logger.warning(f"No cast data returned for report {report_code}")
+                logger.warning(f"No response returned for cast counts in report {report_code}")
                 return {}
             
             table = response.report_data.report.table
-            if not hasattr(table, 'data'):
-                logger.warning(f"No table data found for report {report_code}")
-                return {}
             
-            # Debug: log what we got
-            logger.debug(f"Table data attributes: {list(table.data.__dict__.keys()) if hasattr(table.data, '__dict__') else 'No __dict__'}")
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for cast counts in report {report_code}")
+                    return {}
+                table_data = table.data
             
-            if not hasattr(table.data, 'entries'):
-                logger.warning(f"No cast entries found for report {report_code}")
-                return {}
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No cast entries found for report {report_code}")
+                    return {}
+                entries = table_data.entries
             
-            # Process cast data to extract abilities per player
+            # Process cast data to extract cast counts per player
             player_abilities = {}
             
-            # Get player details first
-            if hasattr(table.data, 'playerDetails'):
-                for player in table.data.playerDetails:
-                    player_name = getattr(player, 'displayName', None) or getattr(player, 'name', 'Unknown')
-                    if player_name and player_name not in player_abilities:
-                        player_abilities[player_name] = {
-                            'bar1': [],
-                            'bar2': [],
-                            'all_abilities': set()
-                        }
+            logger.info(f"Processing {len(entries)} entries for cast counts")
             
-            # Process cast entries to find abilities
-            for entry in table.data.entries:
-                ability_name = getattr(entry, 'name', None)
-                player_guid = getattr(entry, 'guid', None)
+            for entry in entries:
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    abilities_data = entry.get('abilities', [])
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    abilities_data = getattr(entry, 'abilities', [])
                 
-                if ability_name and player_guid:
-                    # Find the player for this cast
-                    for player in table.data.playerDetails:
-                        if getattr(player, 'guid', None) == player_guid:
-                            player_name = getattr(player, 'displayName', None) or getattr(player, 'name', 'Unknown')
-                            if player_name in player_abilities:
-                                player_abilities[player_name]['all_abilities'].add(ability_name)
-                            break
+                if player_name and abilities_data:
+                    # Extract cast counts for abilities
+                    cast_abilities = []
+                    logger.debug(f"Processing {len(abilities_data)} abilities for {player_name}")
+                    
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            ability_name = ability.get('name', '')
+                            cast_count = ability.get('total', 0)
+                        else:
+                            ability_name = getattr(ability, 'name', '')
+                            cast_count = getattr(ability, 'total', 0)
+                        
+                        if ability_name and cast_count > 0:
+                            # Filter out generic abilities
+                            if ability_name not in ['Swap Weapons', 'Light Attack (Dual Wield)', 'Light Attack (Two Handed)', 'Light Attack (Inferno)', 'Light Attack (Lightning)', 'Light Attack (One Handed)']:
+                                cast_abilities.append({
+                                    'name': ability_name,
+                                    'casts': cast_count
+                                })
+                                logger.debug(f"Added ability: {ability_name} - casts: {cast_count}")
+                    
+                    # Sort by cast count and take top 5
+                    cast_abilities.sort(key=lambda x: x['casts'], reverse=True)
+                    cast_abilities = cast_abilities[:5]
+                    
+                    if cast_abilities:
+                        # Store by both name and ID for flexible lookup
+                        player_abilities[player_name] = {
+                            'top_abilities': cast_abilities,
+                            'player_id': player_id
+                        }
+                        
+                        # Also store by ID for direct lookup
+                        if player_id != 'Unknown':
+                            player_abilities[f"id_{player_id}"] = {
+                                'top_abilities': cast_abilities,
+                                'player_name': player_name
+                            }
+                        
+                        logger.debug(f"Player {player_name}: {len(cast_abilities)} top cast abilities")
             
-            # For now, we'll put all abilities in bar1 since we can't distinguish bars from cast data
-            # This is a limitation of the current API data structure
-            for player_name, abilities in player_abilities.items():
-                all_abilities_list = sorted(list(abilities['all_abilities']))
-                # Split abilities between bars (first half in bar1, second half in bar2)
-                mid_point = len(all_abilities_list) // 2
-                abilities['bar1'] = all_abilities_list[:mid_point] if mid_point > 0 else all_abilities_list[:5]
-                abilities['bar2'] = all_abilities_list[mid_point:] if mid_point > 0 else []
-                # Remove the temporary set
-                del abilities['all_abilities']
-            
-            logger.debug(f"Extracted abilities for {len(player_abilities)} players")
+            logger.info(f"Extracted cast counts for {len([k for k in player_abilities.keys() if not k.startswith('id_')])} players")
             return player_abilities
             
         except Exception as e:
-            logger.error(f"Failed to get player abilities: {e}")
+            logger.error(f"Failed to get cast counts: {e}")
             return {}
 
     async def get_report_master_data(self, report_code: str) -> Dict[str, Any]:
@@ -804,9 +1114,13 @@ class ESOLogsClient:
                                         
                                         # Keep the highest percentage for this buff
                                         if target_buff in uptimes:
+                                            old_value = uptimes[target_buff]
                                             uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
+                                            if uptime_percent > old_value:
+                                                logger.info(f"Updated {target_buff} from {old_value:.1f}% to {uptime_percent:.1f}% (source: '{aura_name}')")
                                         else:
                                             uptimes[target_buff] = uptime_percent
+                                            logger.info(f"Initial {target_buff}: {uptime_percent:.1f}% (source: '{aura_name}')")
                                         logger.debug(f"Found {target_buff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             # Process debuff table data
