@@ -29,6 +29,66 @@ class DiscordWebhookClient:
         if self.session:
             await self.session.close()
     
+    async def post_individual_fights(self, encounters: list, report_title: str, log_url: str) -> bool:
+        """
+        Post individual boss fights as separate Discord messages.
+        
+        Args:
+            encounters: List of encounter objects (kill fights only)
+            report_title: Title for the report
+            log_url: ESO Logs URL
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.webhook_url:
+            logger.error("Discord webhook URL not provided")
+            return False
+        
+        if not self.session:
+            logger.error("Discord webhook client not initialized. Use async context manager.")
+            return False
+        
+        try:
+            # Post each kill fight as a separate message
+            for i, encounter in enumerate(encounters):
+                if not encounter.is_kill:
+                    continue  # Skip wipes
+                
+                # Format individual fight content
+                fight_content = self._format_individual_fight(encounter)
+                title = f"⚔️ {encounter.name} ({encounter.difficulty}) - ✅ KILL"
+                
+                # Create embed for individual fight
+                embed = self._create_fight_embed(title, fight_content, i + 1, len([e for e in encounters if e.is_kill]))
+                
+                payload = {"embeds": [embed]}
+                
+                async with self.session.post(self.webhook_url, json=payload) as response:
+                    if response.status == 204:
+                        logger.info(f"Successfully posted fight {i+1} to Discord")
+                    else:
+                        logger.error(f"Failed to post fight to Discord: {response.status} - {await response.text()}")
+                        return False
+            
+            # Post summary with ESO logs URL
+            summary_embed = self._create_summary_embed(report_title, log_url, len([e for e in encounters if e.is_kill]))
+            summary_payload = {"embeds": [summary_embed]}
+            
+            async with self.session.post(self.webhook_url, json=summary_payload) as response:
+                if response.status == 204:
+                    logger.info("Successfully posted summary with ESO logs URL")
+                else:
+                    logger.error(f"Failed to post summary to Discord: {response.status} - {await response.text()}")
+                    return False
+            
+            logger.info(f"Successfully posted {len([e for e in encounters if e.is_kill])} individual fights and summary to Discord")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error posting individual fights to Discord webhook: {e}")
+            return False
+
     async def post_report(self, report_content: str, title: str = "ESO Trial Report") -> bool:
         """
         Post a trial report to Discord via webhook.
@@ -135,6 +195,199 @@ class DiscordWebhookClient:
         # Add part indicator in footer if multiple messages
         if total_messages > 1:
             embed["footer"]["text"] += f" • Part {message_index + 1}/{total_messages}"
+        
+        return embed
+    
+    def _format_individual_fight(self, encounter) -> str:
+        """
+        Format an individual fight for Discord posting.
+        
+        Args:
+            encounter: EncounterResult object
+            
+        Returns:
+            Formatted fight content
+        """
+        lines = []
+        
+        # Buffs/Debuffs
+        if encounter.buff_uptimes:
+            buff_items = [f"{b.name} {b.uptime:.1f}%" for b in encounter.buff_uptimes if b.is_buff]
+            debuff_items = [f"{b.name} {b.uptime:.1f}%" for b in encounter.buff_uptimes if not b.is_buff]
+            if buff_items:
+                lines.append(f"**Buffs:** {', '.join(buff_items)}")
+            if debuff_items:
+                lines.append(f"**Debuffs:** {', '.join(debuff_items)}")
+            lines.append("")  # Empty line
+        
+        # Team composition
+        tanks = encounter.tanks
+        healers = encounter.healers
+        dps = encounter.dps
+        
+        if tanks:
+            lines.append("**Tanks**")
+            for player in tanks:
+                player_name = f"`{player.name}`" if "@" in player.name else player.name
+                gear_text = self._format_gear_sets_compact(player.gear_sets)
+                
+                # Add set problem indicator if needed
+                if self._has_incomplete_sets(player.gear_sets):
+                    gear_text = f"**Set Problem?:** {gear_text}"
+                
+                class_name = self._get_class_display_name(player.character_class, player)
+                lines.append(f"• {player_name}: {class_name} - {gear_text}")
+                
+                # Add top abilities for tanks
+                if player.abilities and player.abilities.get('top_abilities'):
+                    abilities_str = self._format_cast_counts_compact(player.abilities.get('top_abilities', []))
+                    lines.append(f"  ↳ **Top Casts:** {abilities_str}")
+            
+            lines.append("")  # Empty line
+        
+        if healers:
+            lines.append("**Healers**")
+            for player in healers:
+                player_name = f"`{player.name}`" if "@" in player.name else player.name
+                gear_text = self._format_gear_sets_compact(player.gear_sets)
+                
+                # Add set problem indicator if needed
+                if self._has_incomplete_sets(player.gear_sets):
+                    gear_text = f"**Set Problem?:** {gear_text}"
+                
+                class_name = self._get_class_display_name(player.character_class, player)
+                lines.append(f"• {player_name}: {class_name} - {gear_text}")
+                
+                # Add top healing abilities
+                if player.abilities and player.abilities.get('top_abilities'):
+                    abilities_str = self._format_top_abilities_compact(player.abilities.get('top_abilities', []))
+                    lines.append(f"  ↳ **Top Healing:** {abilities_str}")
+            
+            lines.append("")  # Empty line
+        
+        if dps:
+            lines.append("**DPS**")
+            for player in dps:
+                player_name = f"`{player.name}`" if "@" in player.name else player.name
+                gear_text = self._format_gear_sets_compact(player.gear_sets)
+                
+                # Add set problem indicator if needed
+                if self._has_incomplete_sets(player.gear_sets):
+                    gear_text = f"**Set Problem?:** {gear_text}"
+                
+                class_name = self._get_class_display_name(player.character_class, player)
+                lines.append(f"• {player_name}: {class_name} - {gear_text}")
+                
+                # Add top damage abilities
+                if player.abilities and player.abilities.get('top_abilities'):
+                    abilities_str = self._format_top_abilities_compact(player.abilities.get('top_abilities', []))
+                    lines.append(f"  ↳ **Top Damage:** {abilities_str}")
+        
+        return "\n".join(lines)
+    
+    def _format_gear_sets_compact(self, gear_sets) -> str:
+        """Format gear sets in compact Discord format."""
+        if not gear_sets:
+            return "No gear data"
+        
+        formatted_sets = []
+        for gear_set in gear_sets:
+            formatted_sets.append(f"{gear_set.piece_count}pc {gear_set.name}")
+        
+        return ", ".join(formatted_sets)
+    
+    def _format_top_abilities_compact(self, top_abilities) -> str:
+        """Format top abilities in compact Discord format."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            percentage = ability.get('percentage', 0.0)
+            formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+    
+    def _format_cast_counts_compact(self, top_abilities) -> str:
+        """Format cast counts in compact Discord format."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            casts = ability.get('casts', 0)
+            formatted_abilities.append(f"{name} ({casts})")
+        
+        return ", ".join(formatted_abilities)
+    
+    def _has_incomplete_sets(self, gear_sets) -> bool:
+        """Check if any gear sets are incomplete (5-piece sets with fewer than 5 pieces)."""
+        for gear_set in gear_sets:
+            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+                return True
+        return False
+    
+    def _get_class_display_name(self, class_name: str, player_build=None) -> str:
+        """Get the shortened display name for a class, with Oaken prefix if Oakensoul Ring equipped."""
+        class_mapping = {
+            'Arcanist': 'Arc',
+            'Sorcerer': 'Sorc',
+            'DragonKnight': 'DK',
+            'Necromancer': 'Cro',
+            'Templar': 'Plar',
+            'Warden': 'Den',
+            'Nightblade': 'NB'
+        }
+        
+        mapped_class = class_mapping.get(class_name, class_name)
+        
+        # Check for Oakensoul Ring if player_build is provided
+        if player_build and player_build.gear_sets:
+            has_oakensoul = any(
+                'oakensoul' in gear_set.name.lower() 
+                for gear_set in player_build.gear_sets
+            )
+            if has_oakensoul:
+                return f"Oaken{mapped_class}"
+        
+        return mapped_class
+    
+    def _create_fight_embed(self, title: str, content: str, fight_number: int, total_fights: int) -> Dict[str, Any]:
+        """Create a Discord embed for an individual fight."""
+        # Ensure content fits within Discord limits
+        if len(content) > 4000:  # Discord embed description limit is 4096, leave some buffer
+            content = content[:3950] + "\n... *[Content truncated]*"
+        
+        embed = {
+            "title": title,
+            "description": content,
+            "color": 0x00ff00,  # Green color for kills
+            "timestamp": None,  # Will be set to current time by Discord
+            "footer": {
+                "text": f"ESO Log Build & Buff Summary v0.2.0 • Fight {fight_number}/{total_fights}"
+            }
+        }
+        
+        return embed
+    
+    def _create_summary_embed(self, report_title: str, log_url: str, total_kills: int) -> Dict[str, Any]:
+        """Create a Discord embed for the summary with ESO logs URL."""
+        content = f"**📊 Trial Analysis Complete**\n\n"
+        content += f"**Total Kills:** {total_kills}\n"
+        content += f"**Log URL:** {log_url}\n\n"
+        content += f"*Generated by ESO Log Build & Buff Summary*"
+        
+        embed = {
+            "title": f"🎮 {report_title} - Summary",
+            "description": content,
+            "color": 0x0099ff,  # Blue color for summary
+            "timestamp": None,
+            "footer": {
+                "text": "ESO Log Build & Buff Summary v0.2.0"
+            }
+        }
         
         return embed
     

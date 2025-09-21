@@ -68,7 +68,7 @@ def setup_logging(verbose: bool = False):
     logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook: str = None):
+async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook: str = None, discord_webhook_post: bool = False):
     """Analyze a single ESO Logs report."""
     print(f"🔍 Analyzing ESO Logs Report: {report_code}")
     print("=" * 50)
@@ -157,6 +157,53 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                 
                 print(f"📄 PDF report saved to: {pdf_filepath}")
         
+        # Handle Discord webhook posting (individual fights)
+        if discord_webhook_post:
+            webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+            if not webhook_url:
+                print("❌ DISCORD_WEBHOOK_URL environment variable not set!")
+                print("\nPlease set up your Discord webhook:")
+                print("1. Go to your Discord server settings")
+                print("2. Navigate to Integrations > Webhooks")
+                print("3. Create a new webhook")
+                print("4. Copy the webhook URL")
+                print("5. Add DISCORD_WEBHOOK_URL to your .env file")
+                return False
+            
+            try:
+                async with DiscordWebhookClient(webhook_url) as webhook_client:
+                    # Get encounters from the ranking
+                    ranking = trial_report.rankings[0]
+                    encounters = ranking.encounters
+                    
+                    # Filter to kill fights only
+                    kill_fights = [e for e in encounters if e.is_kill]
+                    
+                    if not kill_fights:
+                        print("❌ No kill fights found in this report")
+                        return False
+                    
+                    print(f"🚀 Posting {len(kill_fights)} kill fights to Discord...")
+                    
+                    report_title = f"{trial_report.title} - {report_code}"
+                    log_url = trial_report.log_url
+                    
+                    success = await webhook_client.post_individual_fights(
+                        encounters=kill_fights,
+                        report_title=report_title,
+                        log_url=log_url
+                    )
+                    
+                    if success:
+                        print(f"✅ Successfully posted {len(kill_fights)} individual fights and summary to Discord")
+                    else:
+                        print(f"❌ Failed to post fights to Discord")
+                        return False
+                        
+            except Exception as e:
+                print(f"❌ Error posting to Discord webhook: {e}")
+                return False
+        
         return True
         
     except Exception as e:
@@ -185,6 +232,9 @@ Examples:
   
   # Post directly to Discord webhook
   python single_report_tool.py mtFqVzQPNBcCrd1h --output discord --discord-webhook "https://discord.com/api/webhooks/..."
+  
+  # Post individual boss fights to Discord (uses DISCORD_WEBHOOK_URL from .env)
+  python single_report_tool.py mtFqVzQPNBcCrd1h --discord-webhook-post
         """
     )
     
@@ -205,6 +255,9 @@ Examples:
     
     parser.add_argument('--discord-webhook', type=str,
                        help='Discord webhook URL to post the report directly to Discord')
+    
+    parser.add_argument('--discord-webhook-post', action='store_true',
+                       help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (kill fights only)')
     
     args = parser.parse_args()
     
@@ -234,7 +287,7 @@ Examples:
     
     # Run analysis
     try:
-        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook))
+        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook, args.discord_webhook_post))
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print("\n⏹️ Analysis cancelled by user")

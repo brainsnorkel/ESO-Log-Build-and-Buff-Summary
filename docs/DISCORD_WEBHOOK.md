@@ -33,9 +33,26 @@ python single_report_tool.py A8TdmkfpP497xvyV --output discord --discord-webhook
 
 # Or use environment variable (if set in .env)
 python single_report_tool.py A8TdmkfpP497xvyV --output discord --discord-webhook "$DISCORD_WEBHOOK_URL"
+
+# Post individual boss fights (kill fights only) using DISCORD_WEBHOOK_URL from .env
+python single_report_tool.py A8TdmkfpP497xvyV --discord-webhook-post
 ```
 
 ## 📋 Features
+
+### Individual Fight Posting (`--discord-webhook-post`)
+- **Kill Fights Only**: Automatically filters out wipe attempts, posting only successful boss kills
+- **Separate Messages**: Each boss fight is posted as an individual Discord message
+- **Rich Embeds**: Each fight gets its own embed with:
+  - Fight-specific title and status
+  - Team composition (tanks, healers, DPS)
+  - Buff/debuff uptimes
+  - Individual player builds and abilities
+  - Fight counter (e.g., "Fight 1/3")
+- **Summary Post**: After all fights, posts a summary with:
+  - Total number of kills
+  - ESO Logs URL for the full report
+  - Generation timestamp
 
 ### Automatic Message Splitting
 - Reports are automatically split into multiple messages if they exceed Discord's 2000 character limit
@@ -43,7 +60,7 @@ python single_report_tool.py A8TdmkfpP497xvyV --output discord --discord-webhook
 
 ### Rich Embeds
 - Reports are posted as Discord embeds with:
-  - Green color scheme
+  - Green color scheme for kills, blue for summaries
   - Timestamps
   - Footer with version information
   - Part indicators for multi-part reports

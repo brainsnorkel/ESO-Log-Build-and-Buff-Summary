@@ -102,6 +102,9 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
 
 # Post directly to Discord webhook
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output discord --discord-webhook "https://discord.com/api/webhooks/..."
+
+# Post individual boss fights to Discord (uses DISCORD_WEBHOOK_URL from .env)
+python single_report_tool.py 3gjVGWB2dxCL8XAw --discord-webhook-post
 ```
 
 ### Advanced Options
@@ -127,6 +130,7 @@ Options:
                         Output format (default: console)
   --output-dir DIR      Directory for output files (default: reports)
   --discord-webhook URL Discord webhook URL to post reports directly to Discord
+  --discord-webhook-post  Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (kill fights only)
   --verbose, -v         Enable verbose logging
   --help, -h           Show help message
 ```

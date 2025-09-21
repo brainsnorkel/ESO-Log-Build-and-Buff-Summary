@@ -65,6 +65,21 @@ async def example_webhook_usage():
         else:
             print("❌ Failed to post to Discord")
 
+async def example_individual_fights():
+    """Example of posting individual fights (requires mock encounter data)."""
+    
+    webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+    
+    if not webhook_url:
+        print("❌ DISCORD_WEBHOOK_URL not set!")
+        return
+    
+    # Note: This is a simplified example. In real usage, you would get encounter
+    # objects from the SingleReportAnalyzer.analyze_report() method.
+    print("📝 Note: Individual fight posting requires real encounter data from ESO Logs analysis.")
+    print("   Use: python single_report_tool.py <report_id> --discord-webhook-post")
+    print("   This will automatically post each kill fight as a separate Discord message.")
+
 async def example_simple_message():
     """Example of posting a simple message (not as embed)."""
     
@@ -79,7 +94,8 @@ async def example_simple_message():
         
         success = await client.post_simple_message(
             "🎮 ESO Log Build & Buff Summary v0.2.0 is ready!\n"
-            "Use the new Discord webhook feature to post trial reports directly to Discord."
+            "Use the new Discord webhook feature to post trial reports directly to Discord.\n\n"
+            "New feature: --discord-webhook-post for individual boss fight analysis!"
         )
         
         if success:
@@ -93,5 +109,7 @@ if __name__ == "__main__":
     
     # Run the examples
     asyncio.run(example_webhook_usage())
+    print()
+    asyncio.run(example_individual_fights())
     print()
     asyncio.run(example_simple_message())
