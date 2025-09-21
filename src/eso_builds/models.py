@@ -31,10 +31,16 @@ class GearSet:
     name: str
     piece_count: int
     is_perfected: bool = False
+    max_pieces: int = 5
+    is_incomplete: bool = False
     
     def __str__(self) -> str:
         prefix = "Perfected " if self.is_perfected else ""
         return f"{self.piece_count}pc {prefix}{self.name}"
+    
+    def is_missing_pieces(self) -> bool:
+        """Check if this set is missing pieces for full capability."""
+        return self.piece_count < self.max_pieces
 
 
 @dataclass
@@ -44,6 +50,7 @@ class PlayerBuild:
     character_class: str
     role: Role
     gear_sets: List[GearSet] = field(default_factory=list)
+    abilities: Dict[str, List[str]] = field(default_factory=lambda: {'bar1': [], 'bar2': []})
     
     def __str__(self) -> str:
         gear_str = ", ".join(str(gear) for gear in self.gear_sets)

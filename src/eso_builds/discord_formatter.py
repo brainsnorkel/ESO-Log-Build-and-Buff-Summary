@@ -151,14 +151,14 @@ class DiscordReportFormatter:
             # Player header - escape @ symbols with backticks to prevent Discord pings
             player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
             
-            # Add "!" indicator if player has incomplete sets
-            if self._has_incomplete_sets(player.gear_sets):
-                player_name = f"!{player_name}"
-            
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
+            
+            # Add "Set Problem?:" indicator if player has incomplete sets
+            if self._has_incomplete_sets(player.gear_sets):
+                gear_text = f"**Set Problem?:** {gear_text}"
             
             # Combine character class and gear sets on one line with a dash separator
             class_name = self._get_class_display_name(player.character_class, player)
@@ -173,7 +173,7 @@ class DiscordReportFormatter:
                     ability_type = "Top Healing"
                     abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
                 else:  # TANK
-                    ability_type = "Top Cast Skills"
+                    ability_type = "Top Casts"
                     abilities_str = self._format_cast_counts_for_discord(player.abilities.get('top_abilities', []))
                 lines.append(f"  ↳ {ability_type}: {abilities_str}")
         

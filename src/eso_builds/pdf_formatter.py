@@ -315,13 +315,12 @@ class PDFReportFormatter:
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
             class_name = self._get_class_display_name(player.character_class, player)
 
-            # Add "!" indicator if player has incomplete sets
-            player_name = player.name
+            # Add "Set Problem?:" indicator if player has incomplete sets
             if self._has_incomplete_sets(player.gear_sets):
-                player_name = f"!{player_name}"
+                gear_str = f"<b>Set Problem?:</b> {gear_str}"
             
             table_data.append([
-                Paragraph(player_name, self.styles['Normal']),
+                Paragraph(player.name, self.styles['Normal']),
                 Paragraph(class_name, self.styles['Normal']),
                 Paragraph(gear_str, self.styles['Normal'])
             ])
@@ -335,7 +334,7 @@ class PDFReportFormatter:
                     ability_type = "Top Healing"
                     abilities_str = self._format_top_abilities_for_pdf(player.abilities.get('top_abilities', []))
                 else:  # TANK
-                    ability_type = "Top Cast Skills"
+                    ability_type = "Top Casts"
                     abilities_str = self._format_cast_counts_for_pdf(player.abilities.get('top_abilities', []))
                 table_data.append([
                     Paragraph(f"↳ {ability_type}", self.styles['Normal']),

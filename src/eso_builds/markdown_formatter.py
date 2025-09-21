@@ -175,12 +175,11 @@ class MarkdownFormatter:
                 gear_str = self._format_gear_sets_for_table(player.gear_sets)
                 class_name = self._get_class_display_name(player.character_class, player)
                 
-                # Add "!" indicator if player has incomplete sets
-                player_name = player.name
+                # Add "Set Problem?:" indicator if player has incomplete sets
                 if self._has_incomplete_sets(player.gear_sets):
-                    player_name = f"!{player_name}"
+                    gear_str = f"**Set Problem?:** {gear_str}"
                 
-                lines.append(f"| {player_name} | {class_name} | {gear_str} |")
+                lines.append(f"| {player.name} | {class_name} | {gear_str} |")
                 
                 # Add top abilities row for DPS, healers, and tanks
                 if player.abilities and player.abilities.get('top_abilities'):
@@ -191,7 +190,7 @@ class MarkdownFormatter:
                         ability_type = "Top Healing"
                         abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
                     else:  # TANK
-                        ability_type = "Top Cast Skills"
+                        ability_type = "Top Casts"
                         abilities_str = self._format_cast_counts_for_table(player.abilities.get('top_abilities', []))
                     lines.append(f"| ↳ {ability_type} | {abilities_str} |")
             
@@ -209,12 +208,11 @@ class MarkdownFormatter:
                 gear_str = self._format_gear_sets_for_table(player.gear_sets)
                 class_name = self._get_class_display_name(player.character_class, player)
                 
-                # Add "!" indicator if player has incomplete sets
-                player_name = player.name
+                # Add "Set Problem?:" indicator if player has incomplete sets
                 if self._has_incomplete_sets(player.gear_sets):
-                    player_name = f"!{player_name}"
+                    gear_str = f"**Set Problem?:** {gear_str}"
                 
-                lines.append(f"| {player_name} | {class_name} | {gear_str} |")
+                lines.append(f"| {player.name} | {class_name} | {gear_str} |")
         
         return lines
     
