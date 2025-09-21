@@ -8,7 +8,7 @@ optimized for chat readability with proper Discord formatting syntax.
 import logging
 from typing import List, Dict
 from datetime import datetime
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +150,11 @@ class DiscordReportFormatter:
         for i, player in enumerate(players, 1):
             # Player header - escape @ symbols with backticks to prevent Discord pings
             player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
+            
+            # Add "!" indicator if player has incomplete sets
+            if self._has_incomplete_sets(player.gear_sets):
+                player_name = f"!{player_name}"
+            
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
             # Gear sets in a compact format
@@ -158,6 +163,19 @@ class DiscordReportFormatter:
             # Combine character class and gear sets on one line with a dash separator
             class_name = self._get_class_display_name(player.character_class, player)
             lines.append(f"{escaped_name}: {class_name} - {gear_text}")
+            
+            # Add top abilities for DPS, healers, and tanks
+            if player.abilities and player.abilities.get('top_abilities'):
+                if player.role.value == "DPS":
+                    ability_type = "Top Damage"
+                    abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
+                elif player.role.value == "Healer":
+                    ability_type = "Top Healing"
+                    abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
+                else:  # TANK
+                    ability_type = "Top Cast Skills"
+                    abilities_str = self._format_cast_counts_for_discord(player.abilities.get('top_abilities', []))
+                lines.append(f"  ↳ {ability_type}: {abilities_str}")
         
         return lines
     
@@ -172,6 +190,41 @@ class DiscordReportFormatter:
             formatted_sets.append(f"{gear_set.piece_count}pc {gear_set.name}")
         
         return ", ".join(formatted_sets)
+    
+    def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
+        """Check if any gear sets are incomplete (5-piece sets with fewer than 5 pieces)."""
+        for gear_set in gear_sets:
+            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+                return True
+        return False
+    
+    def _format_top_abilities_for_discord(self, top_abilities: List) -> str:
+        """Format top abilities with percentages for Discord."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its percentage
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            percentage = ability.get('percentage', 0.0)
+            formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+    
+    def _format_cast_counts_for_discord(self, top_abilities: List) -> str:
+        """Format top abilities with cast counts for Discord."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its cast count
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            casts = ability.get('casts', 0)
+            formatted_abilities.append(f"{name} ({casts})")
+        
+        return ", ".join(formatted_abilities)
     
     def _format_ranking_discord(self, ranking: LogRanking) -> List[str]:
         """Format a ranking section for Discord (future expansion)."""

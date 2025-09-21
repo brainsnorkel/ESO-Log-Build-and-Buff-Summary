@@ -15,7 +15,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus.flowables import Flowable
 from reportlab.pdfgen.canvas import Canvas
 
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, GearSet, Role
 
 
 class PDFReportFormatter:
@@ -314,11 +314,34 @@ class PDFReportFormatter:
         for player in players:
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
             class_name = self._get_class_display_name(player.character_class, player)
+
+            # Add "!" indicator if player has incomplete sets
+            player_name = player.name
+            if self._has_incomplete_sets(player.gear_sets):
+                player_name = f"!{player_name}"
+            
             table_data.append([
-                Paragraph(player.name, self.styles['Normal']),
+                Paragraph(player_name, self.styles['Normal']),
                 Paragraph(class_name, self.styles['Normal']),
                 Paragraph(gear_str, self.styles['Normal'])
             ])
+            
+            # Add top abilities row for DPS, healers, and tanks
+            if player.abilities and player.abilities.get('top_abilities'):
+                if player.role.value == "DPS":
+                    ability_type = "Top Damage"
+                    abilities_str = self._format_top_abilities_for_pdf(player.abilities.get('top_abilities', []))
+                elif player.role.value == "Healer":
+                    ability_type = "Top Healing"
+                    abilities_str = self._format_top_abilities_for_pdf(player.abilities.get('top_abilities', []))
+                else:  # TANK
+                    ability_type = "Top Cast Skills"
+                    abilities_str = self._format_cast_counts_for_pdf(player.abilities.get('top_abilities', []))
+                table_data.append([
+                    Paragraph(f"↳ {ability_type}", self.styles['Normal']),
+                    Paragraph("", self.styles['Normal']),
+                    Paragraph(abilities_str, self.styles['Normal'])
+                ])
         
         # Create and style the table with proper wrapping
         table = Table(table_data, colWidths=[1.5*inch, 1.2*inch, 4.0*inch])
@@ -353,6 +376,41 @@ class PDFReportFormatter:
             formatted_sets.append(set_str)
         
         return ", ".join(formatted_sets)
+    
+    def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
+        """Check if any gear sets are incomplete (5-piece sets with fewer than 5 pieces)."""
+        for gear_set in gear_sets:
+            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+                return True
+        return False
+    
+    def _format_top_abilities_for_pdf(self, top_abilities: List) -> str:
+        """Format top abilities with percentages for PDF table cell."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its percentage
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            percentage = ability.get('percentage', 0.0)
+            formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+    
+    def _format_cast_counts_for_pdf(self, top_abilities: List) -> str:
+        """Format top abilities with cast counts for PDF table cell."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its cast count
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            casts = ability.get('casts', 0)
+            formatted_abilities.append(f"{name} ({casts})")
+        
+        return ", ".join(formatted_abilities)
     
     def _format_table_of_contents_pdf(self, trial_report: TrialReport) -> List:
         """Format a table of contents for the PDF with clickable links."""
