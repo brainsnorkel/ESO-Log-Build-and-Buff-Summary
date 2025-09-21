@@ -26,6 +26,13 @@ class ReportFormatter:
         'Nightblade': 'NB'
     }
     
+    # Role icons for visual identification
+    ROLE_ICONS = {
+        Role.TANK: '🛡️',
+        Role.HEALER: '💚',
+        Role.DPS: '⚔️'
+    }
+    
     def _get_class_display_name(self, class_name: str) -> str:
         """Get the shortened display name for a class."""
         return self.CLASS_MAPPING.get(class_name, class_name)
@@ -79,20 +86,19 @@ class ReportFormatter:
         dps = encounter.dps
         
         # Format tanks
-        for i, tank in enumerate(tanks, 1):
-            lines.append(f"Tank {i} {tank.name}: {self._format_player_build_without_name(tank)}")
+        for tank in tanks:
+            role_icon = self.ROLE_ICONS.get(tank.role, '')
+            lines.append(f"{role_icon} {tank.name}: {self._format_player_build_without_name(tank)}")
         
         # Format healers
-        for i, healer in enumerate(healers, 1):
-            lines.append(f"Healer {i} {healer.name}: {self._format_player_build_without_name(healer)}")
+        for healer in healers:
+            role_icon = self.ROLE_ICONS.get(healer.role, '')
+            lines.append(f"{role_icon} {healer.name}: {self._format_player_build_without_name(healer)}")
         
         # Format DPS
-        for i, dps_player in enumerate(dps, 1):
-            lines.append(f"DPS {i} {dps_player.name}: {self._format_player_build_without_name(dps_player)}")
-        
-        # Add empty DPS slots if fewer than 8
-        for i in range(len(dps) + 1, 9):
-            lines.append(f"DPS {i} @anonymous{i}: ")
+        for dps_player in dps:
+            role_icon = self.ROLE_ICONS.get(dps_player.role, '')
+            lines.append(f"{role_icon} {dps_player.name}: {self._format_player_build_without_name(dps_player)}")
         
         lines.append("")  # Empty line after encounter
         return lines

@@ -23,6 +23,7 @@ from src.eso_builds.single_report_analyzer import SingleReportAnalyzer
 from src.eso_builds.report_formatter import ReportFormatter
 from src.eso_builds.markdown_formatter import MarkdownFormatter
 from src.eso_builds.discord_formatter import DiscordReportFormatter
+from src.eso_builds.discord_webhook_client import DiscordWebhookClient
 
 
 def extract_report_id(input_string: str) -> str:
@@ -67,7 +68,7 @@ def setup_logging(verbose: bool = False):
     logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False):
+async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook: str = None, discord_webhook_post: bool = False):
     """Analyze a single ESO Logs report."""
     print(f"🔍 Analyzing ESO Logs Report: {report_code}")
     print("=" * 50)
@@ -128,6 +129,19 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     f.write(discord_content)
                 
                 print(f"💬 Discord report saved to: {discord_filepath}")
+                
+                # Post to Discord webhook if provided
+                if discord_webhook:
+                    try:
+                        async with DiscordWebhookClient(discord_webhook) as webhook_client:
+                            title = f"ESO Trial Report - {report_code}"
+                            success = await webhook_client.post_report(discord_content, title)
+                            if success:
+                                print(f"🚀 Report posted to Discord webhook")
+                            else:
+                                print(f"❌ Failed to post to Discord webhook")
+                    except Exception as e:
+                        print(f"❌ Error posting to Discord webhook: {e}")
             
             # Generate PDF report
             if output_format in ["pdf", "all"]:
@@ -142,6 +156,51 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     f.write(pdf_content)
                 
                 print(f"📄 PDF report saved to: {pdf_filepath}")
+        
+        # Handle Discord webhook posting (individual fights)
+        if discord_webhook_post:
+            webhook_url = os.getenv('DISCORD_WEBHOOK_URL') or os.getenv('DISCORD_WEBHOOK')
+            if not webhook_url:
+                print("❌ DISCORD_WEBHOOK_URL environment variable not set!")
+                print("\nPlease set up your Discord webhook:")
+                print("1. Go to your Discord server settings")
+                print("2. Navigate to Integrations > Webhooks")
+                print("3. Create a new webhook")
+                print("4. Copy the webhook URL")
+                print("5. Add DISCORD_WEBHOOK_URL to your .env file")
+                return False
+            
+            try:
+                async with DiscordWebhookClient(webhook_url) as webhook_client:
+                    # Get encounters from the ranking
+                    ranking = trial_report.rankings[0]
+                    encounters = ranking.encounters
+                    
+                    # Pass all encounters (both kills and wipes)
+                    if not encounters:
+                        print("❌ No encounters found in this report")
+                        return False
+                    
+                    print(f"🚀 Posting {len(encounters)} fights to Discord...")
+                    
+                    report_title = f"{trial_report.trial_name} - {report_code}"
+                    log_url = ranking.log_url
+                    
+                    success = await webhook_client.post_individual_fights(
+                        encounters=encounters,
+                        report_title=report_title,
+                        log_url=log_url
+                    )
+                    
+                    if success:
+                        print(f"✅ Successfully posted individual fights and summary to Discord")
+                    else:
+                        print(f"❌ Failed to post fights to Discord")
+                        return False
+                        
+            except Exception as e:
+                print(f"❌ Error posting to Discord webhook: {e}")
+                return False
         
         return True
         
@@ -168,6 +227,12 @@ Examples:
   
   # Both console and markdown
   python single_report_tool.py mtFqVzQPNBcCrd1h --output both --output-dir reports
+  
+  # Post directly to Discord webhook
+  python single_report_tool.py mtFqVzQPNBcCrd1h --output discord --discord-webhook "https://discord.com/api/webhooks/..."
+  
+  # Post individual boss fights to Discord (uses DISCORD_WEBHOOK_URL from .env)
+  python single_report_tool.py mtFqVzQPNBcCrd1h --discord-webhook-post
         """
     )
     
@@ -185,6 +250,12 @@ Examples:
     
     parser.add_argument('--anonymize', action='store_true',
                        help='Anonymize the report by replacing player names with anon1, anon2, etc. and removing URLs')
+    
+    parser.add_argument('--discord-webhook', type=str,
+                       help='Discord webhook URL to post the report directly to Discord')
+    
+    parser.add_argument('--discord-webhook-post', action='store_true',
+                       help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (both kills and wipes)')
     
     args = parser.parse_args()
     
@@ -214,7 +285,7 @@ Examples:
     
     # Run analysis
     try:
-        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize))
+        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook, args.discord_webhook_post))
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print("\n⏹️ Analysis cancelled by user")

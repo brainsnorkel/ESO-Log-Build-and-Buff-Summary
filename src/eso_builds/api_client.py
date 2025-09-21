@@ -798,6 +798,116 @@ class ESOLogsClient:
             logger.error(f"Failed to get top {ability_type} abilities: {e}")
             return {}
 
+    async def get_player_dps_totals(self, report_code: str, start_time: int, end_time: int) -> Dict[str, Dict[str, Any]]:
+        """
+        Get DPS (damage per second) for each player in a fight.
+        
+        Args:
+            report_code: The report code
+            start_time: Fight start time
+            end_time: Fight end time
+        
+        Returns:
+            Dictionary mapping player names to their DPS data:
+            {
+                "player_name": {
+                    "total_damage": 123456,
+                    "dps": 12345,
+                    "player_id": "123"
+                }
+            }
+        """
+        try:
+            # Use DamageDone data type to get total damage
+            response = await self._make_request(
+                'get_report_table',
+                code=report_code,
+                data_type='DamageDone',
+                hostility_type='Friendlies',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            if not response or not hasattr(response, 'report_data'):
+                logger.warning(f"No response returned for DPS totals in report {report_code}")
+                return {}
+            
+            table = response.report_data.report.table
+            
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for DPS totals in report {report_code}")
+                    return {}
+                table_data = table.data
+            
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No DPS entries found for report {report_code}")
+                    return {}
+                entries = table_data.entries
+            
+            # Calculate fight duration in seconds
+            fight_duration_ms = end_time - start_time
+            fight_duration_seconds = fight_duration_ms / 1000.0
+            
+            # Process DPS data to extract total damage per player and calculate DPS
+            player_dps = {}
+            total_group_damage = 0
+            
+            logger.info(f"Processing {len(entries)} entries for DPS totals (fight duration: {fight_duration_seconds:.1f}s)")
+            
+            for entry in entries:
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    total_damage = entry.get('total', 0)
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    total_damage = getattr(entry, 'total', 0)
+                
+                if player_name and total_damage > 0:
+                    # Calculate DPS (damage per second)
+                    dps = total_damage / fight_duration_seconds if fight_duration_seconds > 0 else 0
+                    
+                    player_dps[player_name] = {
+                        'total_damage': total_damage,
+                        'dps': dps,
+                        'player_id': player_id
+                    }
+                    
+                    # Also store by ID for direct lookup
+                    if player_id != 'Unknown':
+                        player_dps[f"id_{player_id}"] = {
+                            'total_damage': total_damage,
+                            'dps': dps,
+                            'player_name': player_name
+                        }
+                    
+                    total_group_damage += total_damage
+                    logger.debug(f"Player {player_name}: {total_damage} total damage, {dps:.0f} DPS")
+            
+            # Calculate group DPS
+            group_dps = total_group_damage / fight_duration_seconds if fight_duration_seconds > 0 else 0
+            
+            # Add group totals to the return data
+            player_dps['_group_total'] = total_group_damage
+            player_dps['_group_dps'] = group_dps
+            
+            logger.info(f"Extracted DPS totals for {len([k for k in player_dps.keys() if not k.startswith('id_') and not k.startswith('_group')])} players")
+            logger.info(f"Total group damage: {total_group_damage}, Group DPS: {group_dps:.0f}")
+            return player_dps
+            
+        except Exception as e:
+            logger.error(f"Failed to get DPS totals: {e}")
+            return {}
+
     async def get_player_cast_counts(self, report_code: str, start_time: int, end_time: int) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
         """
         Get cast counts for each player's abilities.
@@ -1027,13 +1137,38 @@ class ESOLogsClient:
             logger.error(f"Failed to get master data: {e}")
             return {"abilities": [], "actors": []}
 
-    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+    # Oakensoul Ring buffs that should be marked with asterisk when a wearer is present
+    OAKENSOUL_BUFFS = {
+        'Major Courage',
+        'Major Force', 
+        'Major Protection',
+        'Major Berserk',
+        'Major Savagery',
+        'Major Prophecy',
+        'Major Brutality',
+        'Major Sorcery',
+        'Major Resolve',
+        'Major Heroism',
+        'Minor Mending',
+        'Minor Fortitude',
+        'Minor Intellect',
+        'Minor Endurance'
+    }
+
+    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int, has_oakensoul_wearer: bool = False) -> Dict[str, str]:
         """
         Get buff/debuff uptimes using the table API method.
         
         For each buff/debuff, finds the largest percentage among all variations and sources.
+        Marks Oakensoul Ring buffs with asterisk (*) when a wearer is present.
         
-        Returns a dictionary mapping buff/debuff names to their highest uptime percentages.
+        Args:
+            report_code: The report code
+            start_time: Fight start time
+            end_time: Fight end time
+            has_oakensoul_wearer: Whether any player in the group is wearing Oakensoul Ring
+        
+        Returns a dictionary mapping buff/debuff names to their formatted uptime percentages.
         """
         try:
             from esologs import TableDataType
@@ -1161,7 +1296,16 @@ class ESOLogsClient:
                                             logger.debug(f"Found {target_debuff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes using table API")
-            return uptimes
+            
+            # Format uptimes with asterisks for Oakensoul Ring buffs
+            formatted_uptimes = {}
+            for buff_name, uptime_percent in uptimes.items():
+                if has_oakensoul_wearer and buff_name in self.OAKENSOUL_BUFFS:
+                    formatted_uptimes[f"{buff_name}*"] = uptime_percent
+                else:
+                    formatted_uptimes[buff_name] = uptime_percent
+            
+            return formatted_uptimes
             
         except Exception as e:
             logger.error(f"Failed to get buff/debuff uptimes using table API: {e}")
@@ -1259,19 +1403,32 @@ class ESOLogsClient:
             # Fall back to event-based method
             return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
 
-    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
+    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int, has_oakensoul_wearer: bool = False) -> Dict[str, str]:
         """
         Get buff/debuff uptimes for a specific fight.
         
         Primary method that tries table API first, falls back to events.
+        Marks Oakensoul Ring buffs with asterisk (*) when a wearer is present.
         """
         # Try table API first (most reliable)
-        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time)
+        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time, has_oakensoul_wearer)
         if table_uptimes:
             return table_uptimes
         
-        # Fall back to events API if table fails
-        return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
+        # Fall back to events API if table fails (note: events API doesn't support asterisk marking)
+        events_uptimes = await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
+        
+        # Format events uptimes with asterisks for Oakensoul Ring buffs
+        if has_oakensoul_wearer:
+            formatted_uptimes = {}
+            for buff_name, uptime_percent in events_uptimes.items():
+                if buff_name in self.OAKENSOUL_BUFFS:
+                    formatted_uptimes[f"{buff_name}*"] = uptime_percent
+                else:
+                    formatted_uptimes[buff_name] = uptime_percent
+            return formatted_uptimes
+        
+        return events_uptimes
 
     async def get_buff_debuff_uptimes_events(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
