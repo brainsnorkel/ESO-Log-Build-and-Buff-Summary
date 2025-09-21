@@ -1,5 +1,5 @@
 """
-Discord markup formatting for ESO Logs Build and Buff Summary.
+Discord markup formatting for ESO Top Builds.
 
 This module handles formatting trial reports into Discord-friendly markup format
 optimized for chat readability with proper Discord formatting syntax.
@@ -8,7 +8,7 @@ optimized for chat readability with proper Discord formatting syntax.
 import logging
 from typing import List, Dict
 from datetime import datetime
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet
 
 logger = logging.getLogger(__name__)
 
@@ -45,15 +45,12 @@ class DiscordReportFormatter:
         
         return mapped_class
     
-    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> str:
+    def format_trial_report(self, trial_report: TrialReport) -> str:
         """Format a complete trial report for Discord."""
         lines = []
         
         # Main header with Discord formatting
-        if anonymize:
-            title = f"**Anonymous Trial - Summary Report**"
-        else:
-            title = f"**{trial_report.trial_name} - Summary Report - Logged by Unknown**"
+        title = f"**{trial_report.trial_name} - Summary Report**"
         lines.extend([
             title,
             "",
@@ -64,27 +61,17 @@ class DiscordReportFormatter:
         # For single report analysis, process encounters from the first ranking
         if trial_report.rankings and len(trial_report.rankings) > 0:
             ranking = trial_report.rankings[0]
-            
-            if anonymize:
-                lines.extend([
-                    "## 📋 **Report Analysis**",
-                    "",
-                    f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
-                    ""
-                ])
-            else:
-                lines.extend([
-                    "## 📋 **Report Analysis**",
-                    "",
-                    f"**🔗 Log URL:** <https://www.esologs.com/reports/{ranking.log_code}>",
-                    f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
-                    ""
-                ])
+            lines.extend([
+                "## 📋 **Report Analysis**",
+                "",
+                f"**🔗 Log URL:** <https://www.esologs.com/reports/{ranking.log_code}>",
+                f"**📅 Date:** {ranking.date.strftime('%Y-%m-%d %H:%M UTC') if ranking.date else 'N/A'}",
+                ""
+            ])
             
             for encounter in ranking.encounters:
-                lines.extend(self._format_encounter_discord(encounter, anonymize=anonymize))
+                lines.extend(self._format_encounter_discord(encounter))
                 lines.append("")
-            
         
         # For ranked reports (future expansion)
         else:
@@ -94,7 +81,7 @@ class DiscordReportFormatter:
         
         return "\n".join(lines)
     
-    def _format_encounter_discord(self, encounter: EncounterResult, anonymize: bool = False) -> List[str]:
+    def _format_encounter_discord(self, encounter: EncounterResult) -> List[str]:
         """Format a single encounter for Discord."""
         # Determine kill status - treat 0.0% or very low boss health as kill
         if encounter.kill or encounter.boss_percentage <= 0.1:
@@ -109,7 +96,7 @@ class DiscordReportFormatter:
         
         # Add Buff/Debuff Uptime Table
         if encounter.buff_uptimes:
-            lines.extend(self._format_buff_debuff_discord(encounter.buff_uptimes, encounter))
+            lines.extend(self._format_buff_debuff_discord(encounter.buff_uptimes))
             lines.append("")
         
         # Get player role groups
@@ -119,99 +106,32 @@ class DiscordReportFormatter:
         
         # Format role sections
         if tanks:
-            lines.extend(self._format_role_discord("**Tanks**", tanks, anonymize=anonymize))
+            lines.extend(self._format_role_discord("**Tanks**", tanks))
             lines.append("")
         
         if healers:
-            lines.extend(self._format_role_discord("**Healers**", healers, anonymize=anonymize))
+            lines.extend(self._format_role_discord("**Healers**", healers))
             lines.append("")
         
         if dps:
-            lines.extend(self._format_role_discord("**DPS**", dps, anonymize=anonymize))
+            lines.extend(self._format_role_discord("**DPS**", dps))
             lines.append("")
         
         return lines
     
-    def _has_oakensoul_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has Oakensoul Ring equipped."""
-        for player in encounter.players:
-            for gear_set in player.gear_sets:
-                if 'oakensoul' in gear_set.name.lower():
-                    return True
-        return False
-    
-    def _has_spaulder_of_ruin_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has Spaulder of Ruin equipped."""
-        for player in encounter.players:
-            for gear_set in player.gear_sets:
-                if 'spaulder of ruin' in gear_set.name.lower():
-                    return True
-        return False
-    
-    def _has_tremorscale_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has 2pc+ Tremorscale equipped."""
-        for player in encounter.players:
-            tremorscale_count = 0
-            for gear_set in player.gear_sets:
-                if 'tremorscale' in gear_set.name.lower():
-                    tremorscale_count += gear_set.piece_count
-            if tremorscale_count >= 2:
-                return True
-        return False
-    
-    def _has_alkosh_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has 5pc+ Alkosh equipped."""
-        for player in encounter.players:
-            alkosh_count = 0
-            for gear_set in player.gear_sets:
-                if 'alkosh' in gear_set.name.lower():
-                    alkosh_count += gear_set.piece_count
-            if alkosh_count >= 5:
-                return True
-        return False
-    
-    def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float], encounter: 'EncounterResult') -> List[str]:
+    def _format_buff_debuff_discord(self, buff_uptimes: Dict[str, float]) -> List[str]:
         """Format buff/debuff uptimes for Discord as simple lists."""
         lines = []
         
-        # Check if any player has Oakensoul Ring
-        has_oakensoul = self._has_oakensoul_wearers(encounter)
-        
-        # Check if any player has Spaulder of Ruin
-        has_spaulder = self._has_spaulder_of_ruin_wearers(encounter)
-        
-        # Check if any player has 2pc+ Tremorscale
-        has_tremorscale = self._has_tremorscale_wearers(encounter)
-        
-        # Check if any player has 5pc+ Alkosh
-        has_alkosh = self._has_alkosh_wearers(encounter)
-        
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        
-        # Only add Aura of Pride if Spaulder of Ruin is detected
-        if has_spaulder:
-            buffs.append('Aura of Pride')
-        
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening', 'Runic Sunder']
-        
-        # Only add Tremorscale if 2pc+ Tremorscale is detected
-        if has_tremorscale:
-            debuffs.append('Tremorscale')
-        
-        # Only add Line-Breaker if 5pc+ Alkosh is detected
-        if has_alkosh:
-            debuffs.append('Line-Breaker')
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Format buffs as simple list
         buff_items = []
         for buff_name in buffs:
             uptime = buff_uptimes.get(buff_name, 0.0)
-            # Add asterisk for Major Courage and Major Resolve if Oakensoul wearers present
-            if has_oakensoul and buff_name in ['Major Courage', 'Major Resolve']:
-                buff_items.append(f"{buff_name} {uptime:.1f}%*")
-            else:
-                buff_items.append(f"{buff_name} {uptime:.1f}%")
+            buff_items.append(f"{buff_name} {uptime:.1f}%")
         lines.append(f"Buffs: {', '.join(buff_items)}")
         
         # Format debuffs as simple list
@@ -223,28 +143,39 @@ class DiscordReportFormatter:
         
         return lines
     
-    
-    def _format_role_discord(self, role_header: str, players: List[PlayerBuild], anonymize: bool = False) -> List[str]:
+    def _format_role_discord(self, role_header: str, players: List[PlayerBuild]) -> List[str]:
         """Format players of a specific role for Discord."""
         lines = [role_header]
         
-        # Track anonymous names for consistency
-        name_counter = {}
-        
         for i, player in enumerate(players, 1):
             # Player header - escape @ symbols with backticks to prevent Discord pings
-            if anonymize:
-                player_name = f"anon{i}"
-            else:
-                player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
+            player_name = player.name if player.name != "anonymous" else f"anonymous{i}"
+            
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
             
+            # Add "Set Problem?:" indicator if player has incomplete sets
+            if self._has_incomplete_sets(player.gear_sets):
+                gear_text = f"**Set Problem?:** {gear_text}"
+            
             # Combine character class and gear sets on one line with a dash separator
             class_name = self._get_class_display_name(player.character_class, player)
             lines.append(f"{escaped_name}: {class_name} - {gear_text}")
+            
+            # Add top abilities for DPS, healers, and tanks
+            if player.abilities and player.abilities.get('top_abilities'):
+                if player.role.value == "DPS":
+                    ability_type = "Top Damage"
+                    abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
+                elif player.role.value == "Healer":
+                    ability_type = "Top Healing"
+                    abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
+                else:  # TANK
+                    ability_type = "Top Casts"
+                    abilities_str = self._format_cast_counts_for_discord(player.abilities.get('top_abilities', []))
+                lines.append(f"  ↳ {ability_type}: {abilities_str}")
         
         return lines
     
@@ -259,6 +190,41 @@ class DiscordReportFormatter:
             formatted_sets.append(f"{gear_set.piece_count}pc {gear_set.name}")
         
         return ", ".join(formatted_sets)
+    
+    def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
+        """Check if any gear sets are incomplete (5-piece sets with fewer than 5 pieces)."""
+        for gear_set in gear_sets:
+            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+                return True
+        return False
+    
+    def _format_top_abilities_for_discord(self, top_abilities: List) -> str:
+        """Format top abilities with percentages for Discord."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its percentage
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            percentage = ability.get('percentage', 0.0)
+            formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+    
+    def _format_cast_counts_for_discord(self, top_abilities: List) -> str:
+        """Format top abilities with cast counts for Discord."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its cast count
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            casts = ability.get('casts', 0)
+            formatted_abilities.append(f"{name} ({casts})")
+        
+        return ", ".join(formatted_abilities)
     
     def _format_ranking_discord(self, ranking: LogRanking) -> List[str]:
         """Format a ranking section for Discord (future expansion)."""
@@ -279,7 +245,7 @@ class DiscordReportFormatter:
     def format_multiple_trials(self, trial_reports: List[TrialReport]) -> str:
         """Format multiple trial reports for Discord (future expansion)."""
         lines = [
-            "# **ESO Logs Build and Buff Summary - Multi-Trial Analysis**",
+            "# **ESO Top Builds - Multi-Trial Analysis**",
             "",
             f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M')} UTC",
             f"**Trials Analyzed:** {len(trial_reports)}",

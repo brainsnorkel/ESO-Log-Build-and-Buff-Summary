@@ -9,10 +9,9 @@ import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, Difficulty, GearSet, ClassSummary
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, Difficulty, GearSet
 from .api_client import ESOLogsClient, ESOLogsAPIError
 from .gear_parser import GearParser
-from .class_analyzer import ClassAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +22,16 @@ class SingleReportAnalyzer:
     def __init__(self):
         """Initialize the analyzer."""
         self.gear_parser = GearParser()
-        self.class_analyzer = ClassAnalyzer()
+        self.libsets_initialized = False
     
     async def analyze_report(self, report_code: str) -> TrialReport:
         """Analyze a single ESO Logs report and extract all encounter data."""
         logger.info(f"Analyzing single report: {report_code}")
+        
+        # Initialize LibSets data if not already done
+        if not self.libsets_initialized:
+            await self.gear_parser.initialize_libsets()
+            self.libsets_initialized = True
         
         async with ESOLogsClient() as client:
             # Get basic report info
@@ -195,62 +199,6 @@ class SingleReportAnalyzer:
                 # Get player data using table method with time ranges
                 players = await self._get_players_simple(client, report_code, fight)
                 
-                # Get comprehensive player data for class analysis
-                start_time = int(getattr(fight, 'start_time', 0))
-                end_time = int(getattr(fight, 'end_time', start_time + 300000))
-                
-                # Get player abilities using multiple methods
-                player_abilities_legacy = await client.get_player_abilities(
-                    report_code, start_time, end_time
-                )
-                
-                # Get enhanced player-specific ability casts
-                player_ability_casts = await client.get_player_ability_casts(
-                    report_code, start_time, end_time
-                )
-                
-                # Get player-specific buff data for mundus detection
-                player_specific_buffs = await client.get_player_specific_buffs(
-                    report_code, start_time, end_time
-                )
-
-                # Try to get raw PLAYER_INFO events with actual action bar data
-                raw_action_bars = await client.get_raw_player_info_events(report_code)
-                if raw_action_bars:
-                    logger.info(f"Found raw action bar data for {len(raw_action_bars)} players!")
-                    for player_name, bars in raw_action_bars.items():
-                        front_bar = bars.get('front_bar', [])
-                        back_bar = bars.get('back_bar', [])
-                        logger.info(f"Player {player_name}: Front bar {front_bar}, Back bar {back_bar}")
-                else:
-                    logger.info("No raw action bar data available through API")
-                
-                # Extract all buffs for mundus detection (including Boon buffs)
-                all_buffs_for_mundus = []
-                if '_all_buffs' in player_specific_buffs:
-                    all_buffs_for_mundus = player_specific_buffs['_all_buffs']
-                    logger.debug(f"Found {len(all_buffs_for_mundus)} total buffs including {len([b for b in all_buffs_for_mundus if b.startswith('Boon:')])} Boon buffs")
-                
-                # Add class analysis to each player
-                for player in players:
-                    # Combine legacy abilities with enhanced cast data
-                    legacy_abilities = player_abilities_legacy.get(player.name, {}).get('all_abilities', [])
-                    cast_abilities = player_ability_casts.get(player.name, [])
-                    
-                    # Merge and deduplicate abilities
-                    all_abilities = list(set(legacy_abilities + cast_abilities))
-                    
-                    # Get player-specific buffs (if any)
-                    player_buffs = player_specific_buffs.get(player.name, [])
-                    
-                    # Use all buffs for mundus detection since we can't easily map them to individual players
-                    combined_buffs = list(set(player_buffs + all_buffs_for_mundus))
-                    
-                    logger.debug(f"Player {player.name}: {len(legacy_abilities)} legacy abilities, {len(cast_abilities)} cast abilities, {len(all_abilities)} total, {len(combined_buffs)} buffs")
-                    
-                    class_summary = self.class_analyzer.analyze_character(player, all_abilities, combined_buffs)
-                    player.class_summary = class_summary
-                
                 # Determine difficulty
                 difficulty = Difficulty.NORMAL
                 if fight.difficulty == 121:
@@ -263,8 +211,10 @@ class SingleReportAnalyzer:
                 boss_percentage = getattr(fight, 'boss_percentage', 0.0)
                 
                 # Get buff/debuff uptimes for this fight (tries table API first, falls back to events)
+                start_time = int(getattr(fight, 'start_time', 0))
+                end_time = int(getattr(fight, 'end_time', start_time + 300000))
                 buff_uptimes = await client.get_buff_debuff_uptimes(
-                    report_code, start_time, end_time, players
+                    report_code, start_time, end_time
                 )
                 
                 encounter = EncounterResult(
@@ -321,6 +271,9 @@ class SingleReportAnalyzer:
                                     name = player_data.get('name', 'Unknown')
                                     display_name = player_data.get('displayName', '')
                                     character_class = player_data.get('type', 'Unknown')
+                                    player_id = player_data.get('id', None)
+                                    
+                                    logger.info(f"Player data: name='{name}', display_name='{display_name}', id='{player_id}', class='{character_class}'")
                                     
                                     # Extract gear sets
                                     gear_sets = []
@@ -356,12 +309,96 @@ class SingleReportAnalyzer:
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
                                     
+                                    # Get player top abilities based on role
+                                    abilities = {'top_abilities': []}
+                                    if role_enum in [Role.DPS, Role.HEALER, Role.TANK]:
+                                        try:
+                                            if role_enum == Role.TANK:
+                                                # For tanks, get cast counts instead of damage/healing
+                                                logger.debug(f"Fetching cast counts for TANK player: {final_name}")
+                                                
+                                                player_abilities = await client.get_player_cast_counts(
+                                                    report_code, 
+                                                    int(fight.start_time), 
+                                                    int(fight.end_time)
+                                                )
+                                            else:
+                                                # For DPS and healers, use damage/healing data
+                                                if role_enum == Role.DPS:
+                                                    ability_type = 'damage'
+                                                elif role_enum == Role.HEALER:
+                                                    ability_type = 'healing'
+                                                logger.debug(f"Fetching top {ability_type} abilities for {role_enum.value} player: {final_name}")
+                                                
+                                                player_abilities = await client.get_player_top_abilities(
+                                                    report_code, 
+                                                    int(fight.start_time), 
+                                                    int(fight.end_time),
+                                                    ability_type=ability_type
+                                                )
+                                            if role_enum == Role.TANK:
+                                                logger.info(f"Retrieved cast counts for {len(player_abilities)} players: {list(player_abilities.keys())}")
+                                                logger.info(f"Looking for cast counts for player: '{final_name}' (ID: {player_id})")
+                                            else:
+                                                logger.info(f"Retrieved top {ability_type} abilities for {len(player_abilities)} players: {list(player_abilities.keys())}")
+                                                logger.info(f"Looking for top {ability_type} abilities for player: '{final_name}' (ID: {player_id})")
+                                            
+                                            # Try to match by player ID first (most reliable)
+                                            if player_id and f"id_{player_id}" in player_abilities:
+                                                abilities = player_abilities[f"id_{player_id}"]
+                                                if role_enum == Role.TANK:
+                                                    logger.info(f"Matched {final_name} by player ID {player_id} for cast counts")
+                                                else:
+                                                    logger.info(f"Matched {final_name} by player ID {player_id} for top {ability_type} abilities")
+                                            elif final_name in player_abilities:
+                                                abilities = player_abilities[final_name]
+                                                if role_enum == Role.TANK:
+                                                    logger.info(f"Matched {final_name} by exact name for cast counts")
+                                                else:
+                                                    logger.info(f"Matched {final_name} by exact name for top {ability_type} abilities")
+                                            else:
+                                                # Try to match by character name without @ prefix
+                                                character_name = final_name.lstrip('@')
+                                                matched = False
+                                                logger.debug(f"Trying to match '{character_name}' (without @) against ability player names...")
+                                                
+                                                for ability_player_name, ability_data in player_abilities.items():
+                                                    if ability_player_name.startswith('id_'):
+                                                        continue  # Skip ID-based entries
+                                                    logger.debug(f"Comparing '{character_name}' with '{ability_player_name}'")
+                                                    # Try exact match first
+                                                    if character_name.lower() == ability_player_name.lower():
+                                                        abilities = ability_data
+                                                        matched = True
+                                                        if role_enum == Role.TANK:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by exact name for cast counts")
+                                                        else:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by exact name for top {ability_type} abilities")
+                                                        break
+                                                    # Try partial match (for cases where names might be truncated)
+                                                    if character_name.lower() in ability_player_name.lower() or ability_player_name.lower() in character_name.lower():
+                                                        abilities = ability_data
+                                                        matched = True
+                                                        if role_enum == Role.TANK:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by partial name for cast counts")
+                                                        else:
+                                                            logger.info(f"Matched {final_name} to {ability_player_name} by partial name for top {ability_type} abilities")
+                                                        break
+                                                
+                                                if not matched:
+                                                    if role_enum == Role.TANK:
+                                                        logger.warning(f"No cast counts found for {final_name} (character: {character_name}, ID: {player_id})")
+                                                    else:
+                                                        logger.warning(f"No top {ability_type} abilities found for {final_name} (character: {character_name}, ID: {player_id})")
+                                        except Exception as e:
+                                            logger.warning(f"Failed to get top abilities for {final_name}: {e}")
                                     
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
                                         role=role_enum,
-                                        gear_sets=gear_sets
+                                        gear_sets=gear_sets,
+                                        abilities=abilities
                                     )
                                     players.append(player)
                                     

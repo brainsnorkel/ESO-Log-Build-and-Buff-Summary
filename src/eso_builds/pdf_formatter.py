@@ -15,7 +15,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus.flowables import Flowable
 from reportlab.pdfgen.canvas import Canvas
 
-from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild
+from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, GearSet, Role
 
 
 class PDFReportFormatter:
@@ -50,44 +50,6 @@ class PDFReportFormatter:
                 return f"Oaken{mapped_class}"
         
         return mapped_class
-    
-    def _has_oakensoul_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has Oakensoul Ring equipped."""
-        for player in encounter.players:
-            for gear_set in player.gear_sets:
-                if 'oakensoul' in gear_set.name.lower():
-                    return True
-        return False
-    
-    def _has_spaulder_of_ruin_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has Spaulder of Ruin equipped."""
-        for player in encounter.players:
-            for gear_set in player.gear_sets:
-                if 'spaulder of ruin' in gear_set.name.lower():
-                    return True
-        return False
-    
-    def _has_tremorscale_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has 2pc+ Tremorscale equipped."""
-        for player in encounter.players:
-            tremorscale_count = 0
-            for gear_set in player.gear_sets:
-                if 'tremorscale' in gear_set.name.lower():
-                    tremorscale_count += gear_set.piece_count
-            if tremorscale_count >= 2:
-                return True
-        return False
-    
-    def _has_alkosh_wearers(self, encounter: 'EncounterResult') -> bool:
-        """Check if any player in the encounter has 5pc+ Alkosh equipped."""
-        for player in encounter.players:
-            alkosh_count = 0
-            for gear_set in player.gear_sets:
-                if 'alkosh' in gear_set.name.lower():
-                    alkosh_count += gear_set.piece_count
-            if alkosh_count >= 5:
-                return True
-        return False
     
     def _setup_custom_styles(self):
         """Set up custom paragraph styles for the PDF."""
@@ -147,7 +109,7 @@ class PDFReportFormatter:
             leftIndent=15
         ))
     
-    def format_trial_report(self, trial_report: TrialReport, anonymize: bool = False) -> bytes:
+    def format_trial_report(self, trial_report: TrialReport) -> bytes:
         """Format a complete trial report as a PDF document."""
         from io import BytesIO
         
@@ -168,24 +130,16 @@ class PDFReportFormatter:
         story = []
         
         # Add title
-        if anonymize:
-            title_text = f"Anonymous Trial - Summary Report"
-        else:
-            title_text = f"{trial_report.trial_name} - Summary Report - Logged by Unknown"
+        title_text = f"{trial_report.trial_name} - Summary Report"
         title = Paragraph(title_text, self.styles['CustomTitle'])
         story.append(title)
         story.append(Spacer(1, 6))
         
         # Add metadata
-        if anonymize:
-            metadata_text = f"""
-            <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
-            """
-        else:
-            metadata_text = f"""
-            <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
-            <b>Zone ID:</b> {trial_report.zone_id}<br/>
-            """
+        metadata_text = f"""
+        <b>Generated:</b> {trial_report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')}<br/>
+        <b>Zone ID:</b> {trial_report.zone_id}<br/>
+        """
         metadata = Paragraph(metadata_text, self.styles['Normal'])
         story.append(metadata)
         story.append(Spacer(1, 12))
@@ -197,7 +151,7 @@ class PDFReportFormatter:
         # Process rankings (for single report, there's typically one ranking)
         if trial_report.rankings:
             for ranking in trial_report.rankings:
-                story.extend(self._format_ranking_pdf(ranking, trial_report.trial_name, anonymize=anonymize))
+                story.extend(self._format_ranking_pdf(ranking, trial_report.trial_name))
         
         # Build the PDF
         doc.build(story)
@@ -208,7 +162,7 @@ class PDFReportFormatter:
         
         return pdf_bytes
     
-    def _format_ranking_pdf(self, ranking: LogRanking, trial_name: str, anonymize: bool = False) -> List:
+    def _format_ranking_pdf(self, ranking: LogRanking, trial_name: str) -> List:
         """Format a single ranking as PDF elements."""
         story = []
         
@@ -216,10 +170,9 @@ class PDFReportFormatter:
         report_analysis_title = f'<a name="report-analysis"/>Report Analysis - {trial_name}'
         story.append(Paragraph(report_analysis_title, self.styles['Subtitle']))
         
-        # Log URL - make full URL clickable (only if not anonymized)
-        if not anonymize:
-            log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}" color="blue">{ranking.log_url}</link>'
-            story.append(Paragraph(log_url_text, self.styles['Normal']))
+        # Log URL - make full URL clickable
+        log_url_text = f'<b>Log URL:</b> <link href="{ranking.log_url}" color="blue">{ranking.log_url}</link>'
+        story.append(Paragraph(log_url_text, self.styles['Normal']))
         
         if ranking.date:
             date_text = f"<b>Date:</b> {ranking.date.strftime('%Y-%m-%d %H:%M UTC')}"
@@ -229,13 +182,12 @@ class PDFReportFormatter:
         
         # Process encounters with index for linking
         for i, encounter in enumerate(ranking.encounters):
-            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i, anonymize=anonymize))
+            story.extend(self._format_encounter_pdf(encounter, is_first=(i == 0), encounter_index=i))
             story.append(Spacer(1, 6))
-        
         
         return story
     
-    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False, encounter_index: int = 0, anonymize: bool = False) -> List:
+    def _format_encounter_pdf(self, encounter: EncounterResult, is_first: bool = False, encounter_index: int = 0) -> List:
         """Format a single encounter as PDF elements."""
         story = []
         
@@ -260,7 +212,7 @@ class PDFReportFormatter:
         
         # Buff/Debuff uptimes table
         if encounter.buff_uptimes:
-            story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes, encounter))
+            story.extend(self._format_buff_debuff_table_pdf(encounter.buff_uptimes))
             story.append(Spacer(1, 8))
         
         # Player tables by role
@@ -269,51 +221,26 @@ class PDFReportFormatter:
         dps = encounter.dps
         
         if tanks:
-            story.extend(self._format_role_table_pdf("Tanks", tanks, anonymize=anonymize))
+            story.extend(self._format_role_table_pdf("Tanks", tanks))
             story.append(Spacer(1, 6))
         
         if healers:
-            story.extend(self._format_role_table_pdf("Healers", healers, anonymize=anonymize))
+            story.extend(self._format_role_table_pdf("Healers", healers))
             story.append(Spacer(1, 6))
         
         if dps:
-            story.extend(self._format_role_table_pdf("DPS", dps, anonymize=anonymize))
+            story.extend(self._format_role_table_pdf("DPS", dps))
             story.append(Spacer(1, 6))
         
         return story
     
-    def _format_buff_debuff_table_pdf(self, buff_uptimes: dict, encounter: 'EncounterResult') -> List:
+    def _format_buff_debuff_table_pdf(self, buff_uptimes: dict) -> List:
         """Format buff/debuff uptimes as a PDF table."""
         story = []
         
-        # Check if any player has Oakensoul Ring
-        has_oakensoul = self._has_oakensoul_wearers(encounter)
-        
-        # Check if any player has Spaulder of Ruin
-        has_spaulder = self._has_spaulder_of_ruin_wearers(encounter)
-        
-        # Check if any player has 2pc+ Tremorscale
-        has_tremorscale = self._has_tremorscale_wearers(encounter)
-        
-        # Check if any player has 5pc+ Alkosh
-        has_alkosh = self._has_alkosh_wearers(encounter)
-        
         # Define all tracked buffs and debuffs
         buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
-        
-        # Only add Aura of Pride if Spaulder of Ruin is detected
-        if has_spaulder:
-            buffs.append('Aura of Pride')
-        
-        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening', 'Runic Sunder']
-        
-        # Only add Tremorscale if 2pc+ Tremorscale is detected
-        if has_tremorscale:
-            debuffs.append('Tremorscale')
-        
-        # Only add Line-Breaker if 5pc+ Alkosh is detected
-        if has_alkosh:
-            debuffs.append('Line-Breaker')
+        debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
         
         # Create table data with Paragraph objects for text wrapping
         table_data = [
@@ -328,12 +255,7 @@ class PDFReportFormatter:
             # Get buff info for this row
             if i < len(buffs):
                 buff_name = buffs[i]
-                buff_uptime_value = buff_uptimes.get(buff_name, 0.0)
-                # Add asterisk for Major Courage and Major Resolve if Oakensoul wearers present
-                if has_oakensoul and buff_name in ['Major Courage', 'Major Resolve']:
-                    buff_uptime = f"{buff_uptime_value:.1f}%*"
-                else:
-                    buff_uptime = f"{buff_uptime_value:.1f}%"
+                buff_uptime = f"{buff_uptimes.get(buff_name, 0.0):.1f}%"
                 buff_cell = Paragraph(buff_name, self.styles['Normal'])
                 buff_uptime_cell = Paragraph(buff_uptime, self.styles['Normal'])
             else:
@@ -374,13 +296,13 @@ class PDFReportFormatter:
         story.append(KeepTogether([table]))
         return story
     
-    def _format_role_table_pdf(self, role_title: str, players: List[PlayerBuild], anonymize: bool = False) -> List:
+    def _format_role_table_pdf(self, role_title: str, players: List[PlayerBuild]) -> List:
         """Format a role section as a PDF table."""
         story = []
         
         # Role title
-        title_paragraph = Paragraph(role_title, self.styles['RoleHeading'])
-        spacer = Spacer(1, 3)
+        story.append(Paragraph(role_title, self.styles['RoleHeading']))
+        story.append(Spacer(1, 3))
         
         # Create table data with Paragraph objects for text wrapping
         table_data = [
@@ -389,18 +311,36 @@ class PDFReportFormatter:
              Paragraph('<b>Gear Sets</b>', self.styles['Normal'])]
         ]
         
-        for i, player in enumerate(players, 1):
+        for player in players:
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
             class_name = self._get_class_display_name(player.character_class, player)
-            if anonymize:
-                player_name = f"anon{i}"
-            else:
-                player_name = player.name
+
+            # Add "Set Problem?:" indicator if player has incomplete sets
+            if self._has_incomplete_sets(player.gear_sets):
+                gear_str = f"<b>Set Problem?:</b> {gear_str}"
+            
             table_data.append([
-                Paragraph(player_name, self.styles['Normal']),
+                Paragraph(player.name, self.styles['Normal']),
                 Paragraph(class_name, self.styles['Normal']),
                 Paragraph(gear_str, self.styles['Normal'])
             ])
+            
+            # Add top abilities row for DPS, healers, and tanks
+            if player.abilities and player.abilities.get('top_abilities'):
+                if player.role.value == "DPS":
+                    ability_type = "Top Damage"
+                    abilities_str = self._format_top_abilities_for_pdf(player.abilities.get('top_abilities', []))
+                elif player.role.value == "Healer":
+                    ability_type = "Top Healing"
+                    abilities_str = self._format_top_abilities_for_pdf(player.abilities.get('top_abilities', []))
+                else:  # TANK
+                    ability_type = "Top Casts"
+                    abilities_str = self._format_cast_counts_for_pdf(player.abilities.get('top_abilities', []))
+                table_data.append([
+                    Paragraph(f"↳ {ability_type}", self.styles['Normal']),
+                    Paragraph("", self.styles['Normal']),
+                    Paragraph(abilities_str, self.styles['Normal'])
+                ])
         
         # Create and style the table with proper wrapping
         table = Table(table_data, colWidths=[1.5*inch, 1.2*inch, 4.0*inch])
@@ -419,8 +359,8 @@ class PDFReportFormatter:
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ]))
         
-        # Wrap title, spacer, and table together to keep them on the same page
-        story.append(KeepTogether([title_paragraph, spacer, table]))
+        # Wrap table in KeepTogether to prevent page breaks within the table
+        story.append(KeepTogether([table]))
         return story
     
     def _format_gear_sets_for_pdf(self, gear_sets: List) -> str:
@@ -435,6 +375,41 @@ class PDFReportFormatter:
             formatted_sets.append(set_str)
         
         return ", ".join(formatted_sets)
+    
+    def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
+        """Check if any gear sets are incomplete (5-piece sets with fewer than 5 pieces)."""
+        for gear_set in gear_sets:
+            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+                return True
+        return False
+    
+    def _format_top_abilities_for_pdf(self, top_abilities: List) -> str:
+        """Format top abilities with percentages for PDF table cell."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its percentage
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            percentage = ability.get('percentage', 0.0)
+            formatted_abilities.append(f"{name} ({percentage:.1f}%)")
+        
+        return ", ".join(formatted_abilities)
+    
+    def _format_cast_counts_for_pdf(self, top_abilities: List) -> str:
+        """Format top abilities with cast counts for PDF table cell."""
+        if not top_abilities:
+            return "*No abilities*"
+        
+        # Format each ability with its cast count
+        formatted_abilities = []
+        for ability in top_abilities:
+            name = ability.get('name', 'Unknown')
+            casts = ability.get('casts', 0)
+            formatted_abilities.append(f"{name} ({casts})")
+        
+        return ", ".join(formatted_abilities)
     
     def _format_table_of_contents_pdf(self, trial_report: TrialReport) -> List:
         """Format a table of contents for the PDF with clickable links."""
@@ -470,7 +445,6 @@ class PDFReportFormatter:
                     story.append(Spacer(1, 2))
         
         return story
-    
     
     def get_filename(self, trial_name: str) -> str:
         """Generate a safe filename for the trial report."""

@@ -452,11 +452,9 @@ class ESOLogsClient:
                         gear_item = {
                             'setID': getattr(item, 'set_id', None),
                             'setName': getattr(item, 'set_name', None),
-                            'name': getattr(item, 'name', ''),  # Individual item name
                             'slot': getattr(item, 'slot', 'unknown')
                         }
-                        # Include items that have either setID or setName (more general detection)
-                        if gear_item['setID'] or gear_item['setName'] or gear_item['name']:
+                        if gear_item['setID'] and gear_item['setName']:
                             gear_data['gear'].append(gear_item)
                 
                 gear_sets = parser.parse_player_gear(gear_data)
@@ -523,7 +521,6 @@ class ESOLogsClient:
         
         return trial_report
     
-
     async def get_player_abilities(self, report_code: str, start_time: int, end_time: int) -> Dict[str, Dict[str, List[str]]]:
         """
         Get player abilities for a specific fight.
@@ -537,7 +534,291 @@ class ESOLogsClient:
         }
         """
         try:
-            # Get cast data for the fight
+            # Use the dedicated GraphQL query for abilities
+            response = await self._make_request(
+                'get_report_table',
+                code=report_code,
+                data_type='Casts',
+                hostility_type='Friendlies',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            # Debug: log the full response structure
+            logger.debug(f"Full response: {response}")
+            logger.debug(f"Response type: {type(response)}")
+            logger.debug(f"Response attributes: {dir(response)}")
+            
+            if not response:
+                logger.warning(f"No response returned for report {report_code}")
+                return {}
+            
+            if not hasattr(response, 'report_data'):
+                logger.warning(f"No report_data in response for report {report_code}")
+                logger.debug(f"Response structure: {response}")
+                return {}
+            
+            table = response.report_data.report.table
+            logger.debug(f"Table: {table}")
+            logger.debug(f"Table type: {type(table)}")
+            
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for report {report_code}")
+                    logger.debug(f"Table attributes: {dir(table)}")
+                    return {}
+                table_data = table.data
+            
+            # Debug: log what we got
+            logger.debug(f"Table data: {table_data}")
+            logger.debug(f"Table data type: {type(table_data)}")
+            
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+                player_details = table_data.get('playerDetails', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No cast entries found for report {report_code}")
+                    logger.debug(f"Table data structure: {table_data}")
+                    return {}
+                entries = table_data.entries
+                player_details = table_data.playerDetails if hasattr(table_data, 'playerDetails') else []
+            
+            # Process cast data to extract abilities per player
+            player_abilities = {}
+            
+            logger.info(f"Processing {len(entries)} entries for abilities")
+            
+            # Process entries - each entry represents a player with their abilities
+            for i, entry in enumerate(entries):
+                logger.debug(f"Processing entry {i}: {entry}")
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    abilities_data = entry.get('abilities', [])
+                    logger.info(f"Entry {i} - Dict: player_name='{player_name}', player_id='{player_id}', abilities_count={len(abilities_data)}")
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    abilities_data = getattr(entry, 'abilities', [])
+                    logger.info(f"Entry {i} - Object: player_name='{player_name}', player_id='{player_id}', abilities_count={len(abilities_data)}")
+                
+                if player_name and abilities_data:
+                    # Extract ability names from abilities data
+                    ability_names = []
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            ability_name = ability.get('name')
+                        else:
+                            ability_name = getattr(ability, 'name', None)
+                        
+                        if ability_name and ability_name not in ['Swap Weapons', 'Light Attack (Dual Wield)', 'Light Attack (Two Handed)', 'Light Attack (Inferno)', 'Light Attack (Lightning)']:
+                            ability_names.append(ability_name)
+                    
+                    # Split abilities between bars
+                    # ESO typically has 5 abilities per bar, but we'll be flexible
+                    if ability_names:
+                        # If we have exactly 10 abilities, split evenly
+                        if len(ability_names) == 10:
+                            bar1_abilities = ability_names[:5]
+                            bar2_abilities = ability_names[5:]
+                        # If we have more than 10, take first 10 and split
+                        elif len(ability_names) > 10:
+                            bar1_abilities = ability_names[:5]
+                            bar2_abilities = ability_names[5:10]
+                        # If we have less than 10, put all in bar1
+                        else:
+                            bar1_abilities = ability_names
+                            bar2_abilities = []
+                        
+                        # Store by both name and ID for flexible lookup
+                        player_abilities[player_name] = {
+                            'bar1': bar1_abilities,
+                            'bar2': bar2_abilities,
+                            'player_id': player_id
+                        }
+                        
+                        # Also store by ID for direct lookup
+                        if player_id != 'Unknown':
+                            player_abilities[f"id_{player_id}"] = {
+                                'bar1': bar1_abilities,
+                                'bar2': bar2_abilities,
+                                'player_name': player_name
+                            }
+                        
+                        logger.debug(f"Player {player_name}: {len(ability_names)} total abilities -> bar1: {len(bar1_abilities)}, bar2: {len(bar2_abilities)}")
+            
+            
+            logger.debug(f"Extracted abilities for {len(player_abilities)} players")
+            return player_abilities
+            
+        except Exception as e:
+            logger.error(f"Failed to get player abilities: {e}")
+            return {}
+
+    async def get_player_top_abilities(self, report_code: str, start_time: int, end_time: int, ability_type: str = 'damage') -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """
+        Get top abilities for each player by damage or healing.
+        
+        Args:
+            report_code: The report code
+            start_time: Fight start time
+            end_time: Fight end time
+            ability_type: 'damage' for DPS abilities, 'healing' for healing abilities
+        
+        Returns:
+            Dictionary mapping player names to their top abilities:
+            {
+                "player_name": {
+                    "top_abilities": [
+                        {"name": "Ability Name", "total": 12345, "percentage": 25.5}
+                    ]
+                }
+            }
+        """
+        try:
+            # Determine data type based on ability type
+            if ability_type == 'damage':
+                data_type = 'DamageDone'
+            elif ability_type == 'healing':
+                data_type = 'Healing'  # Fixed: was 'HealingDone', should be 'Healing'
+            else:
+                raise ValueError(f"Invalid ability_type: {ability_type}. Must be 'damage' or 'healing'")
+            
+            # Use the dedicated GraphQL query for ability performance
+            response = await self._make_request(
+                'get_report_table',
+                code=report_code,
+                data_type=data_type,
+                hostility_type='Friendlies',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            if not response or not hasattr(response, 'report_data'):
+                logger.warning(f"No response returned for {ability_type} abilities in report {report_code}")
+                return {}
+            
+            table = response.report_data.report.table
+            
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for {ability_type} abilities in report {report_code}")
+                    return {}
+                table_data = table.data
+            
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No {ability_type} entries found for report {report_code}")
+                    return {}
+                entries = table_data.entries
+            
+            # Process ability performance data
+            player_abilities = {}
+            
+            logger.info(f"Processing {len(entries)} entries for {ability_type} abilities")
+            
+            for entry in entries:
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    abilities_data = entry.get('abilities', [])
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    abilities_data = getattr(entry, 'abilities', [])
+                
+                if player_name and abilities_data:
+                    # Extract top abilities by total damage/healing
+                    top_abilities = []
+                    logger.debug(f"Processing {len(abilities_data)} abilities for {player_name}")
+                    
+                    # First pass: collect all abilities and calculate total damage/healing
+                    total_damage_healing = 0
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            total_value = ability.get('total', 0)
+                        else:
+                            total_value = getattr(ability, 'total', 0)
+                        total_damage_healing += total_value
+                    
+                    # Second pass: calculate percentages and collect abilities
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            ability_name = ability.get('name', '')
+                            total_value = ability.get('total', 0)
+                        else:
+                            ability_name = getattr(ability, 'name', '')
+                            total_value = getattr(ability, 'total', 0)
+                        
+                        if ability_name and total_value > 0:
+                            # Calculate percentage of total damage/healing
+                            percentage = (total_value / total_damage_healing * 100) if total_damage_healing > 0 else 0
+                            top_abilities.append({
+                                'name': ability_name,
+                                'total': total_value,
+                                'percentage': percentage
+                            })
+                            logger.debug(f"Added ability: {ability_name} - total: {total_value}, percentage: {percentage:.1f}%")
+                    
+                    # Sort by total value and take top 5
+                    top_abilities.sort(key=lambda x: x['total'], reverse=True)
+                    top_abilities = top_abilities[:5]
+                    
+                    if top_abilities:
+                        # Store by both name and ID for flexible lookup
+                        player_abilities[player_name] = {
+                            'top_abilities': top_abilities,
+                            'player_id': player_id
+                        }
+                        
+                        # Also store by ID for direct lookup
+                        if player_id != 'Unknown':
+                            player_abilities[f"id_{player_id}"] = {
+                                'top_abilities': top_abilities,
+                                'player_name': player_name
+                            }
+                        
+                        logger.debug(f"Player {player_name}: {len(top_abilities)} top {ability_type} abilities")
+            
+            logger.info(f"Extracted top {ability_type} abilities for {len([k for k in player_abilities.keys() if not k.startswith('id_')])} players")
+            return player_abilities
+            
+        except Exception as e:
+            logger.error(f"Failed to get top {ability_type} abilities: {e}")
+            return {}
+
+    async def get_player_cast_counts(self, report_code: str, start_time: int, end_time: int) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+        """
+        Get cast counts for each player's abilities.
+        
+        Args:
+            report_code: The report code
+            start_time: Fight start time
+            end_time: Fight end time
+        
+        Returns:
+            Dictionary mapping player names to their cast counts:
+            {
+                "player_name": {
+                    "top_abilities": [
+                        {"name": "Ability Name", "casts": 45}
+                    ]
+                }
+            }
+        """
+        try:
+            # Use the Casts data type to get cast counts
             response = await self._make_request(
                 'get_report_table',
                 code=report_code,
@@ -548,65 +829,91 @@ class ESOLogsClient:
             )
             
             if not response or not hasattr(response, 'report_data'):
-                logger.warning(f"No cast data returned for report {report_code}")
+                logger.warning(f"No response returned for cast counts in report {report_code}")
                 return {}
             
             table = response.report_data.report.table
-            if not hasattr(table, 'data'):
-                logger.warning(f"No table data found for report {report_code}")
-                return {}
             
-            # Debug: log what we got
-            logger.debug(f"Table data attributes: {list(table.data.__dict__.keys()) if hasattr(table.data, '__dict__') else 'No __dict__'}")
+            # Handle both dictionary and object responses
+            if isinstance(table, dict):
+                table_data = table.get('data', {})
+            else:
+                if not hasattr(table, 'data'):
+                    logger.warning(f"No table data found for cast counts in report {report_code}")
+                    return {}
+                table_data = table.data
             
-            if not hasattr(table.data, 'entries'):
-                logger.warning(f"No cast entries found for report {report_code}")
-                return {}
+            # Handle both dictionary and object structures
+            if isinstance(table_data, dict):
+                entries = table_data.get('entries', [])
+            else:
+                if not hasattr(table_data, 'entries'):
+                    logger.warning(f"No cast entries found for report {report_code}")
+                    return {}
+                entries = table_data.entries
             
-            # Process cast data to extract abilities per player
+            # Process cast data to extract cast counts per player
             player_abilities = {}
             
-            # Get player details first
-            if hasattr(table.data, 'playerDetails'):
-                for player in table.data.playerDetails:
-                    player_name = getattr(player, 'displayName', None) or getattr(player, 'name', 'Unknown')
-                    if player_name and player_name not in player_abilities:
-                        player_abilities[player_name] = {
-                            'bar1': [],
-                            'bar2': [],
-                            'all_abilities': set()
-                        }
+            logger.info(f"Processing {len(entries)} entries for cast counts")
             
-            # Process cast entries to find abilities
-            for entry in table.data.entries:
-                ability_name = getattr(entry, 'name', None)
-                player_guid = getattr(entry, 'guid', None)
+            for entry in entries:
+                if isinstance(entry, dict):
+                    player_name = entry.get('displayName') or entry.get('name', 'Unknown')
+                    player_id = entry.get('id', 'Unknown')
+                    abilities_data = entry.get('abilities', [])
+                else:
+                    player_name = getattr(entry, 'displayName', None) or getattr(entry, 'name', 'Unknown')
+                    player_id = getattr(entry, 'id', 'Unknown')
+                    abilities_data = getattr(entry, 'abilities', [])
                 
-                if ability_name and player_guid:
-                    # Find the player for this cast
-                    for player in table.data.playerDetails:
-                        if getattr(player, 'guid', None) == player_guid:
-                            player_name = getattr(player, 'displayName', None) or getattr(player, 'name', 'Unknown')
-                            if player_name in player_abilities:
-                                player_abilities[player_name]['all_abilities'].add(ability_name)
-                            break
+                if player_name and abilities_data:
+                    # Extract cast counts for abilities
+                    cast_abilities = []
+                    logger.debug(f"Processing {len(abilities_data)} abilities for {player_name}")
+                    
+                    for ability in abilities_data:
+                        if isinstance(ability, dict):
+                            ability_name = ability.get('name', '')
+                            cast_count = ability.get('total', 0)
+                        else:
+                            ability_name = getattr(ability, 'name', '')
+                            cast_count = getattr(ability, 'total', 0)
+                        
+                        if ability_name and cast_count > 0:
+                            # Filter out generic abilities
+                            if ability_name not in ['Swap Weapons', 'Light Attack (Dual Wield)', 'Light Attack (Two Handed)', 'Light Attack (Inferno)', 'Light Attack (Lightning)', 'Light Attack (One Handed)']:
+                                cast_abilities.append({
+                                    'name': ability_name,
+                                    'casts': cast_count
+                                })
+                                logger.debug(f"Added ability: {ability_name} - casts: {cast_count}")
+                    
+                    # Sort by cast count and take top 5
+                    cast_abilities.sort(key=lambda x: x['casts'], reverse=True)
+                    cast_abilities = cast_abilities[:5]
+                    
+                    if cast_abilities:
+                        # Store by both name and ID for flexible lookup
+                        player_abilities[player_name] = {
+                            'top_abilities': cast_abilities,
+                            'player_id': player_id
+                        }
+                        
+                        # Also store by ID for direct lookup
+                        if player_id != 'Unknown':
+                            player_abilities[f"id_{player_id}"] = {
+                                'top_abilities': cast_abilities,
+                                'player_name': player_name
+                            }
+                        
+                        logger.debug(f"Player {player_name}: {len(cast_abilities)} top cast abilities")
             
-            # For now, we'll put all abilities in bar1 since we can't distinguish bars from cast data
-            # This is a limitation of the current API data structure
-            for player_name, abilities in player_abilities.items():
-                all_abilities_list = sorted(list(abilities['all_abilities']))
-                # Split abilities between bars (first half in bar1, second half in bar2)
-                mid_point = len(all_abilities_list) // 2
-                abilities['bar1'] = all_abilities_list[:mid_point] if mid_point > 0 else all_abilities_list[:5]
-                abilities['bar2'] = all_abilities_list[mid_point:] if mid_point > 0 else []
-                # Keep all_abilities as a list for class analysis
-                abilities['all_abilities'] = all_abilities_list
-            
-            logger.debug(f"Extracted abilities for {len(player_abilities)} players")
+            logger.info(f"Extracted cast counts for {len([k for k in player_abilities.keys() if not k.startswith('id_')])} players")
             return player_abilities
             
         except Exception as e:
-            logger.error(f"Failed to get player abilities: {e}")
+            logger.error(f"Failed to get cast counts: {e}")
             return {}
 
     async def get_report_master_data(self, report_code: str) -> Dict[str, Any]:
@@ -720,7 +1027,7 @@ class ESOLogsClient:
             logger.error(f"Failed to get master data: {e}")
             return {"abilities": [], "actors": []}
 
-    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int, players: List = None) -> Dict[str, float]:
+    async def get_buff_debuff_uptimes_table(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
         Get buff/debuff uptimes using the table API method.
         
@@ -728,522 +1035,10 @@ class ESOLogsClient:
         
         Returns a dictionary mapping buff/debuff names to their highest uptime percentages.
         """
-        result = await self._get_buff_debuff_data_table(report_code, start_time, end_time, players)
-        return result['uptimes']
-
-    async def get_all_buff_names_table(self, report_code: str, start_time: int, end_time: int, players: List = None) -> List[str]:
-        """
-        Get all buff names from the table API method.
-        
-        Returns a list of all buff names including "Boon:" prefixed mundus stones.
-        """
-        result = await self._get_buff_debuff_data_table(report_code, start_time, end_time, players)
-        return result['all_buff_names']
-
-    async def get_player_specific_buffs(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """
-        Get player-specific buff data including mundus stones using multiple API approaches.
-        
-        Uses the ESO Logs API to get individual character state data including:
-        - Individual buff events per player
-        - Player-specific aura data
-        - Mundus stone detection from buff events
-        
-        Returns a dictionary mapping player names to their buff lists.
-        """
-        try:
-            player_buffs = {}
-            
-            # Method 1: Get player details with combatant info
-            player_details = await self._get_player_details_with_combatant_info(
-                report_code, start_time, end_time
-            )
-            
-            # Method 2: Get buff events filtered by individual players
-            buff_events = await self._get_player_specific_buff_events(
-                report_code, start_time, end_time
-            )
-            
-            # Method 3: Get table data with player-specific filtering
-            table_buffs = await self._get_table_buffs_by_player(
-                report_code, start_time, end_time
-            )
-            
-            # Combine all methods
-            player_buffs.update(player_details)
-            player_buffs.update(buff_events)
-            player_buffs.update(table_buffs)
-            
-            logger.debug(f"Found player-specific buff data for {len(player_buffs)} players")
-            for player, buffs in player_buffs.items():
-                boon_buffs = [b for b in buffs if b.startswith('Boon:')]
-                logger.debug(f"Player {player}: {len(buffs)} total buffs, {len(boon_buffs)} Boon buffs")
-            
-            return player_buffs
-            
-        except Exception as e:
-            logger.error(f"Failed to get player-specific buff data: {e}")
-            return {}
-
-    async def _get_player_details_with_combatant_info(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """Get player details including combatant info (gear, buffs, etc.)."""
-        try:
-            # Use the playerDetails query with combatant info
-            query = """
-            query GetPlayerDetails($code: String!, $startTime: Float!, $endTime: Float!) {
-              reportData {
-                report(code: $code) {
-                  playerDetails(
-                    startTime: $startTime
-                    endTime: $endTime
-                    includeCombatantInfo: true
-                  )
-                }
-              }
-            }
-            """
-            
-            http_response = await self._client.execute(query, variables={
-                'code': report_code,
-                'startTime': float(start_time),
-                'endTime': float(end_time)
-            })
-            
-            if http_response.status_code != 200:
-                logger.warning(f"Failed to get player details: {http_response.status_code}")
-                return {}
-            
-            data = http_response.json()
-            if 'data' in data and 'reportData' in data['data']:
-                report_data = data['data']['reportData']
-                if 'report' in report_data and report_data['report']:
-                    player_details = report_data['report'].get('playerDetails', {})
-                    logger.debug(f"Retrieved player details: {type(player_details)}")
-                    # Process the player details data structure
-                    return self._process_player_details_data(player_details)
-            
-            return {}
-            
-        except Exception as e:
-            logger.error(f"Failed to get player details with combatant info: {e}")
-            return {}
-
-    async def _get_player_specific_buff_events(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """Get buff events filtered by individual players."""
-        try:
-            # Get buff events with source filtering
-            query = """
-            query GetBuffEvents($code: String!, $startTime: Float!, $endTime: Float!) {
-              reportData {
-                report(code: $code) {
-                  events(
-                    dataType: Buffs
-                    hostilityType: Friendlies
-                    startTime: $startTime
-                    endTime: $endTime
-                    limit: 1000
-                  ) {
-                    data
-                  }
-                }
-              }
-            }
-            """
-            
-            http_response = await self._client.execute(query, variables={
-                'code': report_code,
-                'startTime': float(start_time),
-                'endTime': float(end_time)
-            })
-            
-            if http_response.status_code != 200:
-                logger.warning(f"Failed to get buff events: {http_response.status_code}")
-                return {}
-            
-            data = http_response.json()
-            player_buffs = {}
-            
-            if 'data' in data and 'reportData' in data['data']:
-                report_data = data['data']['reportData']
-                if 'report' in report_data and report_data['report']:
-                    events_data = report_data['report'].get('events', {})
-                    if 'data' in events_data:
-                        events = events_data['data']
-                        logger.debug(f"Found {len(events)} buff events")
-                        
-                        # Process events to extract player-specific buffs
-                        for event in events:
-                            if isinstance(event, dict):
-                                source = event.get('source', {})
-                                if isinstance(source, dict):
-                                    player_name = source.get('name', '')
-                                    if player_name:
-                                        if player_name not in player_buffs:
-                                            player_buffs[player_name] = []
-                                        
-                                        ability = event.get('ability', {})
-                                        if isinstance(ability, dict):
-                                            buff_name = ability.get('name', '')
-                                            if buff_name and buff_name not in player_buffs[player_name]:
-                                                player_buffs[player_name].append(buff_name)
-            
-            return player_buffs
-            
-        except Exception as e:
-            logger.error(f"Failed to get player-specific buff events: {e}")
-            return {}
-
-    async def _get_table_buffs_by_player(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """Get table data with player-specific buff information."""
-        try:
-            # Get table data with source filtering
-            query = """
-            query GetTableBuffs($code: String!, $startTime: Float!, $endTime: Float!) {
-              reportData {
-                report(code: $code) {
-                  table(
-                    dataType: Buffs
-                    hostilityType: Friendlies
-                    startTime: $startTime
-                    endTime: $endTime
-                    viewBy: Source
-                  )
-                }
-              }
-            }
-            """
-            
-            http_response = await self._client.execute(query, variables={
-                'code': report_code,
-                'startTime': float(start_time),
-                'endTime': float(end_time)
-            })
-            
-            if http_response.status_code != 200:
-                logger.warning(f"Failed to get table buffs: {http_response.status_code}")
-                return {}
-            
-            data = http_response.json()
-            player_buffs = {}
-            
-            if 'data' in data and 'reportData' in data['data']:
-                report_data = data['data']['reportData']
-                if 'report' in report_data and report_data['report']:
-                    table_data = report_data['report'].get('table', {})
-                    logger.debug(f"Retrieved table data: {type(table_data)}")
-                    # Process the table data structure
-                    return self._process_table_data(table_data)
-            
-            return {}
-            
-        except Exception as e:
-            logger.error(f"Failed to get table buffs by player: {e}")
-            return {}
-
-    def _process_player_details_data(self, player_details: any) -> Dict[str, List[str]]:
-        """Process player details data to extract buff information."""
-        player_buffs = {}
-        
-        if isinstance(player_details, dict):
-            # Handle nested data structure: {'data': {'playerDetails': {...}}}
-            if 'data' in player_details:
-                inner_data = player_details['data']
-                if isinstance(inner_data, dict) and 'playerDetails' in inner_data:
-                    player_details = inner_data['playerDetails']
-            
-            # Process the actual player data
-            if isinstance(player_details, dict):
-                for player_id, player_data in player_details.items():
-                    if isinstance(player_data, dict):
-                        player_name = player_data.get('name', f'Player_{player_id}')
-                        
-                        # Look for buff/aura data in various possible locations
-                        buffs = []
-                        
-                        # Check for auras/buffs in the player data
-                        if 'auras' in player_data:
-                            auras = player_data['auras']
-                            if isinstance(auras, list):
-                                for aura in auras:
-                                    if isinstance(aura, dict) and 'name' in aura:
-                                        buffs.append(aura['name'])
-                        
-                        # Check for buffs in other possible locations
-                        for key in ['buffs', 'activeBuffs', 'passiveBuffs', 'effects']:
-                            if key in player_data:
-                                buff_data = player_data[key]
-                                if isinstance(buff_data, list):
-                                    for buff in buff_data:
-                                        if isinstance(buff, dict) and 'name' in buff:
-                                            buffs.append(buff['name'])
-                                        elif isinstance(buff, str):
-                                            buffs.append(buff)
-                        
-                        if buffs:
-                            player_buffs[player_name] = list(set(buffs))  # Remove duplicates
-        
-        return player_buffs
-
-    def _process_table_data(self, table_data: any) -> Dict[str, List[str]]:
-        """Process table data to extract player-specific buff information."""
-        player_buffs = {}
-        
-        if isinstance(table_data, dict):
-            # Handle nested data structure: {'data': [...]}
-            if 'data' in table_data:
-                table_data = table_data['data']
-            
-            if isinstance(table_data, list):
-                # Check if this is player entries (viewBy: Source) or buff entries
-                if table_data and isinstance(table_data[0], dict):
-                    first_entry = table_data[0]
-                    
-                    # If it has 'name', 'id', 'type' and 'auras', it's a player entry
-                    if all(key in first_entry for key in ['name', 'auras']):
-                        logger.debug("Processing player entries from viewBy: Source")
-                        # Process as player entries
-                        for entry in table_data:
-                            if isinstance(entry, dict):
-                                player_name = entry.get('name', '')
-                                if player_name:
-                                    buffs = []
-                                    
-                                    # Extract auras/buffs
-                                    if 'auras' in entry and isinstance(entry['auras'], list):
-                                        for aura in entry['auras']:
-                                            if isinstance(aura, dict) and 'name' in aura:
-                                                buff_name = aura['name']
-                                                buffs.append(buff_name)
-                                                
-                                                # Log Boon buffs for mundus detection
-                                                if buff_name.startswith('Boon:'):
-                                                    logger.debug(f"Found Boon buff for {player_name}: {buff_name}")
-                                    
-                                    if buffs:
-                                        player_buffs[player_name] = list(set(buffs))
-                    else:
-                        # Process as buff entries (original behavior)
-                        logger.debug("Processing buff entries")
-                        all_buffs = []
-                        for buff_entry in table_data:
-                            if isinstance(buff_entry, dict) and 'name' in buff_entry:
-                                buff_name = buff_entry['name']
-                                all_buffs.append(buff_name)
-                                
-                                # If this is a Boon buff, we can use it for mundus detection
-                                if buff_name.startswith('Boon:'):
-                                    logger.debug(f"Found Boon buff: {buff_name}")
-                        
-                        # For now, we'll return the buffs in a generic way since we don't have
-                        # player-specific mapping from this table data
-                        if all_buffs:
-                            # Create a generic entry with all buffs found
-                            # This will be used by the class analyzer for mundus detection
-                            player_buffs['_all_buffs'] = list(set(all_buffs))
-        
-        return player_buffs
-
-    async def get_player_ability_casts(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """
-        Get individual player ability casts and bar setups.
-        
-        Uses the ESO Logs API to get detailed ability usage per player including:
-        - Individual ability casts
-        - Ability bar setups
-        - Skill line inference from casts
-        
-        Returns a dictionary mapping player names to their ability lists.
-        """
-        try:
-            player_abilities = {}
-            
-            # Get cast events filtered by individual players
-            cast_events = await self._get_player_specific_cast_events(
-                report_code, start_time, end_time
-            )
-            
-            # Get table data with ability information
-            table_abilities = await self._get_table_abilities_by_player(
-                report_code, start_time, end_time
-            )
-            
-            # Combine both methods
-            player_abilities.update(cast_events)
-            player_abilities.update(table_abilities)
-            
-            logger.debug(f"Found ability data for {len(player_abilities)} players")
-            for player, abilities in player_abilities.items():
-                logger.debug(f"Player {player}: {len(abilities)} abilities cast")
-            
-            return player_abilities
-            
-        except Exception as e:
-            logger.error(f"Failed to get player ability casts: {e}")
-            return {}
-
-    async def _get_player_specific_cast_events(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """Get cast events filtered by individual players."""
-        try:
-            # Get cast events with source filtering
-            query = """
-            query GetCastEvents($code: String!, $startTime: Float!, $endTime: Float!) {
-              reportData {
-                report(code: $code) {
-                  events(
-                    dataType: Casts
-                    hostilityType: Friendlies
-                    startTime: $startTime
-                    endTime: $endTime
-                    limit: 2000
-                  ) {
-                    data
-                  }
-                }
-              }
-            }
-            """
-            
-            http_response = await self._client.execute(query, variables={
-                'code': report_code,
-                'startTime': float(start_time),
-                'endTime': float(end_time)
-            })
-            
-            if http_response.status_code != 200:
-                logger.warning(f"Failed to get cast events: {http_response.status_code}")
-                return {}
-            
-            data = http_response.json()
-            player_abilities = {}
-            
-            if 'data' in data and 'reportData' in data['data']:
-                report_data = data['data']['reportData']
-                if 'report' in report_data and report_data['report']:
-                    events_data = report_data['report'].get('events', {})
-                    if 'data' in events_data:
-                        events = events_data['data']
-                        logger.debug(f"Found {len(events)} cast events")
-                        
-                        # Process events to extract player-specific abilities
-                        for event in events:
-                            if isinstance(event, dict):
-                                source = event.get('source', {})
-                                if isinstance(source, dict):
-                                    player_name = source.get('name', '')
-                                    if player_name:
-                                        if player_name not in player_abilities:
-                                            player_abilities[player_name] = []
-                                        
-                                        ability = event.get('ability', {})
-                                        if isinstance(ability, dict):
-                                            ability_name = ability.get('name', '')
-                                            if ability_name and ability_name not in player_abilities[player_name]:
-                                                player_abilities[player_name].append(ability_name)
-            
-            return player_abilities
-            
-        except Exception as e:
-            logger.error(f"Failed to get player-specific cast events: {e}")
-            return {}
-
-    async def _get_table_abilities_by_player(self, report_code: str, start_time: int, end_time: int) -> Dict[str, List[str]]:
-        """Get table data with player-specific ability information."""
-        try:
-            # Get table data with source filtering for casts
-            query = """
-            query GetTableAbilities($code: String!, $startTime: Float!, $endTime: Float!) {
-              reportData {
-                report(code: $code) {
-                  table(
-                    dataType: Casts
-                    hostilityType: Friendlies
-                    startTime: $startTime
-                    endTime: $endTime
-                    viewBy: Source
-                  )
-                }
-              }
-            }
-            """
-            
-            http_response = await self._client.execute(query, variables={
-                'code': report_code,
-                'startTime': float(start_time),
-                'endTime': float(end_time)
-            })
-            
-            if http_response.status_code != 200:
-                logger.warning(f"Failed to get table abilities: {http_response.status_code}")
-                return {}
-            
-            data = http_response.json()
-            player_abilities = {}
-            
-            if 'data' in data and 'reportData' in data['data']:
-                report_data = data['data']['reportData']
-                if 'report' in report_data and report_data['report']:
-                    table_data = report_data['report'].get('table', {})
-                    logger.debug(f"Retrieved abilities table data: {type(table_data)}")
-                    # Process the table data structure
-                    return self._process_abilities_table_data(table_data)
-            
-            return {}
-            
-        except Exception as e:
-            logger.error(f"Failed to get table abilities by player: {e}")
-            return {}
-
-    def _process_abilities_table_data(self, table_data: any) -> Dict[str, List[str]]:
-        """Process table data to extract player-specific ability information."""
-        player_abilities = {}
-        
-        if isinstance(table_data, dict):
-            # Handle nested data structure: {'data': [...]}
-            if 'data' in table_data:
-                table_data = table_data['data']
-            
-            # Look for entries or data array
-            entries = table_data if isinstance(table_data, list) else table_data.get('entries', [])
-            
-            if isinstance(entries, list):
-                for entry in entries:
-                    if isinstance(entry, dict):
-                        player_name = entry.get('name', '')
-                        if player_name:
-                            abilities = []
-                            
-                            # Look for ability data in the entry
-                            if 'abilities' in entry:
-                                ability_list = entry['abilities']
-                                if isinstance(ability_list, list):
-                                    for ability in ability_list:
-                                        if isinstance(ability, dict) and 'name' in ability:
-                                            abilities.append(ability['name'])
-                            
-                            # Look for casts data
-                            if 'casts' in entry:
-                                casts = entry['casts']
-                                if isinstance(casts, list):
-                                    for cast in casts:
-                                        if isinstance(cast, dict) and 'name' in cast:
-                                            abilities.append(cast['name'])
-                            
-                            if abilities:
-                                player_abilities[player_name] = list(set(abilities))  # Remove duplicates
-        
-        return player_abilities
-
-    async def _get_buff_debuff_data_table(self, report_code: str, start_time: int, end_time: int, players: List = None) -> Dict[str, any]:
-        """
-        Get buff/debuff data using the table API method.
-        
-        Returns both uptimes and all buff names for mundus detection.
-        """
         try:
             from esologs import TableDataType
             
             uptimes = {}
-            all_buff_names = []
             
             # Get buff data using table API
             buff_table = await self._client.get_report_table(
@@ -1263,67 +1058,15 @@ class ESOLogsClient:
                 hostility_type='Enemies'
             )
             
-            # Check if any player is wearing Spaulder of Ruin
-            has_spaulder_of_ruin = False
-            if players:
-                for player in players:
-                    for gear_set in player.gear_sets:
-                        if 'spaulder of ruin' in gear_set.name.lower():
-                            has_spaulder_of_ruin = True
-                            logger.debug(f"Found Spaulder of Ruin on player {player.name}")
-                            break
-                    if has_spaulder_of_ruin:
-                        break
-            
-            # Check if any player is wearing 2pc Tremorscale
-            has_tremorscale = False
-            if players:
-                for player in players:
-                    tremorscale_count = 0
-                    for gear_set in player.gear_sets:
-                        if 'tremorscale' in gear_set.name.lower():
-                            tremorscale_count += gear_set.piece_count
-                    if tremorscale_count >= 2:
-                        has_tremorscale = True
-                        logger.debug(f"Found 2pc+ Tremorscale on player {player.name} ({tremorscale_count} pieces)")
-                        break
-            
-            # Check if any player is wearing 5pc+ Alkosh
-            has_alkosh = False
-            if players:
-                for player in players:
-                    alkosh_count = 0
-                    for gear_set in player.gear_sets:
-                        if 'alkosh' in gear_set.name.lower():
-                            alkosh_count += gear_set.piece_count
-                    if alkosh_count >= 5:
-                        has_alkosh = True
-                        logger.debug(f"Found 5pc+ Alkosh on player {player.name} ({alkosh_count} pieces)")
-                        break
-            
             # Target buff/debuff names we want to track
             target_buffs = [
                 'Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 
                 'Minor Toughness', 'Major Resolve', 'Powerful Assault'
             ]
-            
-            # Only add Aura of Pride if Spaulder of Ruin is detected
-            if has_spaulder_of_ruin:
-                target_buffs.append('Aura of Pride')
             target_debuffs = [
                 'Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 
                 'Crusher', 'Off Balance', 'Weakening'
             ]
-            
-            # Only add Tremorscale if 2pc+ Tremorscale is detected
-            if has_tremorscale:
-                target_debuffs.append('Tremorscale')
-            
-            # Only add Line-Breaker if 5pc+ Alkosh is detected
-            if has_alkosh:
-                target_debuffs.append('Line-Breaker')
-            
-            # We'll check for Runic Sunder during processing instead of upfront
             
             # Define all possible variations for each buff/debuff
             buff_variations = {
@@ -1336,10 +1079,6 @@ class ESOLogsClient:
                 'Powerful Assault': ['Powerful Assault', 'powerful-assault', 'powerfulassault', 'Powerful-Assault', 'PowerfulAssault']
             }
             
-            # Only add Aura of Pride variations if Spaulder of Ruin is detected
-            if has_spaulder_of_ruin:
-                buff_variations['Aura of Pride'] = ['Aura of Pride', 'aura-of-pride', 'auraofpride', 'Aura-of-Pride', 'AuraOfPride']
-            
             debuff_variations = {
                 'Major Breach': ['Major Breach', 'major-breach', 'majorbreach', 'Major-Breach', 'MajorBreach'],
                 'Major Vulnerability': ['Major Vulnerability', 'major-vulnerability', 'majorvulnerability', 'Major-Vulnerability', 'MajorVulnerability'],
@@ -1349,16 +1088,6 @@ class ESOLogsClient:
                 'Off Balance': ['Off Balance', 'off-balance', 'offbalance', 'Off-Balance', 'OffBalance'],
                 'Weakening': ['Weakening', 'weakening']
             }
-            
-            # Only add Tremorscale variations if 2pc+ Tremorscale is detected
-            if has_tremorscale:
-                debuff_variations['Tremorscale'] = ['Tremorscale', 'tremorscale', 'Tremor Scale', 'tremor-scale', 'tremorscale']
-            
-            # Only add Line-Breaker variations if 5pc+ Alkosh is detected
-            if has_alkosh:
-                debuff_variations['Line-Breaker'] = ['Line-Breaker', 'line-breaker', 'linebreaker', 'Line Breaker', 'LineBreaker', 'line breaker']
-            
-            # Runic Sunder variations will be added dynamically if found during processing
             
             # Process buff table data
             if (buff_table and hasattr(buff_table, 'report_data') and 
@@ -1375,11 +1104,7 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
-                                aura_id = aura.get('guid', None)  # Get ability ID if available
-                                
-                                # Collect all buff names for mundus detection
-                                all_buff_names.append(aura_name)
-                                
+                                aura_id = aura.get('id', None)  # Get ability ID if available
                                 
                                 # Check each target buff and its variations
                                 for target_buff, variations in buff_variations.items():
@@ -1387,25 +1112,15 @@ class ESOLogsClient:
                                         uptime_ms = aura['totalUptime']
                                         uptime_percent = (uptime_ms / total_time) * 100 if total_time > 0 else 0
                                         
-                                        # Special handling for Powerful Assault - use higher of ability ID 61771 or 61763
-                                        if target_buff == 'Powerful Assault':
-                                            if aura_id in [61771, 61763]:
-                                                # Keep the higher percentage between the two ability IDs
-                                                if target_buff in uptimes:
-                                                    uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
-                                                else:
-                                                    uptimes[target_buff] = uptime_percent
-                                                logger.debug(f"Found Powerful Assault (ID {aura_id}): {uptime_percent:.1f}%")
-                                            else:
-                                                # Skip other Powerful Assault variations
-                                                logger.debug(f"Skipping Powerful Assault variation (ID {aura_id}): {uptime_percent:.1f}%")
-                                                continue
+                                        # Keep the highest percentage for this buff
+                                        if target_buff in uptimes:
+                                            old_value = uptimes[target_buff]
+                                            uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
+                                            if uptime_percent > old_value:
+                                                logger.info(f"Updated {target_buff} from {old_value:.1f}% to {uptime_percent:.1f}% (source: '{aura_name}')")
                                         else:
-                                            # Keep the highest percentage for other buffs
-                                            if target_buff in uptimes:
-                                                uptimes[target_buff] = max(uptimes[target_buff], uptime_percent)
-                                            else:
-                                                uptimes[target_buff] = uptime_percent
+                                            uptimes[target_buff] = uptime_percent
+                                            logger.info(f"Initial {target_buff}: {uptime_percent:.1f}% (source: '{aura_name}')")
                                         logger.debug(f"Found {target_buff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             # Process debuff table data
@@ -1423,13 +1138,6 @@ class ESOLogsClient:
                         for aura in auras:
                             if isinstance(aura, dict) and 'name' in aura:
                                 aura_name = aura['name']
-                                
-                                # Check if this is Runic Sunder and add it dynamically if found
-                                if any(variation in aura_name.lower() for variation in ['runic sunder', 'runic-sunder', 'runicsunder']):
-                                    if 'Runic Sunder' not in target_debuffs:
-                                        target_debuffs.append('Runic Sunder')
-                                        debuff_variations['Runic Sunder'] = ['Runic Sunder', 'runic-sunder', 'runicsunder', 'Runic-Sunder', 'RunicSunder']
-                                        logger.debug(f"Found Runic Sunder in debuff data, adding to tracking: {aura_name}")
                                 
                                 # Check each target debuff and its variations
                                 for target_debuff, variations in debuff_variations.items():
@@ -1453,15 +1161,11 @@ class ESOLogsClient:
                                             logger.debug(f"Found {target_debuff} variation '{aura_name}': {uptime_percent:.1f}%")
             
             logger.info(f"Retrieved {len(uptimes)} buff/debuff uptimes using table API")
-            logger.debug(f"Found {len(all_buff_names)} total buff names including {len([b for b in all_buff_names if b.startswith('Boon:')])} Boon buffs")
-            return {
-                'uptimes': uptimes,
-                'all_buff_names': all_buff_names
-            }
+            return uptimes
             
         except Exception as e:
             logger.error(f"Failed to get buff/debuff uptimes using table API: {e}")
-            return {'uptimes': {}, 'all_buff_names': []}
+            return {}
 
     async def get_buff_debuff_uptimes_graph(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
@@ -1555,139 +1259,17 @@ class ESOLogsClient:
             # Fall back to event-based method
             return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
 
-    async def get_raw_player_info_events(self, report_code: str, start_time: int = None, end_time: int = None) -> Dict[str, Dict[str, List[int]]]:
-        """
-        Attempt to get raw PLAYER_INFO events containing action bar data.
-
-        The PLAYER_INFO event in raw ESO logs contains:
-        [primaryAbilityId,...] - Front bar abilities (6 slots)
-        [backupAbilityId,...] - Back bar abilities (6 slots)
-
-        Returns a dictionary mapping player names to their action bar setups:
-        {
-            "player_name": {
-                "front_bar": [42060, 39018, 61505, 77182, 77369, 23492],
-                "back_bar": [39018, 42028, 23231, 77182, 77369, 23492]
-            }
-        }
-
-        Note: Since the forum issue was fixed, this should now work for all players.
-        """
-        try:
-            # Get report fights if no time range provided
-            if start_time is None or end_time is None:
-                report_info = await self._make_request("get_report_by_code", code=report_code)
-                if report_info and hasattr(report_info, 'report_data') and report_info.report_data.report:
-                    fights = report_info.report_data.report.fights
-                    if fights:
-                        # Use the first fight's time range
-                        first_fight = fights[0]
-                        start_time = getattr(first_fight, 'start_time', 0)
-                        end_time = getattr(first_fight, 'end_time', start_time + 300000)
-                        logger.info(f"Using first fight time range: {start_time} to {end_time}")
-
-            if start_time is None:
-                start_time = 0
-            if end_time is None:
-                end_time = start_time + 300000
-
-            # Try to access raw events with time range
-            query = """
-            query GetRawPlayerInfoEvents($code: String!, $startTime: Float!, $endTime: Float!) {
-              reportData {
-                report(code: $code) {
-                  events(
-                    dataType: All
-                    startTime: $startTime
-                    endTime: $endTime
-                    filterExpression: "type = 'PLAYER_INFO'"
-                    limit: 100
-                  ) {
-                    data
-                  }
-                }
-              }
-            }
-            """
-
-            http_response = await self._client.execute(query, variables={
-                'code': report_code,
-                'startTime': float(start_time),
-                'endTime': float(end_time)
-            })
-
-            if http_response.status_code != 200:
-                logger.warning(f"Failed to get raw PLAYER_INFO events: {http_response.status_code}")
-                return {}
-
-            response_data = http_response.json()
-
-            if 'errors' in response_data:
-                logger.warning(f"GraphQL errors getting PLAYER_INFO: {response_data['errors']}")
-                return {}
-
-            player_bars = {}
-
-            if ('data' in response_data and
-                'reportData' in response_data['data'] and
-                response_data['data']['reportData'] and
-                'report' in response_data['data']['reportData'] and
-                response_data['data']['reportData']['report'] and
-                'events' in response_data['data']['reportData']['report']):
-
-                events = response_data['data']['reportData']['report']['events']
-
-                if 'data' in events and events['data']:
-                    events_data = events['data']
-                    logger.info(f"Found {len(events_data)} potential PLAYER_INFO events")
-
-                    for event in events_data:
-                        if isinstance(event, dict):
-                            # Look for PLAYER_INFO event structure
-                            event_type = event.get('type', '')
-
-                            if event_type == 'PLAYER_INFO':
-                                # Extract player info and ability bars
-                                source = event.get('source', {})
-                                if isinstance(source, dict):
-                                    player_name = source.get('name', 'Unknown')
-
-                                    # Look for ability bar data in the event
-                                    # The exact structure may vary depending on API formatting
-                                    primary_abilities = event.get('primaryAbilities', [])
-                                    backup_abilities = event.get('backupAbilities', [])
-
-                                    # Also check alternative field names
-                                    if not primary_abilities:
-                                        primary_abilities = event.get('frontBar', [])
-                                    if not backup_abilities:
-                                        backup_abilities = event.get('backBar', [])
-
-                                    if primary_abilities or backup_abilities:
-                                        player_bars[player_name] = {
-                                            'front_bar': primary_abilities,
-                                            'back_bar': backup_abilities
-                                        }
-                                        logger.info(f"Found action bars for {player_name}: {len(primary_abilities)} front, {len(backup_abilities)} back")
-
-            logger.info(f"Retrieved action bar data for {len(player_bars)} players")
-            return player_bars
-
-        except Exception as e:
-            logger.warning(f"Raw PLAYER_INFO events not available via API: {e}")
-            return {}
-
-    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int, players: List = None) -> Dict[str, float]:
+    async def get_buff_debuff_uptimes(self, report_code: str, start_time: int, end_time: int) -> Dict[str, float]:
         """
         Get buff/debuff uptimes for a specific fight.
-
+        
         Primary method that tries table API first, falls back to events.
         """
         # Try table API first (most reliable)
-        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time, players)
+        table_uptimes = await self.get_buff_debuff_uptimes_table(report_code, start_time, end_time)
         if table_uptimes:
             return table_uptimes
-
+        
         # Fall back to events API if table fails
         return await self.get_buff_debuff_uptimes_events(report_code, start_time, end_time)
 
