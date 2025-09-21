@@ -1,6 +1,6 @@
-# ESO Top Builds - Usage Guide
+# ESO Logs Build and Buff Summary - Usage Guide
 
-This guide provides detailed instructions and examples for using the ESO Top Builds analyzer.
+This guide provides detailed instructions and examples for using the ESO Logs Build and Buff Summary analyzer.
 
 ## 📚 Table of Contents
 
@@ -30,7 +30,8 @@ python single_report_tool.py "https://www.esologs.com/reports/3gjVGWB2dxCL8XAw"
 This will:
 - Analyze all boss encounters in the log
 - Display results in the console
-- Show player builds and buff/debuff uptimes
+- Show player builds and intelligent buff/debuff uptimes
+- Conditionally track effects based on equipped gear
 
 ### 2. Generate Files
 
@@ -44,6 +45,20 @@ This creates three files in the `reports/` directory:
 - Markdown (.md) for documentation
 - Discord (.txt) for chat sharing
 - PDF (.pdf) for professional presentation
+
+### 3. Anonymize Reports
+
+To generate anonymized reports that remove player names, URLs, and identifying information:
+
+```bash
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all --anonymize
+```
+
+Anonymized reports will:
+- Replace all player names with "anon1", "anon2", etc.
+- Remove log URLs from the output
+- Change the report title to "Anonymous Trial - Summary Report"
+- Keep all gear and buff/debuff information for analysis purposes
 
 ## 🔍 Understanding Report Codes
 
@@ -128,6 +143,7 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf
 - Each encounter on separate page
 - Professional styling
 - Text wrapping in tables
+- **Table headings stay with their tables** (no orphaned headers)
 - Print-ready format
 
 ## 💻 Command Examples
@@ -152,6 +168,9 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output pdf
 
 # Generate all formats
 python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
+
+# Generate anonymized reports (removes player names, URLs, etc.)
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all --anonymize
 ```
 
 ### Custom Output Directory
@@ -199,14 +218,41 @@ done
 - **Special Items**: Arena weapons, mythics, monster sets
 
 #### Buff/Debuff Tracking
-**Buffs Tracked:**
+
+**🟢 Buffs (Always Tracked):**
 - Major Courage, Major Slayer, Major Berserk
 - Major Force, Minor Toughness, Major Resolve
-- Pillager's Profit, Powerful Assault
+- Powerful Assault
 
-**Debuffs Tracked:**
+**🟢 Conditional Buffs (Tracked Only When Present):**
+- **Aura of Pride** - Only when a player wears **Spaulder of Ruin**
+
+**🔴 Debuffs (Always Tracked):**
 - Major Breach, Major Vulnerability, Minor Brittle
 - Stagger, Crusher, Off Balance, Weakening
+
+**🔴 Conditional Debuffs (Tracked Only When Present):**
+- **Tremorscale** - Only when a player wears **2pc Tremorscale**
+- **Line-Breaker** - Only when a player wears **5pc Alkosh**
+- **Runic Sunder** - Only when it appears in the fight's debuff list
+
+**⚠️ Special Indicators:**
+- **Asterisk (*)** on Major Courage/Major Resolve = Oakensoul Ring wearer in group (may inflate %)
+- **0.0%** = Effect not detected or not present in fight
+
+**📊 Calculation Methods:**
+- **Powerful Assault**: Uses specific ability ID `61771` only (ignores other variations)
+- **All Other Effects**: Uses largest percentage among all ability ID variations
+- **Multiple Sources**: Each buff/debuff can have multiple ability IDs from different spells/sources
+
+### Class Name Mapping
+
+**Automatic Class Abbreviations:**
+- Arcanist → Arc, Sorcerer → Sorc, DragonKnight → DK
+- Necromancer → Cro, Templar → Plar, Warden → Den, Nightblade → NB
+
+**Special Prefixes:**
+- **Oaken** prefix added when player wears Oakensoul Ring (e.g., "OakenSorc")
 
 ### Gear Set Detection
 

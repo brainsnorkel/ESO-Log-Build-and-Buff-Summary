@@ -1,5 +1,5 @@
 """
-Complete report generation for ESO Top Builds.
+Complete report generation for ESO Logs Build and Buff Summary.
 
 This module orchestrates the entire report generation process from
 API data retrieval to formatted output.
