@@ -187,7 +187,7 @@ class MarkdownFormatter:
                     if player.role.value == "DPS":
                         ability_type = "Top Damage"
                         abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
-                    elif player.role.value == "HEALER":
+                    elif player.role.value == "Healer":
                         ability_type = "Top Healing"
                         abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
                     else:  # TANK
@@ -195,9 +195,10 @@ class MarkdownFormatter:
                         abilities_str = self._format_cast_counts_for_table(player.abilities.get('top_abilities', []))
                     lines.append(f"| ↳ {ability_type} | {abilities_str} |")
             
-            # Add empty rows for missing players (especially DPS up to 8)
-            for i in range(len(players) + 1, 9):
-                lines.append(f"| @anonymous{i} | - | - |")
+            # Add empty rows for missing players only for DPS (up to 8)
+            if "DPS" in role_title:
+                for i in range(len(players) + 1, 9):
+                    lines.append(f"| @anonymous{i} | - | - |")
         else:
             # Regular table for other roles (if any)
             lines = [
