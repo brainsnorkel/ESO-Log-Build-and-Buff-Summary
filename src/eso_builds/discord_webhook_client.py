@@ -375,9 +375,22 @@ class DiscordWebhookClient:
         return ", ".join(formatted_abilities)
     
     def _has_incomplete_sets(self, gear_sets) -> bool:
-        """Check if any gear sets are incomplete (5-piece sets with fewer than 5 pieces)."""
+        """Check if a player has incomplete 5-piece sets that should be flagged."""
         for gear_set in gear_sets:
-            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
+            # Only flag sets that are actually 5-piece sets (not monster sets, mythics, etc.)
+            # and have fewer than 5 pieces
+            set_name_lower = gear_set.name.lower()
+            
+            # Skip monster sets, mythics, and arena weapons - these are not 5-piece sets
+            if any(indicator in set_name_lower for indicator in [
+                'monster', 'undaunted', 'slimecraw', 'nazaray', 'baron zaudrus', 
+                'encratis', 'behemoth', 'zaan', 'velothi', 'oakensoul', 'pearls',
+                'maelstrom', 'arena', 'crushing', 'merciless'
+            ]):
+                continue
+                
+            # Only flag actual 5-piece sets that have fewer than 5 pieces
+            if gear_set.max_pieces == 5 and gear_set.piece_count < 5:
                 return True
         return False
     

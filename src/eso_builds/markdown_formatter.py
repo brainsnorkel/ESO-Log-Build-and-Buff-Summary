@@ -311,13 +311,21 @@ class MarkdownFormatter:
     def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
         """Check if a player has incomplete 5-piece sets that should be flagged."""
         for gear_set in gear_sets:
-            # Only flag 5-piece sets that are missing pieces
-            # This matches the user's request: "fewer than five pieces of a set that requires 5 pieces"
-            if gear_set.max_pieces == 5 and gear_set.is_missing_pieces():
-                missing_pieces = gear_set.max_pieces - gear_set.piece_count
-                # Flag if missing any pieces from a 5-piece set
-                if missing_pieces > 0:
-                    return True
+            # Only flag sets that are actually 5-piece sets (not monster sets, mythics, etc.)
+            # and have fewer than 5 pieces
+            set_name_lower = gear_set.name.lower()
+            
+            # Skip monster sets, mythics, and arena weapons - these are not 5-piece sets
+            if any(indicator in set_name_lower for indicator in [
+                'monster', 'undaunted', 'slimecraw', 'nazaray', 'baron zaudrus', 
+                'encratis', 'behemoth', 'zaan', 'velothi', 'oakensoul', 'pearls',
+                'maelstrom', 'arena', 'crushing', 'merciless'
+            ]):
+                continue
+                
+            # Only flag actual 5-piece sets that have fewer than 5 pieces
+            if gear_set.max_pieces == 5 and gear_set.piece_count < 5:
+                return True
         return False
 
     def _format_footer(self, trial_report: TrialReport) -> List[str]:
