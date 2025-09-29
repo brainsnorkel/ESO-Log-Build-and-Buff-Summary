@@ -76,12 +76,29 @@ Consider these alternatives:
 
 **Web scraping ESO Logs for ability IDs and action bar data is not feasible** because:
 
-1. The data is loaded dynamically via JavaScript
+1. ✅ **CONFIRMED: The data is loaded dynamically via JavaScript**
+   - Found 48 script tags with dynamic loading indicators
+   - No `talent-ability-{id}` spans in static HTML (0 found)
+   - Multiple event listeners that trigger dynamic loading
+   - Placeholder containers like `#graph-loading`, `#expression-loading`
+   - 34+ container elements that are populated dynamically
+
 2. No ability IDs are present in the static HTML
 3. Action bar information is not exposed in the DOM
-4. The site likely uses authentication and session tokens for data access
+4. The site uses JavaScript to load ability data after page initialization
 
 **The existing API-based approach is the correct solution** and should be enhanced rather than replaced with web scraping.
+
+## Key Discovery
+
+The user discovered the correct pattern for ability data:
+```html
+<span id="talent-ability-183006-0" class="school-1" style="">
+    Cephaliarch's Flail
+</span>
+```
+
+However, these spans are **not present in the static HTML** - they are loaded dynamically via JavaScript after the page loads. This explains why our scraping attempts found 0 ability spans.
 
 ## Next Steps
 
