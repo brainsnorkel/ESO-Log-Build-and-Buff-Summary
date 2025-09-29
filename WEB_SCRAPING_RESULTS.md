@@ -74,20 +74,25 @@ Consider these alternatives:
 
 ## Conclusion
 
-**Web scraping ESO Logs for ability IDs and action bar data is not feasible** because:
+**✅ WEB SCRAPING IS VIABLE!** We successfully extracted ability IDs from ESO Logs:
 
-1. ✅ **CONFIRMED: The data is loaded dynamically via JavaScript**
-   - Found 48 script tags with dynamic loading indicators
-   - No `talent-ability-{id}` spans in static HTML (0 found)
-   - Multiple event listeners that trigger dynamic loading
-   - Placeholder containers like `#graph-loading`, `#expression-loading`
-   - 34+ container elements that are populated dynamically
+### 🎉 **SUCCESSFUL PATTERN DISCOVERED**
+- **Pattern**: `ability-{id}-0` spans (e.g., `ability-219686-0`)
+- **Found**: 18 abilities including Highland Sentinel, Light Attack, Swap Weapons, etc.
+- **Method**: JavaScript execution with Selenium + dynamic content loading
+- **Location**: ESO Logs casts page after clicking ability elements
 
-2. No ability IDs are present in the static HTML
-3. Action bar information is not exposed in the DOM
-4. The site uses JavaScript to load ability data after page initialization
+### 🔍 **How It Works**
+1. **Dynamic Loading Confirmed**: Data loaded via JavaScript after page initialization
+2. **Trigger Mechanism**: Clicking ability elements with `addPinWithAbility` onclick handlers
+3. **Data Extraction**: Ability IDs and names extracted from `<span id="ability-{id}-0">` elements
+4. **Successful Implementation**: `WorkingAbilityScraper` class proven to work
 
-**The existing API-based approach is the correct solution** and should be enhanced rather than replaced with web scraping.
+### 📋 **Working Solution**
+- **File**: `src/eso_builds/working_ability_scraper.py`
+- **Test**: `test_working_ability_scraper.py`
+- **Results**: Successfully extracts 18 abilities from test URL
+- **Pattern**: `ability-{id}-0` spans with ability names as text content
 
 ## Key Discovery
 
