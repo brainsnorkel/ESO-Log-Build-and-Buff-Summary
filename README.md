@@ -25,6 +25,52 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
   - Text wrapping in tables
 - **Kill/Wipe Status**: Accurate fight outcome detection with boss health percentages
 
+## ⚡ Quick Start
+
+Analyze any ESO Logs report with a simple command:
+
+```bash
+# Basic analysis (console output)
+python single_report_tool.py <report_code>
+
+# Generate all formats (markdown, discord, pdf)
+python single_report_tool.py <report_code> --output all
+
+# Post to Discord webhook
+python single_report_tool.py <report_code> --output discord --discord-webhook "https://discord.com/api/webhooks/..."
+```
+
+**Example:**
+```bash
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
+```
+
+> 📋 **Report Code**: Extract from any ESO Logs URL: `https://www.esologs.com/reports/3gjVGWB2dxCL8XAw` → `3gjVGWB2dxCL8XAw`
+
+### 📖 Command Help
+
+```bash
+python single_report_tool.py --help
+```
+
+**Usage:**
+```bash
+python single_report_tool.py <report_code> [options]
+
+Positional Arguments:
+  report_code           ESO Logs report code or full URL (e.g. 3gjVGWB2dxCL8XAw or https://www.esologs.com/reports/3gjVGWB2dxCL8XAw)
+
+Options:
+  --output {console,markdown,discord,pdf,all}
+                        Output format (default: console)
+  --output-dir DIR      Directory for output files (default: reports)
+  --discord-webhook URL Discord webhook URL to post reports directly to Discord
+  --discord-webhook-post  Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env
+  --verbose, -v         Enable verbose logging
+  --anonymize           Anonymize player names and remove URLs
+  --help, -h           Show help message
+```
+
 ## 📋 Requirements
 
 - Python 3.9+
