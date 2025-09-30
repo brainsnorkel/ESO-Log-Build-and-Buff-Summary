@@ -1,0 +1,191 @@
+Encounter: 7KAWyZwPCkaHfc8j Fight 17
+Timestamp: 2025-09-30T10:59:55.440016
+================================================================================
+
+Player: Anonymous -999929
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Purify, Stampede, Bash, Inspired Scholarship, Restore All Resources, Silver Bolts
+utility: The Languid Eye, Break Free, Shocking Banner, Roll Dodge
+Total abilities: 16
+----------------------------------------
+
+Player: Deadly-arcanist
+Class: Unknown | Role: Unknown
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Quick Cloak, Resolving Vigor, Shooting Star
+utility: Restore Health, Bash
+Total abilities: 14
+----------------------------------------
+
+Player: Ok Beamer
+Class: Unknown | Role: Unknown
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+utility: Roll Dodge, Healing Combustion, Healing Combustion, Standard of Might, Restore Health, Blessed Shards
+Total abilities: 18
+----------------------------------------
+
+Player: Soonlyta
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Restore All Resources, Purify, Shackle, Harvest
+Total abilities: 12
+----------------------------------------
+
+Player: Aarounus
+Class: Unknown | Role: Unknown
+bar1: Bash, Goading Throw, Igneous Shield, Light Attack (One Handed), Leashing Soul, Swap Weapons
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Aggressive Horn, Break Free, Purify
+utility: Hardened Armor, Healing Combustion, Healing Combustion, Coagulating Blood, Harvest, Light Attack (Ice)
+Total abilities: 18
+----------------------------------------
+
+Player: Anonymous -999923
+Class: Unknown | Role: Unknown
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Restore Health, Healing Combustion, Healing Combustion
+utility: Igneous Weapons, Roll Dodge, Noxious Breath, Aggressive Horn, Break Free, Food: HSM, Meal, Resolving Vigor
+Total abilities: 19
+----------------------------------------
+
+Player: Anonymous -999928
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Noxious Breath, Eruption, Flames of Oblivion, Molten Whip, Venomous Knife, Corrosive Armor
+utility: Roll Dodge, Break Free, Igneous Weapons
+Total abilities: 15
+----------------------------------------
+
+Player: Anonymous -999932
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Debilitate
+bar2: Consuming Trap, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+utility: Runebreak, Radiate, Crystallized Shield
+Total abilities: 15
+----------------------------------------
+
+Player: +Picks-Her-Bum
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Aggressive Horn
+utility: Twilight Matriarch Restore, Roll Dodge, Power Surge, Break Free, Bash
+Total abilities: 17
+----------------------------------------
+
+Player: Twilight Matriarch
+Class: Unknown | Role: Unknown
+bar1: Summon Twilight Matriarch
+bar2: (empty)
+Total abilities: 1
+----------------------------------------
+
+Player: +Anonymous -999927
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Major Sorcery, Shocking Siphon, Fiery Rage
+utility: Radiate, Shocking Banner, Resolving Vigor
+Total abilities: 15
+----------------------------------------
+
+Player: +Blighted Blastbones
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 1
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 2
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 3
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 4
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 5
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 6
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 7
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 8
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: 9
+Class: Unknown | Role: Unknown
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: (empty)
+Total abilities: 4
+----------------------------------------
+
+Player: Anonymous -999930
+Class: Unknown | Role: Unknown
+bar1: Swap Weapons, Illustrious Healing, Extended Ritual, Budding Seeds, Radiating Regeneration, Energy Orb
+bar2: Combat Prayer, Radiant Aura, Ward Ally, Heavy Attack (Restoration), Bash, Break Free
+utility: Budding Seeds, Light Attack (Restoration), Replenishing Barrier, Hungry Scythe, Necrotic Potency
+Total abilities: 17
+----------------------------------------
+
+Player: Paddywhack
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Fetcher Infection, Impale, Unstable Wall of Fire
+bar2: Deep Fissure, Degeneration, Luminous Shards, Merciless Resolve, Fiery Contingency, Resolving Vigor
+utility: Healing Combustion, Crown Spellcaster's Elixir, Runebreak, Heavy Attack (Lightning), Radiate, Shooting Star, Light Attack (Inferno), Holy Shards, Bash
+Total abilities: 21
+----------------------------------------
+
+Player: Anonymous -999927
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Major Sorcery, Shocking Siphon, Fiery Rage
+utility: Radiate, Shocking Banner, Resolving Vigor
+Total abilities: 15
+----------------------------------------
+
+Player: Picks-Her-Bum
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Aggressive Horn
+utility: Twilight Matriarch Restore, Roll Dodge, Power Surge, Break Free, Bash
+Total abilities: 17
+----------------------------------------

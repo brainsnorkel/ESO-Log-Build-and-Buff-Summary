@@ -1,0 +1,3236 @@
+{
+  "report_code": "7KAWyZwPCkaHfc8j",
+  "fight_id": 17,
+  "timestamp": "2025-09-30T10:59:55.440016",
+  "players": {
+    "Anonymous -999929": {
+      "player_id": "6",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=6",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16499",
+          "ability_name": "Light Attack (Dual Wield)",
+          "element_id": "ability-16499-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "186369",
+          "ability_name": "Pragmatic Fatecarver",
+          "element_id": "ability-186369-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "26869",
+          "ability_name": "Blazing Spear",
+          "element_id": "ability-26869-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "16037",
+          "ability_name": "Light Attack (Two Handed)",
+          "element_id": "ability-16037-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "38901",
+          "ability_name": "Quick Cloak",
+          "element_id": "ability-38901-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "22269",
+          "ability_name": "Purify",
+          "element_id": "ability-22269-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "38788",
+          "ability_name": "Stampede",
+          "element_id": "ability-38788-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "185842",
+          "ability_name": "Inspired Scholarship",
+          "element_id": "ability-185842-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "68401",
+          "ability_name": "Restore All Resources",
+          "element_id": "ability-68401-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "35721",
+          "ability_name": "Silver Bolts",
+          "element_id": "ability-35721-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "189867",
+          "ability_name": "The Languid Eye",
+          "element_id": "ability-189867-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "217699",
+          "ability_name": "Shocking Banner",
+          "element_id": "ability-217699-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "28549",
+          "ability_name": "Roll Dodge",
+          "element_id": "ability-28549-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 16,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Dual Wield)",
+          "Swap Weapons",
+          "Pragmatic Fatecarver",
+          "Blazing Spear",
+          "Light Attack (Two Handed)",
+          "Quick Cloak"
+        ],
+        "bar2": [
+          "Purify",
+          "Stampede",
+          "Bash",
+          "Inspired Scholarship",
+          "Restore All Resources",
+          "Silver Bolts"
+        ],
+        "utility": [
+          "The Languid Eye",
+          "Break Free",
+          "Shocking Banner",
+          "Roll Dodge"
+        ],
+        "bar1_ids": [
+          "16499",
+          "28541",
+          "186369",
+          "26869",
+          "16037",
+          "38901"
+        ],
+        "bar2_ids": [
+          "22269",
+          "38788",
+          "21970",
+          "185842",
+          "68401",
+          "35721"
+        ],
+        "utility_ids": [
+          "189867",
+          "16565",
+          "217699",
+          "28549"
+        ]
+      }
+    },
+    "Deadly-arcanist": {
+      "player_id": "4",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=4",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "186369",
+          "ability_name": "Pragmatic Fatecarver",
+          "element_id": "ability-186369-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "16499",
+          "ability_name": "Light Attack (Dual Wield)",
+          "element_id": "ability-16499-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "182988",
+          "ability_name": "Fulminating Rune",
+          "element_id": "ability-182988-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "185842",
+          "ability_name": "Inspired Scholarship",
+          "element_id": "ability-185842-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "95042",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-95042-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "16165",
+          "ability_name": "Light Attack (Inferno)",
+          "element_id": "ability-16165-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "36967",
+          "ability_name": "Reaper's Mark",
+          "element_id": "ability-36967-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "38901",
+          "ability_name": "Quick Cloak",
+          "element_id": "ability-38901-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "61507",
+          "ability_name": "Resolving Vigor",
+          "element_id": "ability-61507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "40493",
+          "ability_name": "Shooting Star",
+          "element_id": "ability-40493-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "45382",
+          "ability_name": "Restore Health",
+          "element_id": "ability-45382-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 14,
+      "action_bars": {
+        "bar1": [
+          "Pragmatic Fatecarver",
+          "Swap Weapons",
+          "Light Attack (Dual Wield)",
+          "Fulminating Rune",
+          "Inspired Scholarship",
+          "Healing Combustion"
+        ],
+        "bar2": [
+          "Healing Combustion",
+          "Light Attack (Inferno)",
+          "Reaper's Mark",
+          "Quick Cloak",
+          "Resolving Vigor",
+          "Shooting Star"
+        ],
+        "utility": [
+          "Restore Health",
+          "Bash"
+        ],
+        "bar1_ids": [
+          "186369",
+          "28541",
+          "16499",
+          "182988",
+          "185842",
+          "63507"
+        ],
+        "bar2_ids": [
+          "95042",
+          "16165",
+          "36967",
+          "38901",
+          "61507",
+          "40493"
+        ],
+        "utility_ids": [
+          "45382",
+          "21970"
+        ]
+      }
+    },
+    "Ok Beamer": {
+      "player_id": "1",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=1",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "219686",
+          "ability_name": "Highland Sentinel",
+          "element_id": "ability-219686-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "16499",
+          "ability_name": "Light Attack (Dual Wield)",
+          "element_id": "ability-16499-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "16037",
+          "ability_name": "Light Attack (Two Handed)",
+          "element_id": "ability-16037-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "186369",
+          "ability_name": "Pragmatic Fatecarver",
+          "element_id": "ability-186369-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "32853",
+          "ability_name": "Flames of Oblivion",
+          "element_id": "ability-32853-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "38788",
+          "ability_name": "Stampede",
+          "element_id": "ability-38788-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "20930",
+          "ability_name": "Engulfing Flames",
+          "element_id": "ability-20930-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "20668",
+          "ability_name": "Venomous Claw",
+          "element_id": "ability-20668-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "38901",
+          "ability_name": "Quick Cloak",
+          "element_id": "ability-38901-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "185842",
+          "ability_name": "Inspired Scholarship",
+          "element_id": "ability-185842-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "22269",
+          "ability_name": "Purify",
+          "element_id": "ability-22269-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "28549",
+          "ability_name": "Roll Dodge",
+          "element_id": "ability-28549-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "95042",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-95042-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "32947",
+          "ability_name": "Standard of Might",
+          "element_id": "ability-32947-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "45382",
+          "ability_name": "Restore Health",
+          "element_id": "ability-45382-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 17,
+          "ability_id": "26832",
+          "ability_name": "Blessed Shards",
+          "element_id": "ability-26832-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 18,
+      "action_bars": {
+        "bar1": [
+          "Highland Sentinel",
+          "Light Attack (Dual Wield)",
+          "Swap Weapons",
+          "Light Attack (Two Handed)",
+          "Pragmatic Fatecarver",
+          "Flames of Oblivion"
+        ],
+        "bar2": [
+          "Stampede",
+          "Engulfing Flames",
+          "Venomous Claw",
+          "Quick Cloak",
+          "Inspired Scholarship",
+          "Purify"
+        ],
+        "utility": [
+          "Roll Dodge",
+          "Healing Combustion",
+          "Healing Combustion",
+          "Standard of Might",
+          "Restore Health",
+          "Blessed Shards"
+        ],
+        "bar1_ids": [
+          "219686",
+          "16499",
+          "28541",
+          "16037",
+          "186369",
+          "32853"
+        ],
+        "bar2_ids": [
+          "38788",
+          "20930",
+          "20668",
+          "38901",
+          "185842",
+          "22269"
+        ],
+        "utility_ids": [
+          "28549",
+          "95042",
+          "63507",
+          "32947",
+          "45382",
+          "26832"
+        ]
+      }
+    },
+    "Soonlyta": {
+      "player_id": "11",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=11",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16499",
+          "ability_name": "Light Attack (Dual Wield)",
+          "element_id": "ability-16499-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "186369",
+          "ability_name": "Pragmatic Fatecarver",
+          "element_id": "ability-186369-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "26869",
+          "ability_name": "Blazing Spear",
+          "element_id": "ability-26869-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "39012",
+          "ability_name": "Blockade of Fire",
+          "element_id": "ability-39012-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "38901",
+          "ability_name": "Quick Cloak",
+          "element_id": "ability-38901-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "185842",
+          "ability_name": "Inspired Scholarship",
+          "element_id": "ability-185842-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "22180",
+          "ability_name": "Blazing Shield",
+          "element_id": "ability-22180-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "68401",
+          "ability_name": "Restore All Resources",
+          "element_id": "ability-68401-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "22269",
+          "ability_name": "Purify",
+          "element_id": "ability-22269-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "32910",
+          "ability_name": "Shackle",
+          "element_id": "ability-32910-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "85572",
+          "ability_name": "Harvest",
+          "element_id": "ability-85572-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 12,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Dual Wield)",
+          "Swap Weapons",
+          "Pragmatic Fatecarver",
+          "Blazing Spear",
+          "Blockade of Fire",
+          "Quick Cloak"
+        ],
+        "bar2": [
+          "Inspired Scholarship",
+          "Blazing Shield",
+          "Restore All Resources",
+          "Purify",
+          "Shackle",
+          "Harvest"
+        ],
+        "utility": [],
+        "bar1_ids": [
+          "16499",
+          "28541",
+          "186369",
+          "26869",
+          "39012",
+          "38901"
+        ],
+        "bar2_ids": [
+          "185842",
+          "22180",
+          "68401",
+          "22269",
+          "32910",
+          "85572"
+        ],
+        "utility_ids": []
+      }
+    },
+    "Aarounus": {
+      "player_id": "2",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=2",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "222966",
+          "ability_name": "Goading Throw",
+          "element_id": "ability-222966-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "29224",
+          "ability_name": "Igneous Shield",
+          "element_id": "ability-29224-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "15435",
+          "ability_name": "Light Attack (One Handed)",
+          "element_id": "ability-15435-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "217784",
+          "ability_name": "Leashing Soul",
+          "element_id": "ability-217784-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "240150",
+          "ability_name": "Warding Contingency",
+          "element_id": "ability-240150-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "39028",
+          "ability_name": "Blockade of Frost",
+          "element_id": "ability-39028-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "39089",
+          "ability_name": "Elemental Susceptibility",
+          "element_id": "ability-39089-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "40223",
+          "ability_name": "Aggressive Horn",
+          "element_id": "ability-40223-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "22269",
+          "ability_name": "Purify",
+          "element_id": "ability-22269-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "20328",
+          "ability_name": "Hardened Armor",
+          "element_id": "ability-20328-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "95042",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-95042-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "32722",
+          "ability_name": "Coagulating Blood",
+          "element_id": "ability-32722-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "85572",
+          "ability_name": "Harvest",
+          "element_id": "ability-85572-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 17,
+          "ability_id": "16277",
+          "ability_name": "Light Attack (Ice)",
+          "element_id": "ability-16277-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 18,
+      "action_bars": {
+        "bar1": [
+          "Bash",
+          "Goading Throw",
+          "Igneous Shield",
+          "Light Attack (One Handed)",
+          "Leashing Soul",
+          "Swap Weapons"
+        ],
+        "bar2": [
+          "Warding Contingency",
+          "Blockade of Frost",
+          "Elemental Susceptibility",
+          "Aggressive Horn",
+          "Break Free",
+          "Purify"
+        ],
+        "utility": [
+          "Hardened Armor",
+          "Healing Combustion",
+          "Healing Combustion",
+          "Coagulating Blood",
+          "Harvest",
+          "Light Attack (Ice)"
+        ],
+        "bar1_ids": [
+          "21970",
+          "222966",
+          "29224",
+          "15435",
+          "217784",
+          "28541"
+        ],
+        "bar2_ids": [
+          "240150",
+          "39028",
+          "39089",
+          "40223",
+          "16565",
+          "22269"
+        ],
+        "utility_ids": [
+          "20328",
+          "63507",
+          "95042",
+          "32722",
+          "85572",
+          "16277"
+        ]
+      }
+    },
+    "Anonymous -999923": {
+      "player_id": "12",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=12",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "29224",
+          "ability_name": "Igneous Shield",
+          "element_id": "ability-29224-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "38250",
+          "ability_name": "Pierce Armor",
+          "element_id": "ability-38250-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "38264",
+          "ability_name": "Heroic Slash",
+          "element_id": "ability-38264-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "183401",
+          "ability_name": "Runeguard of Still Waters",
+          "element_id": "ability-183401-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "186477",
+          "ability_name": "Unbreakable Fate",
+          "element_id": "ability-186477-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "42056",
+          "ability_name": "Inner Rage",
+          "element_id": "ability-42056-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "191078",
+          "ability_name": "Runebreak",
+          "element_id": "ability-191078-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "95922",
+          "ability_name": "Holy Shards",
+          "element_id": "ability-95922-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "45382",
+          "ability_name": "Restore Health",
+          "element_id": "ability-45382-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "95042",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-95042-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "31874",
+          "ability_name": "Igneous Weapons",
+          "element_id": "ability-31874-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "28549",
+          "ability_name": "Roll Dodge",
+          "element_id": "ability-28549-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "20944",
+          "ability_name": "Noxious Breath",
+          "element_id": "ability-20944-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "40223",
+          "ability_name": "Aggressive Horn",
+          "element_id": "ability-40223-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 17,
+          "ability_id": "61221",
+          "ability_name": "Food: HSM, Meal",
+          "element_id": "ability-61221-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 18,
+          "ability_id": "61507",
+          "ability_name": "Resolving Vigor",
+          "element_id": "ability-61507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 19,
+      "action_bars": {
+        "bar1": [
+          "Igneous Shield",
+          "Pierce Armor",
+          "Swap Weapons",
+          "Heroic Slash",
+          "Runeguard of Still Waters",
+          "Unbreakable Fate"
+        ],
+        "bar2": [
+          "Inner Rage",
+          "Runebreak",
+          "Holy Shards",
+          "Restore Health",
+          "Healing Combustion",
+          "Healing Combustion"
+        ],
+        "utility": [
+          "Igneous Weapons",
+          "Roll Dodge",
+          "Noxious Breath",
+          "Aggressive Horn",
+          "Break Free",
+          "Food: HSM, Meal",
+          "Resolving Vigor"
+        ],
+        "bar1_ids": [
+          "29224",
+          "38250",
+          "28541",
+          "38264",
+          "183401",
+          "186477"
+        ],
+        "bar2_ids": [
+          "42056",
+          "191078",
+          "95922",
+          "45382",
+          "63507",
+          "95042"
+        ],
+        "utility_ids": [
+          "31874",
+          "28549",
+          "20944",
+          "40223",
+          "16565",
+          "61221",
+          "61507"
+        ]
+      }
+    },
+    "Anonymous -999928": {
+      "player_id": "7",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=7",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16499",
+          "ability_name": "Light Attack (Dual Wield)",
+          "element_id": "ability-16499-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "16165",
+          "ability_name": "Light Attack (Inferno)",
+          "element_id": "ability-16165-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "20660",
+          "ability_name": "Burning Embers",
+          "element_id": "ability-20660-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "32785",
+          "ability_name": "Draw Essence",
+          "element_id": "ability-32785-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "39053",
+          "ability_name": "Unstable Wall of Fire",
+          "element_id": "ability-39053-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "20944",
+          "ability_name": "Noxious Breath",
+          "element_id": "ability-20944-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "32710",
+          "ability_name": "Eruption",
+          "element_id": "ability-32710-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "32853",
+          "ability_name": "Flames of Oblivion",
+          "element_id": "ability-32853-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "20805",
+          "ability_name": "Molten Whip",
+          "element_id": "ability-20805-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "217872",
+          "ability_name": "Venomous Knife",
+          "element_id": "ability-217872-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "17878",
+          "ability_name": "Corrosive Armor",
+          "element_id": "ability-17878-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "28549",
+          "ability_name": "Roll Dodge",
+          "element_id": "ability-28549-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "31874",
+          "ability_name": "Igneous Weapons",
+          "element_id": "ability-31874-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 15,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Dual Wield)",
+          "Light Attack (Inferno)",
+          "Swap Weapons",
+          "Burning Embers",
+          "Draw Essence",
+          "Unstable Wall of Fire"
+        ],
+        "bar2": [
+          "Noxious Breath",
+          "Eruption",
+          "Flames of Oblivion",
+          "Molten Whip",
+          "Venomous Knife",
+          "Corrosive Armor"
+        ],
+        "utility": [
+          "Roll Dodge",
+          "Break Free",
+          "Igneous Weapons"
+        ],
+        "bar1_ids": [
+          "16499",
+          "16165",
+          "28541",
+          "20660",
+          "32785",
+          "39053"
+        ],
+        "bar2_ids": [
+          "20944",
+          "32710",
+          "32853",
+          "20805",
+          "217872",
+          "17878"
+        ],
+        "utility_ids": [
+          "28549",
+          "16565",
+          "31874"
+        ]
+      }
+    },
+    "Anonymous -999932": {
+      "player_id": "3",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=3",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16499",
+          "ability_name": "Light Attack (Dual Wield)",
+          "element_id": "ability-16499-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "25260",
+          "ability_name": "Surprise Attack",
+          "element_id": "ability-25260-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "61927",
+          "ability_name": "Relentless Focus",
+          "element_id": "ability-61927-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "34843",
+          "ability_name": "Killer's Blade",
+          "element_id": "ability-34843-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "36943",
+          "ability_name": "Debilitate",
+          "element_id": "ability-36943-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "40317",
+          "ability_name": "Consuming Trap",
+          "element_id": "ability-40317-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "40452",
+          "ability_name": "Structured Entropy",
+          "element_id": "ability-40452-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "38906",
+          "ability_name": "Deadly Cloak",
+          "element_id": "ability-38906-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "38794",
+          "ability_name": "Forward Momentum",
+          "element_id": "ability-38794-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "95042",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-95042-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "191078",
+          "ability_name": "Runebreak",
+          "element_id": "ability-191078-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "41838",
+          "ability_name": "Radiate",
+          "element_id": "ability-41838-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "86135",
+          "ability_name": "Crystallized Shield",
+          "element_id": "ability-86135-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 15,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Dual Wield)",
+          "Surprise Attack",
+          "Swap Weapons",
+          "Relentless Focus",
+          "Killer's Blade",
+          "Debilitate"
+        ],
+        "bar2": [
+          "Consuming Trap",
+          "Structured Entropy",
+          "Deadly Cloak",
+          "Forward Momentum",
+          "Healing Combustion",
+          "Healing Combustion"
+        ],
+        "utility": [
+          "Runebreak",
+          "Radiate",
+          "Crystallized Shield"
+        ],
+        "bar1_ids": [
+          "16499",
+          "25260",
+          "28541",
+          "61927",
+          "34843",
+          "36943"
+        ],
+        "bar2_ids": [
+          "40317",
+          "40452",
+          "38906",
+          "38794",
+          "63507",
+          "95042"
+        ],
+        "utility_ids": [
+          "191078",
+          "41838",
+          "86135"
+        ]
+      }
+    },
+    "+Picks-Her-Bum": {
+      "player_id": "10",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=10",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16145",
+          "ability_name": "Light Attack (Restoration)",
+          "element_id": "ability-16145-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "40094",
+          "ability_name": "Combat Prayer",
+          "element_id": "ability-40094-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "40058",
+          "ability_name": "Illustrious Healing",
+          "element_id": "ability-40058-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "40079",
+          "ability_name": "Radiating Regeneration",
+          "element_id": "ability-40079-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "42038",
+          "ability_name": "Energy Orb",
+          "element_id": "ability-42038-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "16212",
+          "ability_name": "Heavy Attack (Restoration)",
+          "element_id": "ability-16212-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "16277",
+          "ability_name": "Light Attack (Ice)",
+          "element_id": "ability-16277-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "39028",
+          "ability_name": "Blockade of Frost",
+          "element_id": "ability-39028-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "39489",
+          "ability_name": "Blood Altar",
+          "element_id": "ability-39489-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "45227",
+          "ability_name": "Major Sorcery",
+          "element_id": "ability-45227-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "40223",
+          "ability_name": "Aggressive Horn",
+          "element_id": "ability-40223-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "77369",
+          "ability_name": "Twilight Matriarch Restore",
+          "element_id": "ability-77369-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "28549",
+          "ability_name": "Roll Dodge",
+          "element_id": "ability-28549-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "23674",
+          "ability_name": "Power Surge",
+          "element_id": "ability-23674-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 17,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Restoration)",
+          "Combat Prayer",
+          "Illustrious Healing",
+          "Radiating Regeneration",
+          "Energy Orb",
+          "Heavy Attack (Restoration)"
+        ],
+        "bar2": [
+          "Light Attack (Ice)",
+          "Swap Weapons",
+          "Blockade of Frost",
+          "Blood Altar",
+          "Major Sorcery",
+          "Aggressive Horn"
+        ],
+        "utility": [
+          "Twilight Matriarch Restore",
+          "Roll Dodge",
+          "Power Surge",
+          "Break Free",
+          "Bash"
+        ],
+        "bar1_ids": [
+          "16145",
+          "40094",
+          "40058",
+          "40079",
+          "42038",
+          "16212"
+        ],
+        "bar2_ids": [
+          "16277",
+          "28541",
+          "39028",
+          "39489",
+          "45227",
+          "40223"
+        ],
+        "utility_ids": [
+          "77369",
+          "28549",
+          "23674",
+          "16565",
+          "21970"
+        ]
+      }
+    },
+    "Twilight Matriarch": {
+      "player_id": "13",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=13",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "117321",
+          "ability_name": "Summon Twilight Matriarch",
+          "element_id": "ability-117321-0",
+          "element_class": "school-512",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 1,
+      "action_bars": {
+        "bar1": [
+          "Summon Twilight Matriarch"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "117321"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "+Anonymous -999927": {
+      "player_id": "8",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=8",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16165",
+          "ability_name": "Light Attack (Inferno)",
+          "element_id": "ability-16165-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "182977",
+          "ability_name": "Escalating Runeblades",
+          "element_id": "ability-182977-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "39053",
+          "ability_name": "Unstable Wall of Fire",
+          "element_id": "ability-39053-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "186369",
+          "ability_name": "Pragmatic Fatecarver",
+          "element_id": "ability-186369-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "117690",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117690-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "63046",
+          "ability_name": "Radiant Oppression",
+          "element_id": "ability-63046-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "191078",
+          "ability_name": "Runebreak",
+          "element_id": "ability-191078-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "45227",
+          "ability_name": "Major Sorcery",
+          "element_id": "ability-45227-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "115924",
+          "ability_name": "Shocking Siphon",
+          "element_id": "ability-115924-0",
+          "element_class": "school-512",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "85126",
+          "ability_name": "Fiery Rage",
+          "element_id": "ability-85126-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "41838",
+          "ability_name": "Radiate",
+          "element_id": "ability-41838-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "217699",
+          "ability_name": "Shocking Banner",
+          "element_id": "ability-217699-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "61507",
+          "ability_name": "Resolving Vigor",
+          "element_id": "ability-61507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 15,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Inferno)",
+          "Escalating Runeblades",
+          "Swap Weapons",
+          "Unstable Wall of Fire",
+          "Pragmatic Fatecarver",
+          "Blighted Blastbones"
+        ],
+        "bar2": [
+          "Healing Combustion",
+          "Radiant Oppression",
+          "Runebreak",
+          "Major Sorcery",
+          "Shocking Siphon",
+          "Fiery Rage"
+        ],
+        "utility": [
+          "Radiate",
+          "Shocking Banner",
+          "Resolving Vigor"
+        ],
+        "bar1_ids": [
+          "16165",
+          "182977",
+          "28541",
+          "39053",
+          "186369",
+          "117690"
+        ],
+        "bar2_ids": [
+          "63507",
+          "63046",
+          "191078",
+          "45227",
+          "115924",
+          "85126"
+        ],
+        "utility_ids": [
+          "41838",
+          "217699",
+          "61507"
+        ]
+      }
+    },
+    "+Blighted Blastbones": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "1": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "2": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "3": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "4": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "5": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "6": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "7": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "8": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "9": {
+      "player_id": "21",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=21",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "116189",
+          "ability_name": "Reusable Parts",
+          "element_id": "ability-116189-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "117714",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117714-0",
+          "element_class": "school-256",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "117721",
+          "ability_name": "Blighted Blastbones Suicide",
+          "element_id": "ability-117721-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "117719",
+          "ability_name": "Blighted Blastbones Leap",
+          "element_id": "ability-117719-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 4,
+      "action_bars": {
+        "bar1": [
+          "Reusable Parts",
+          "Blighted Blastbones",
+          "Blighted Blastbones Suicide",
+          "Blighted Blastbones Leap"
+        ],
+        "bar2": [],
+        "utility": [],
+        "bar1_ids": [
+          "116189",
+          "117714",
+          "117721",
+          "117719"
+        ],
+        "bar2_ids": [],
+        "utility_ids": []
+      }
+    },
+    "Anonymous -999930": {
+      "player_id": "5",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=5",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "40058",
+          "ability_name": "Illustrious Healing",
+          "element_id": "ability-40058-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "22262",
+          "ability_name": "Extended Ritual",
+          "element_id": "ability-22262-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "85840",
+          "ability_name": "Budding Seeds",
+          "element_id": "ability-85840-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "40079",
+          "ability_name": "Radiating Regeneration",
+          "element_id": "ability-40079-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "42038",
+          "ability_name": "Energy Orb",
+          "element_id": "ability-42038-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "40094",
+          "ability_name": "Combat Prayer",
+          "element_id": "ability-40094-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "26807",
+          "ability_name": "Radiant Aura",
+          "element_id": "ability-26807-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "40130",
+          "ability_name": "Ward Ally",
+          "element_id": "ability-40130-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "16212",
+          "ability_name": "Heavy Attack (Restoration)",
+          "element_id": "ability-16212-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "85922",
+          "ability_name": "Budding Seeds",
+          "element_id": "ability-85922-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "16145",
+          "ability_name": "Light Attack (Restoration)",
+          "element_id": "ability-16145-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "40239",
+          "ability_name": "Replenishing Barrier",
+          "element_id": "ability-40239-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "118223",
+          "ability_name": "Hungry Scythe",
+          "element_id": "ability-118223-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "118639",
+          "ability_name": "Necrotic Potency",
+          "element_id": "ability-118639-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 17,
+      "action_bars": {
+        "bar1": [
+          "Swap Weapons",
+          "Illustrious Healing",
+          "Extended Ritual",
+          "Budding Seeds",
+          "Radiating Regeneration",
+          "Energy Orb"
+        ],
+        "bar2": [
+          "Combat Prayer",
+          "Radiant Aura",
+          "Ward Ally",
+          "Heavy Attack (Restoration)",
+          "Bash",
+          "Break Free"
+        ],
+        "utility": [
+          "Budding Seeds",
+          "Light Attack (Restoration)",
+          "Replenishing Barrier",
+          "Hungry Scythe",
+          "Necrotic Potency"
+        ],
+        "bar1_ids": [
+          "28541",
+          "40058",
+          "22262",
+          "85840",
+          "40079",
+          "42038"
+        ],
+        "bar2_ids": [
+          "40094",
+          "26807",
+          "40130",
+          "16212",
+          "21970",
+          "16565"
+        ],
+        "utility_ids": [
+          "85922",
+          "16145",
+          "40239",
+          "118223",
+          "118639"
+        ]
+      }
+    },
+    "Paddywhack": {
+      "player_id": "9",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=9",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "18350",
+          "ability_name": "Light Attack (Lightning)",
+          "element_id": "ability-18350-0",
+          "element_class": "school-512",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "26797",
+          "ability_name": "Puncturing Sweep",
+          "element_id": "ability-26797-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "86027",
+          "ability_name": "Fetcher Infection",
+          "element_id": "ability-86027-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "34851",
+          "ability_name": "Impale",
+          "element_id": "ability-34851-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "39053",
+          "ability_name": "Unstable Wall of Fire",
+          "element_id": "ability-39053-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "86015",
+          "ability_name": "Deep Fissure",
+          "element_id": "ability-86015-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "40457",
+          "ability_name": "Degeneration",
+          "element_id": "ability-40457-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "26858",
+          "ability_name": "Luminous Shards",
+          "element_id": "ability-26858-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "61919",
+          "ability_name": "Merciless Resolve",
+          "element_id": "ability-61919-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "222678",
+          "ability_name": "Fiery Contingency",
+          "element_id": "ability-222678-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "61507",
+          "ability_name": "Resolving Vigor",
+          "element_id": "ability-61507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "86682",
+          "ability_name": "Crown Spellcaster's Elixir",
+          "element_id": "ability-86682-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "191078",
+          "ability_name": "Runebreak",
+          "element_id": "ability-191078-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "18396",
+          "ability_name": "Heavy Attack (Lightning)",
+          "element_id": "ability-18396-0",
+          "element_class": "school-512",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "41838",
+          "ability_name": "Radiate",
+          "element_id": "ability-41838-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 17,
+          "ability_id": "40493",
+          "ability_name": "Shooting Star",
+          "element_id": "ability-40493-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 18,
+          "ability_id": "16165",
+          "ability_name": "Light Attack (Inferno)",
+          "element_id": "ability-16165-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 19,
+          "ability_id": "95922",
+          "ability_name": "Holy Shards",
+          "element_id": "ability-95922-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 20,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 21,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Lightning)",
+          "Puncturing Sweep",
+          "Swap Weapons",
+          "Fetcher Infection",
+          "Impale",
+          "Unstable Wall of Fire"
+        ],
+        "bar2": [
+          "Deep Fissure",
+          "Degeneration",
+          "Luminous Shards",
+          "Merciless Resolve",
+          "Fiery Contingency",
+          "Resolving Vigor"
+        ],
+        "utility": [
+          "Healing Combustion",
+          "Crown Spellcaster's Elixir",
+          "Runebreak",
+          "Heavy Attack (Lightning)",
+          "Radiate",
+          "Shooting Star",
+          "Light Attack (Inferno)",
+          "Holy Shards",
+          "Bash"
+        ],
+        "bar1_ids": [
+          "18350",
+          "26797",
+          "28541",
+          "86027",
+          "34851",
+          "39053"
+        ],
+        "bar2_ids": [
+          "86015",
+          "40457",
+          "26858",
+          "61919",
+          "222678",
+          "61507"
+        ],
+        "utility_ids": [
+          "63507",
+          "86682",
+          "191078",
+          "18396",
+          "41838",
+          "40493",
+          "16165",
+          "95922",
+          "21970"
+        ]
+      }
+    },
+    "Anonymous -999927": {
+      "player_id": "8",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=8",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16165",
+          "ability_name": "Light Attack (Inferno)",
+          "element_id": "ability-16165-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "182977",
+          "ability_name": "Escalating Runeblades",
+          "element_id": "ability-182977-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "39053",
+          "ability_name": "Unstable Wall of Fire",
+          "element_id": "ability-39053-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "186369",
+          "ability_name": "Pragmatic Fatecarver",
+          "element_id": "ability-186369-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "117690",
+          "ability_name": "Blighted Blastbones",
+          "element_id": "ability-117690-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "63507",
+          "ability_name": "Healing Combustion",
+          "element_id": "ability-63507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "63046",
+          "ability_name": "Radiant Oppression",
+          "element_id": "ability-63046-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "191078",
+          "ability_name": "Runebreak",
+          "element_id": "ability-191078-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "45227",
+          "ability_name": "Major Sorcery",
+          "element_id": "ability-45227-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "115924",
+          "ability_name": "Shocking Siphon",
+          "element_id": "ability-115924-0",
+          "element_class": "school-512",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "85126",
+          "ability_name": "Fiery Rage",
+          "element_id": "ability-85126-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "41838",
+          "ability_name": "Radiate",
+          "element_id": "ability-41838-0",
+          "element_class": "school-4",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "217699",
+          "ability_name": "Shocking Banner",
+          "element_id": "ability-217699-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "61507",
+          "ability_name": "Resolving Vigor",
+          "element_id": "ability-61507-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 15,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Inferno)",
+          "Escalating Runeblades",
+          "Swap Weapons",
+          "Unstable Wall of Fire",
+          "Pragmatic Fatecarver",
+          "Blighted Blastbones"
+        ],
+        "bar2": [
+          "Healing Combustion",
+          "Radiant Oppression",
+          "Runebreak",
+          "Major Sorcery",
+          "Shocking Siphon",
+          "Fiery Rage"
+        ],
+        "utility": [
+          "Radiate",
+          "Shocking Banner",
+          "Resolving Vigor"
+        ],
+        "bar1_ids": [
+          "16165",
+          "182977",
+          "28541",
+          "39053",
+          "186369",
+          "117690"
+        ],
+        "bar2_ids": [
+          "63507",
+          "63046",
+          "191078",
+          "45227",
+          "115924",
+          "85126"
+        ],
+        "utility_ids": [
+          "41838",
+          "217699",
+          "61507"
+        ]
+      }
+    },
+    "Picks-Her-Bum": {
+      "player_id": "10",
+      "class": "Unknown",
+      "role": "Unknown",
+      "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=10",
+      "abilities": [
+        {
+          "dom_index": 0,
+          "ability_id": "16145",
+          "ability_name": "Light Attack (Restoration)",
+          "element_id": "ability-16145-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 1,
+          "ability_id": "40094",
+          "ability_name": "Combat Prayer",
+          "element_id": "ability-40094-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 2,
+          "ability_id": "40058",
+          "ability_name": "Illustrious Healing",
+          "element_id": "ability-40058-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 3,
+          "ability_id": "40079",
+          "ability_name": "Radiating Regeneration",
+          "element_id": "ability-40079-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 4,
+          "ability_id": "42038",
+          "ability_name": "Energy Orb",
+          "element_id": "ability-42038-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 5,
+          "ability_id": "16212",
+          "ability_name": "Heavy Attack (Restoration)",
+          "element_id": "ability-16212-0",
+          "element_class": "school-64",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 6,
+          "ability_id": "16277",
+          "ability_name": "Light Attack (Ice)",
+          "element_id": "ability-16277-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 7,
+          "ability_id": "28541",
+          "ability_name": "Swap Weapons",
+          "element_id": "ability-28541-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 8,
+          "ability_id": "39028",
+          "ability_name": "Blockade of Frost",
+          "element_id": "ability-39028-0",
+          "element_class": "school-16",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 9,
+          "ability_id": "39489",
+          "ability_name": "Blood Altar",
+          "element_id": "ability-39489-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 10,
+          "ability_id": "45227",
+          "ability_name": "Major Sorcery",
+          "element_id": "ability-45227-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 11,
+          "ability_id": "40223",
+          "ability_name": "Aggressive Horn",
+          "element_id": "ability-40223-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 12,
+          "ability_id": "77369",
+          "ability_name": "Twilight Matriarch Restore",
+          "element_id": "ability-77369-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 13,
+          "ability_id": "28549",
+          "ability_name": "Roll Dodge",
+          "element_id": "ability-28549-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 14,
+          "ability_id": "23674",
+          "ability_name": "Power Surge",
+          "element_id": "ability-23674-0",
+          "element_class": "school-8",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 15,
+          "ability_id": "16565",
+          "ability_name": "Break Free",
+          "element_id": "ability-16565-0",
+          "element_class": "school-2",
+          "position_in_id": 0
+        },
+        {
+          "dom_index": 16,
+          "ability_id": "21970",
+          "ability_name": "Bash",
+          "element_id": "ability-21970-0",
+          "element_class": "school-1",
+          "position_in_id": 0
+        }
+      ],
+      "total_abilities": 17,
+      "action_bars": {
+        "bar1": [
+          "Light Attack (Restoration)",
+          "Combat Prayer",
+          "Illustrious Healing",
+          "Radiating Regeneration",
+          "Energy Orb",
+          "Heavy Attack (Restoration)"
+        ],
+        "bar2": [
+          "Light Attack (Ice)",
+          "Swap Weapons",
+          "Blockade of Frost",
+          "Blood Altar",
+          "Major Sorcery",
+          "Aggressive Horn"
+        ],
+        "utility": [
+          "Twilight Matriarch Restore",
+          "Roll Dodge",
+          "Power Surge",
+          "Break Free",
+          "Bash"
+        ],
+        "bar1_ids": [
+          "16145",
+          "40094",
+          "40058",
+          "40079",
+          "42038",
+          "16212"
+        ],
+        "bar2_ids": [
+          "16277",
+          "28541",
+          "39028",
+          "39489",
+          "45227",
+          "40223"
+        ],
+        "utility_ids": [
+          "77369",
+          "28549",
+          "23674",
+          "16565",
+          "21970"
+        ]
+      }
+    }
+  }
+}

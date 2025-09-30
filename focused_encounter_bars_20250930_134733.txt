@@ -1,0 +1,101 @@
+Encounter: 7KAWyZwPCkaHfc8j Fight 17
+Timestamp: 2025-09-30T13:13:41.626937
+================================================================================
+
+Player: Anonymous -999929
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Inspired Scholarship, Stampede, Bash, Restore All Resources, Purify, Silver Bolts
+Total abilities: 16
+----------------------------------------
+
+Player: Deadly-arcanist
+Class: Unknown | Role: Unknown
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Reaper's Mark, Light Attack (Inferno), Resolving Vigor, Quick Cloak, Bash
+Total abilities: 14
+----------------------------------------
+
+Player: Ok Beamer
+Class: Unknown | Role: Unknown
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+Total abilities: 18
+----------------------------------------
+
+Player: Soonlyta
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Purify, Restore All Resources, Shackle, Harvest
+Total abilities: 12
+----------------------------------------
+
+Player: Aarounus
+Class: Unknown | Role: Unknown
+bar1: Bash, Goading Throw, Igneous Shield, Light Attack (One Handed), Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Coagulating Blood, Break Free, Purify
+Total abilities: 18
+----------------------------------------
+
+Player: Anonymous -999923
+Class: Unknown | Role: Unknown
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Unbreakable Fate, Runeguard of Still Waters
+bar2: Inner Rage, Runebreak, Holy Shards, Restore Health, Healing Combustion, Healing Combustion
+Total abilities: 19
+----------------------------------------
+
+Player: Anonymous -999928
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Corrosive Armor
+Total abilities: 15
+----------------------------------------
+
+Player: Anonymous -999932
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Debilitate
+bar2: Consuming Trap, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+Total abilities: 15
+----------------------------------------
+
+Player: +Picks-Her-Bum
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Twilight Matriarch Restore
+Total abilities: 17
+----------------------------------------
+
+Player: +Anonymous -999927
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Fiery Rage
+Total abilities: 15
+----------------------------------------
+
+Player: Anonymous -999930
+Class: Unknown | Role: Unknown
+bar1: Swap Weapons, Illustrious Healing, Budding Seeds, Extended Ritual, Radiating Regeneration, Energy Orb
+bar2: Radiant Aura, Ward Ally, Combat Prayer, Break Free, Budding Seeds, Bash
+Total abilities: 17
+----------------------------------------
+
+Player: Paddywhack
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Unstable Wall of Fire, Fetcher Infection, Impale
+bar2: Deep Fissure, Degeneration, Merciless Resolve, Luminous Shards, Fiery Contingency, Healing Combustion
+Total abilities: 21
+----------------------------------------
+
+Player: Anonymous -999927
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Fiery Rage
+Total abilities: 15
+----------------------------------------
+
+Player: Picks-Her-Bum
+Class: Unknown | Role: Unknown
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Twilight Matriarch Restore
+Total abilities: 17
+----------------------------------------
