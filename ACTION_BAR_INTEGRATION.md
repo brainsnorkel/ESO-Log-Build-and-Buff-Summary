@@ -155,19 +155,17 @@ Content: Action Bars section with ability names
 
 ## Testing
 
-### Test Files
+### Test Suite
 
-- **`test_action_bar_integration.py`**: Integration testing with sample data
-- **`test_bar_only_scraper.py`**: Scraper functionality testing
-- **`test_summary_table_scraper.py`**: Summary table targeting verification
+- **`test_action_bar_system.py`**: Comprehensive test suite for action bar integration
 
 ### Test Coverage
 
-- ✅ **Basic Integration**: Action bars appear in reports
-- ✅ **Fallback Behavior**: Graceful handling of missing data
-- ✅ **Format Support**: Both Markdown and PDF output
-- ✅ **Error Handling**: Network and scraping error recovery
-- ✅ **Performance**: Timeout and filtering verification
+- ✅ **Data Models**: Action bar data storage and validation
+- ✅ **Markdown Formatting**: Action bars appear in markdown reports
+- ✅ **PDF Formatting**: Action bars appear in PDF reports
+- ✅ **Web Scraping**: Basic scraper functionality validation
+- ✅ **Integration**: End-to-end functionality testing
 
 ## Dependencies
 
@@ -240,7 +238,7 @@ logging.basicConfig(level=logging.DEBUG)
 1. **Clone Repository**: `git clone <repository-url>`
 2. **Install Dependencies**: `pip install -r requirements.txt`
 3. **Install Playwright**: `playwright install chromium`
-4. **Run Tests**: `python test_action_bar_integration.py`
+4. **Run Tests**: `python test_action_bar_system.py`
 
 ### Code Style
 
