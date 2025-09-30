@@ -1,0 +1,365 @@
+{
+  "report_code": "7KAWyZwPCkaHfc8j",
+  "fight_id": 17,
+  "source_id": 1,
+  "url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=1",
+  "abilities": [
+    {
+      "dom_index": 0,
+      "ability_id": "219686",
+      "ability_name": "Highland Sentinel",
+      "element_id": "ability-219686-0",
+      "element_class": "school-2",
+      "position_in_id": 0,
+      "html": "Highland Sentinel"
+    },
+    {
+      "dom_index": 1,
+      "ability_id": "16499",
+      "ability_name": "Light Attack (Dual Wield)",
+      "element_id": "ability-16499-0",
+      "element_class": "school-1",
+      "position_in_id": 0,
+      "html": "Light Attack (Dual Wield)"
+    },
+    {
+      "dom_index": 2,
+      "ability_id": "28541",
+      "ability_name": "Swap Weapons",
+      "element_id": "ability-28541-0",
+      "element_class": "school-2",
+      "position_in_id": 0,
+      "html": "Swap Weapons"
+    },
+    {
+      "dom_index": 3,
+      "ability_id": "16037",
+      "ability_name": "Light Attack (Two Handed)",
+      "element_id": "ability-16037-0",
+      "element_class": "school-1",
+      "position_in_id": 0,
+      "html": "Light Attack (Two Handed)"
+    },
+    {
+      "dom_index": 4,
+      "ability_id": "186369",
+      "ability_name": "Pragmatic Fatecarver",
+      "element_id": "ability-186369-0",
+      "element_class": "school-64",
+      "position_in_id": 0,
+      "html": "Pragmatic Fatecarver"
+    },
+    {
+      "dom_index": 5,
+      "ability_id": "32853",
+      "ability_name": "Flames of Oblivion",
+      "element_id": "ability-32853-0",
+      "element_class": "school-4",
+      "position_in_id": 0,
+      "html": "Flames of Oblivion"
+    },
+    {
+      "dom_index": 6,
+      "ability_id": "38788",
+      "ability_name": "Stampede",
+      "element_id": "ability-38788-0",
+      "element_class": "school-1",
+      "position_in_id": 0,
+      "html": "Stampede"
+    },
+    {
+      "dom_index": 7,
+      "ability_id": "20930",
+      "ability_name": "Engulfing Flames",
+      "element_id": "ability-20930-0",
+      "element_class": "school-4",
+      "position_in_id": 0,
+      "html": "Engulfing Flames"
+    },
+    {
+      "dom_index": 8,
+      "ability_id": "20668",
+      "ability_name": "Venomous Claw",
+      "element_id": "ability-20668-0",
+      "element_class": "school-8",
+      "position_in_id": 0,
+      "html": "Venomous Claw"
+    },
+    {
+      "dom_index": 9,
+      "ability_id": "38901",
+      "ability_name": "Quick Cloak",
+      "element_id": "ability-38901-0",
+      "element_class": "school-8",
+      "position_in_id": 0,
+      "html": "Quick Cloak"
+    },
+    {
+      "dom_index": 10,
+      "ability_id": "185842",
+      "ability_name": "Inspired Scholarship",
+      "element_id": "ability-185842-0",
+      "element_class": "school-64",
+      "position_in_id": 0,
+      "html": "Inspired Scholarship"
+    },
+    {
+      "dom_index": 11,
+      "ability_id": "22269",
+      "ability_name": "Purify",
+      "element_id": "ability-22269-0",
+      "element_class": "school-8",
+      "position_in_id": 0,
+      "html": "Purify"
+    },
+    {
+      "dom_index": 12,
+      "ability_id": "63507",
+      "ability_name": "Healing Combustion",
+      "element_id": "ability-63507-0",
+      "element_class": "school-8",
+      "position_in_id": 0,
+      "html": "Healing Combustion"
+    },
+    {
+      "dom_index": 13,
+      "ability_id": "28549",
+      "ability_name": "Roll Dodge",
+      "element_id": "ability-28549-0",
+      "element_class": "school-2",
+      "position_in_id": 0,
+      "html": "Roll Dodge"
+    },
+    {
+      "dom_index": 14,
+      "ability_id": "95042",
+      "ability_name": "Healing Combustion",
+      "element_id": "ability-95042-0",
+      "element_class": "school-2",
+      "position_in_id": 0,
+      "html": "Healing Combustion"
+    },
+    {
+      "dom_index": 15,
+      "ability_id": "32947",
+      "ability_name": "Standard of Might",
+      "element_id": "ability-32947-0",
+      "element_class": "school-4",
+      "position_in_id": 0,
+      "html": "Standard of Might"
+    },
+    {
+      "dom_index": 16,
+      "ability_id": "26832",
+      "ability_name": "Blessed Shards",
+      "element_id": "ability-26832-0",
+      "element_class": "school-2",
+      "position_in_id": 0,
+      "html": "Blessed Shards"
+    },
+    {
+      "dom_index": 17,
+      "ability_id": "45382",
+      "ability_name": "Restore Health",
+      "element_id": "ability-45382-0",
+      "element_class": "school-8",
+      "position_in_id": 0,
+      "html": "Restore Health"
+    }
+  ],
+  "total_abilities": 18,
+  "action_bar_analysis": {
+    "total_abilities": 18,
+    "primary_bar": [
+      {
+        "dom_index": 0,
+        "ability_id": "219686",
+        "ability_name": "Highland Sentinel",
+        "element_id": "ability-219686-0",
+        "element_class": "school-2",
+        "position_in_id": 0,
+        "html": "Highland Sentinel"
+      },
+      {
+        "dom_index": 1,
+        "ability_id": "16499",
+        "ability_name": "Light Attack (Dual Wield)",
+        "element_id": "ability-16499-0",
+        "element_class": "school-1",
+        "position_in_id": 0,
+        "html": "Light Attack (Dual Wield)"
+      },
+      {
+        "dom_index": 2,
+        "ability_id": "28541",
+        "ability_name": "Swap Weapons",
+        "element_id": "ability-28541-0",
+        "element_class": "school-2",
+        "position_in_id": 0,
+        "html": "Swap Weapons"
+      },
+      {
+        "dom_index": 3,
+        "ability_id": "16037",
+        "ability_name": "Light Attack (Two Handed)",
+        "element_id": "ability-16037-0",
+        "element_class": "school-1",
+        "position_in_id": 0,
+        "html": "Light Attack (Two Handed)"
+      },
+      {
+        "dom_index": 4,
+        "ability_id": "186369",
+        "ability_name": "Pragmatic Fatecarver",
+        "element_id": "ability-186369-0",
+        "element_class": "school-64",
+        "position_in_id": 0,
+        "html": "Pragmatic Fatecarver"
+      },
+      {
+        "dom_index": 5,
+        "ability_id": "32853",
+        "ability_name": "Flames of Oblivion",
+        "element_id": "ability-32853-0",
+        "element_class": "school-4",
+        "position_in_id": 0,
+        "html": "Flames of Oblivion"
+      }
+    ],
+    "secondary_bar": [
+      {
+        "dom_index": 6,
+        "ability_id": "38788",
+        "ability_name": "Stampede",
+        "element_id": "ability-38788-0",
+        "element_class": "school-1",
+        "position_in_id": 0,
+        "html": "Stampede"
+      },
+      {
+        "dom_index": 7,
+        "ability_id": "20930",
+        "ability_name": "Engulfing Flames",
+        "element_id": "ability-20930-0",
+        "element_class": "school-4",
+        "position_in_id": 0,
+        "html": "Engulfing Flames"
+      },
+      {
+        "dom_index": 8,
+        "ability_id": "20668",
+        "ability_name": "Venomous Claw",
+        "element_id": "ability-20668-0",
+        "element_class": "school-8",
+        "position_in_id": 0,
+        "html": "Venomous Claw"
+      },
+      {
+        "dom_index": 9,
+        "ability_id": "38901",
+        "ability_name": "Quick Cloak",
+        "element_id": "ability-38901-0",
+        "element_class": "school-8",
+        "position_in_id": 0,
+        "html": "Quick Cloak"
+      },
+      {
+        "dom_index": 10,
+        "ability_id": "185842",
+        "ability_name": "Inspired Scholarship",
+        "element_id": "ability-185842-0",
+        "element_class": "school-64",
+        "position_in_id": 0,
+        "html": "Inspired Scholarship"
+      },
+      {
+        "dom_index": 11,
+        "ability_id": "22269",
+        "ability_name": "Purify",
+        "element_id": "ability-22269-0",
+        "element_class": "school-8",
+        "position_in_id": 0,
+        "html": "Purify"
+      }
+    ],
+    "utility_abilities": [
+      {
+        "dom_index": 12,
+        "ability_id": "63507",
+        "ability_name": "Healing Combustion",
+        "element_id": "ability-63507-0",
+        "element_class": "school-8",
+        "position_in_id": 0,
+        "html": "Healing Combustion"
+      },
+      {
+        "dom_index": 13,
+        "ability_id": "28549",
+        "ability_name": "Roll Dodge",
+        "element_id": "ability-28549-0",
+        "element_class": "school-2",
+        "position_in_id": 0,
+        "html": "Roll Dodge"
+      },
+      {
+        "dom_index": 14,
+        "ability_id": "95042",
+        "ability_name": "Healing Combustion",
+        "element_id": "ability-95042-0",
+        "element_class": "school-2",
+        "position_in_id": 0,
+        "html": "Healing Combustion"
+      },
+      {
+        "dom_index": 15,
+        "ability_id": "32947",
+        "ability_name": "Standard of Might",
+        "element_id": "ability-32947-0",
+        "element_class": "school-4",
+        "position_in_id": 0,
+        "html": "Standard of Might"
+      },
+      {
+        "dom_index": 16,
+        "ability_id": "26832",
+        "ability_name": "Blessed Shards",
+        "element_id": "ability-26832-0",
+        "element_class": "school-2",
+        "position_in_id": 0,
+        "html": "Blessed Shards"
+      },
+      {
+        "dom_index": 17,
+        "ability_id": "45382",
+        "ability_name": "Restore Health",
+        "element_id": "ability-45382-0",
+        "element_class": "school-8",
+        "position_in_id": 0,
+        "html": "Restore Health"
+      }
+    ],
+    "dom_order_analysis": [
+      "Strategy 1: First 6 = Primary, Next 6 = Secondary",
+      "DOM 0: Highland Sentinel (ID: 219686)",
+      "DOM 1: Light Attack (Dual Wield) (ID: 16499)",
+      "DOM 2: Swap Weapons (ID: 28541)",
+      "DOM 3: Light Attack (Two Handed) (ID: 16037)",
+      "DOM 4: Pragmatic Fatecarver (ID: 186369)",
+      "DOM 5: Flames of Oblivion (ID: 32853)",
+      "DOM 6: Stampede (ID: 38788)",
+      "DOM 7: Engulfing Flames (ID: 20930)",
+      "DOM 8: Venomous Claw (ID: 20668)",
+      "DOM 9: Quick Cloak (ID: 38901)",
+      "DOM 10: Inspired Scholarship (ID: 185842)",
+      "DOM 11: Purify (ID: 22269)",
+      "DOM 12: Healing Combustion (ID: 63507)",
+      "DOM 13: Roll Dodge (ID: 28549)",
+      "DOM 14: Healing Combustion (ID: 95042)",
+      "DOM 15: Standard of Might (ID: 32947)",
+      "DOM 16: Blessed Shards (ID: 26832)",
+      "DOM 17: Restore Health (ID: 45382)"
+    ]
+  },
+  "timestamp": "2025-09-30T10:55:38.227973",
+  "scraper": "playwright"
+}

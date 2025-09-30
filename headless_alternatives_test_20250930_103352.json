@@ -1,0 +1,106 @@
+{
+  "timestamp": "2025-09-30T10:30:11.691668",
+  "test_url": "https://www.esologs.com/reports/7KAWyZwPCkaHfc8j?fight=17&type=casts&source=1",
+  "methods_tested": [
+    {
+      "method": "headless_chrome",
+      "success": true,
+      "abilities_found": 18,
+      "sample_abilities": [
+        {
+          "id": "ability-219686-0",
+          "name": "Highland Sentinel"
+        },
+        {
+          "id": "ability-16499-0",
+          "name": "Light Attack (Dual Wield)"
+        },
+        {
+          "id": "ability-28541-0",
+          "name": "Swap Weapons"
+        },
+        {
+          "id": "ability-16037-0",
+          "name": "Light Attack (Two Handed)"
+        },
+        {
+          "id": "ability-186369-0",
+          "name": "Pragmatic Fatecarver"
+        }
+      ],
+      "notes": "Fully headless - no GUI required"
+    },
+    {
+      "method": "firefox_geckodriver",
+      "success": true,
+      "abilities_found": 18,
+      "sample_abilities": [
+        {
+          "id": "ability-219686-0",
+          "name": "Highland Sentinel"
+        },
+        {
+          "id": "ability-16499-0",
+          "name": "Light Attack (Dual Wield)"
+        },
+        {
+          "id": "ability-28541-0",
+          "name": "Swap Weapons"
+        },
+        {
+          "id": "ability-16037-0",
+          "name": "Light Attack (Two Handed)"
+        },
+        {
+          "id": "ability-186369-0",
+          "name": "Pragmatic Fatecarver"
+        }
+      ],
+      "notes": "Alternative browser - no Chrome required"
+    },
+    {
+      "method": "playwright",
+      "success": true,
+      "abilities_found": 18,
+      "sample_abilities": [
+        {
+          "id": "ability-219686-0",
+          "name": "Highland Sentinel"
+        },
+        {
+          "id": "ability-16499-0",
+          "name": "Light Attack (Dual Wield)"
+        },
+        {
+          "id": "ability-28541-0",
+          "name": "Swap Weapons"
+        },
+        {
+          "id": "ability-16037-0",
+          "name": "Light Attack (Two Handed)"
+        },
+        {
+          "id": "ability-186369-0",
+          "name": "Pragmatic Fatecarver"
+        }
+      ],
+      "notes": "Modern headless automation - no external browser"
+    },
+    {
+      "method": "requests_beautifulsoup",
+      "success": true,
+      "abilities_found": 0,
+      "sample_abilities": [],
+      "notes": "No browser required - static HTML only",
+      "limitation": "Cannot execute JavaScript - may miss dynamic content"
+    },
+    {
+      "method": "httpx_session",
+      "success": true,
+      "abilities_found": 0,
+      "sample_abilities": [],
+      "notes": "Async HTTP client - no browser required",
+      "limitation": "Cannot execute JavaScript - may miss dynamic content"
+    }
+  ]
+}
