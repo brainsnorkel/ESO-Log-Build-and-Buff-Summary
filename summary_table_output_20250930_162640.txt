@@ -1,0 +1,22 @@
+Encounter: 7KAWyZwPCkaHfc8j Fight 17
+============================================================
+
+Anonymous -999929
+bar1: Shocking Banner (Cavalier's Charge / Savagery and Prophecy), Shocking Banner (Cavalier's Charge / Savagery and Prophecy), Quick Cloak, Stampede, Blazing Spear, Inspired Scholarship
+bar2: Cephaliarch's Flail, Silver Bolts, Pragmatic Fatecarver, Concealed Weapon, Soul Harvest, The Languid Eye
+
+Deadly-arcanist
+bar1: Quick Cloak, Inspired Scholarship, Reaper's Mark, Fulminating Rune, Cephaliarch's Flail, Relentless Focus
+bar2: Pragmatic Fatecarver, Resolving Vigor, Camouflaged Hunter, Camouflaged Hunter, Soul Harvest, Shooting Star
+
+Ok Beamer
+bar1: Cephaliarch's Flail, Stampede, Pragmatic Fatecarver, Flames of Oblivion, Quick Cloak, Engulfing Flames
+bar2: Venomous Claw, Inspired Scholarship, Camouflaged Hunter, Molten Whip, Everlasting Sweep, Standard of Might
+
+Soonlyta
+bar1: Quick Cloak, Blazing Shield, Inspired Scholarship, Blockade of Fire, Cephaliarch's Flail, Resolving Vigor
+bar2: Pragmatic Fatecarver, Blazing Spear, Merciless Resolve, Concealed Weapon, Soul Harvest, The Languid Eye
+
+Aarounus
+bar1: Goading Throw (Sage's Remedy / Maim), Hardened Armor, Stone Giant, Leashing Soul (Druid's Resurgence / Cowardice), Igneous Shield, Elemental Susceptibility
+bar2: Warding Contingency (Gladiator's Tenacity / Intellect and Endurance), Blockade of Frost, Coagulating Blood, Resolving Vigor, Temporal Guard, Aggressive Horn

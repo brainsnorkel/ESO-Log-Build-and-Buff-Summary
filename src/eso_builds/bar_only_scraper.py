@@ -271,24 +271,22 @@ class BarOnlyEncounterScraper:
 
     async def _scrape_player_bars(self, page, report_code: str, fight_id: int, 
                                 player_id: str, player_name: str) -> Optional[Dict]:
-        """Scrape action bars for a specific player."""
+        """Scrape action bars for a specific player from the summary-talents-0 table."""
         try:
-            # Navigate to the player's casts page
-            player_url = self.construct_fight_url(report_code, fight_id, player_id, "casts")
-            logger.info(f"Loading player page: {player_url}")
+            # Navigate to the player's summary page (not casts page)
+            player_url = self.construct_fight_url(report_code, fight_id, player_id, "summary")
+            logger.info(f"Loading player summary page: {player_url}")
             
             await page.goto(player_url, wait_until='networkidle', timeout=45000)
             await page.wait_for_selector('body', timeout=30000)
             await asyncio.sleep(3)  # Reduced wait time
             
-            # Wait for dynamic content with timeout
-            await asyncio.sleep(8)  # Reduced wait time
+            # Wait for the summary-talents-0 table to load
+            await page.wait_for_selector('#summary-talents-0', timeout=30000)
+            await asyncio.sleep(2)  # Give time for content to load
             
-            # Trigger ability loading
-            await self._trigger_ability_loading(page)
-            
-            # Extract abilities
-            abilities = await self._extract_abilities(page)
+            # Extract abilities from the summary-talents-0 table
+            abilities = await self._extract_abilities_from_summary_table(page)
             
             # Analyze action bars (only bar1 and bar2)
             action_bars = self._analyze_action_bars_bars_only(abilities)
@@ -321,8 +319,121 @@ class BarOnlyEncounterScraper:
         except Exception as e:
             logger.warning(f"Error triggering ability loading: {e}")
     
+    async def _extract_abilities_from_summary_table(self, page) -> List[Dict]:
+        """Extract ability data from the #summary-talents-0 table."""
+        abilities = []
+        
+        try:
+            # Wait for the summary-talents-0 table to be present
+            await page.wait_for_selector('#summary-talents-0', timeout=10000)
+            
+            # Extract abilities from the Action Bars section within the summary-talents-0 table
+            # Look for ability spans within the table
+            ability_spans = await page.query_selector_all('#summary-talents-0 span[id^="ability-"]')
+            logger.info(f"Found {len(ability_spans)} ability spans in summary-talents-0 table")
+            
+            for index, span in enumerate(ability_spans):
+                try:
+                    span_id = await span.get_attribute('id')
+                    span_text = await span.text_content()
+                    
+                    if span_text and span_text.strip():
+                        # Parse ability ID
+                        match = re.match(r'^ability-(\d+)-(\d+)$', span_id or '')
+                        ability_id = match.group(1) if match else None
+                        position_in_id = int(match.group(2)) if match and match.group(2) else 0
+                        
+                        ability_data = {
+                            'dom_index': index,
+                            'ability_id': ability_id,
+                            'ability_name': span_text.strip(),
+                            'position_in_id': position_in_id
+                        }
+                        
+                        abilities.append(ability_data)
+                        
+                except Exception as e:
+                    logger.debug(f"Error extracting ability from span {index}: {e}")
+            
+            # If no ability spans found, try alternative extraction methods
+            if not abilities:
+                logger.info("No ability spans found, trying alternative extraction methods...")
+                abilities = await self._extract_abilities_alternative_methods(page)
+            
+            return abilities
+            
+        except Exception as e:
+            logger.error(f"Error extracting abilities from summary table: {e}")
+            return []
+    
+    async def _extract_abilities_alternative_methods(self, page) -> List[Dict]:
+        """Try alternative methods to extract abilities from the summary table."""
+        abilities = []
+        
+        try:
+            # Method 1: Look for ability names in table cells
+            table_cells = await page.query_selector_all('#summary-talents-0 td')
+            logger.info(f"Found {len(table_cells)} table cells in summary-talents-0")
+            
+            for index, cell in enumerate(table_cells):
+                try:
+                    cell_text = await cell.text_content()
+                    if cell_text and cell_text.strip():
+                        # Look for ability names (filter out common non-ability text)
+                        if (len(cell_text.strip()) > 3 and 
+                            not cell_text.strip().lower() in ['action bars', 'gear', 'summary', ''] and
+                            not cell_text.strip().startswith('CP:') and
+                            not cell_text.strip().startswith('Type:') and
+                            not cell_text.strip().startswith('Slot:') and
+                            not cell_text.strip().startswith('Set:') and
+                            not cell_text.strip().startswith('Trait:') and
+                            not cell_text.strip().startswith('Enchant:')):
+                            
+                            ability_data = {
+                                'dom_index': index,
+                                'ability_id': None,  # No ID available in summary table
+                                'ability_name': cell_text.strip(),
+                                'position_in_id': 0
+                            }
+                            
+                            abilities.append(ability_data)
+                            
+                except Exception as e:
+                    logger.debug(f"Error extracting text from cell {index}: {e}")
+            
+            # Method 2: Look for specific Action Bars section
+            if not abilities:
+                logger.info("Trying to find Action Bars section specifically...")
+                action_bars_section = await page.query_selector('#summary-talents-0')
+                if action_bars_section:
+                    # Look for text content that might be ability names
+                    all_text = await action_bars_section.text_content()
+                    if all_text:
+                        # Split by common delimiters and filter
+                        potential_abilities = [text.strip() for text in all_text.split('\n') if text.strip()]
+                        for index, ability_name in enumerate(potential_abilities):
+                            if (len(ability_name) > 3 and 
+                                not ability_name.lower() in ['action bars', 'gear', 'summary', 'main action bar', 'backup action bar'] and
+                                not ability_name.startswith('CP:') and
+                                not ability_name.startswith('Type:')):
+                                
+                                ability_data = {
+                                    'dom_index': index,
+                                    'ability_id': None,
+                                    'ability_name': ability_name,
+                                    'position_in_id': 0
+                                }
+                                
+                                abilities.append(ability_data)
+            
+            return abilities
+            
+        except Exception as e:
+            logger.error(f"Error in alternative ability extraction: {e}")
+            return []
+
     async def _extract_abilities(self, page) -> List[Dict]:
-        """Extract ability data from the page."""
+        """Extract ability data from the page (legacy method for casts page)."""
         abilities = []
         
         try:
