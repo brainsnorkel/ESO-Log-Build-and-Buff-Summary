@@ -1,0 +1,34 @@
+Encounter: 7KAWyZwPCkaHfc8j Fight 17
+============================================================
+
+Anonymous -999929
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Bash, Purify, Restore All Resources, Stampede, Inspired Scholarship, The Languid Eye
+
+Deadly-arcanist
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Resolving Vigor, Quick Cloak, Restore Health
+
+Ok Beamer
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+
+Soonlyta
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Restore All Resources, Purify, Harvest, Shackle
+
+Aarounus
+bar1: Bash, Goading Throw, Light Attack (One Handed), Igneous Shield, Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Break Free, Healing Combustion, Purify
+
+Anonymous -999923
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Healing Combustion, Restore Health, Healing Combustion
+
+Anonymous -999928
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Roll Dodge
+
+Anonymous -999932
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Consuming Trap
+bar2: Debilitate, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion

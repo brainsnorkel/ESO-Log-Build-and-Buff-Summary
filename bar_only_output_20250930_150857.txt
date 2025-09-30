@@ -1,0 +1,286 @@
+Encounter: 7KAWyZwPCkaHfc8j Fight 17
+============================================================
+
+Anonymous -999929
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Bash, Purify, Restore All Resources, Stampede, Inspired Scholarship, The Languid Eye
+
+Deadly-arcanist
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Resolving Vigor, Quick Cloak, Restore Health
+
+Ok Beamer
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+
+Soonlyta
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Purify, Restore All Resources, Shackle, Harvest
+
+Aarounus
+bar1: Bash, Goading Throw, Light Attack (One Handed), Igneous Shield, Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Break Free, Healing Combustion, Purify
+
+Anonymous -999923
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Healing Combustion, Restore Health, Healing Combustion
+
+Anonymous -999928
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Roll Dodge
+
+Anonymous -999932
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Consuming Trap
+bar2: Debilitate, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+
++Picks-Her-Bum
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Roll Dodge
+
+Twilight Matriarch
+bar1: Summon Twilight Matriarch
+bar2: 
+
++Anonymous -999927
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Radiate
+
++Blighted Blastbones
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+1
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+2
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+3
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+4
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+5
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+6
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+7
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+8
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+9
+bar1: Reusable Parts, Blighted Blastbones, Blighted Blastbones Suicide, Blighted Blastbones Leap
+bar2: 
+
+Anonymous -999930
+bar1: Swap Weapons, Illustrious Healing, Extended Ritual, Budding Seeds, Radiating Regeneration, Energy Orb
+bar2: Combat Prayer, Radiant Aura, Ward Ally, Budding Seeds, Heavy Attack (Restoration), Bash
+
+Paddywhack
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Impale, Fetcher Infection, Unstable Wall of Fire
+bar2: Deep Fissure, Degeneration, Luminous Shards, Merciless Resolve, Fiery Contingency, Healing Combustion
+
+Aarounus
+bar1: Bash, Goading Throw, Light Attack (One Handed), Igneous Shield, Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Break Free, Healing Combustion, Purify
+
+Anonymous -999923
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Healing Combustion, Restore Health, Healing Combustion
+
+Anonymous -999929
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Bash, Purify, Restore All Resources, Stampede, Inspired Scholarship, The Languid Eye
+
+Deadly-arcanist
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Resolving Vigor, Quick Cloak, Restore Health
+
+Ok Beamer
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+
+Soonlyta
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Purify, Restore All Resources, Shackle, Harvest
+
+Anonymous -999928
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Roll Dodge
+
+Anonymous -999932
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Consuming Trap
+bar2: Debilitate, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+
+Anonymous -999927
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Radiate
+
+Paddywhack
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Impale, Fetcher Infection, Unstable Wall of Fire
+bar2: Deep Fissure, Degeneration, Luminous Shards, Merciless Resolve, Fiery Contingency, Healing Combustion
+
+Picks-Her-Bum
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Roll Dodge
+
+Anonymous -999930
+bar1: Swap Weapons, Illustrious Healing, Extended Ritual, Budding Seeds, Radiating Regeneration, Energy Orb
+bar2: Combat Prayer, Radiant Aura, Ward Ally, Budding Seeds, Heavy Attack (Restoration), Bash
+
+Ok Beamer
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+
+Soonlyta
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Restore All Resources, Purify, Harvest, Shackle
+
+Anonymous -999929
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Bash, Purify, Restore All Resources, Stampede, Inspired Scholarship, The Languid Eye
+
+Anonymous -999927
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Radiate
+
+Paddywhack
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Impale, Fetcher Infection, Unstable Wall of Fire
+bar2: Deep Fissure, Degeneration, Luminous Shards, Merciless Resolve, Fiery Contingency, Healing Combustion
+
+Deadly-arcanist
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Resolving Vigor, Quick Cloak, Restore Health
+
+Anonymous -999928
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Roll Dodge
+
+Anonymous -999932
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Consuming Trap
+bar2: Debilitate, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+
+Picks-Her-Bum
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Roll Dodge
+
+Aarounus
+bar1: Bash, Goading Throw, Light Attack (One Handed), Igneous Shield, Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Break Free, Healing Combustion, Purify
+
+Anonymous -999923
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Healing Combustion, Restore Health, Healing Combustion
+
+Anonymous -999930
+bar1: Swap Weapons, Illustrious Healing, Extended Ritual, Budding Seeds, Radiating Regeneration, Energy Orb
+bar2: Combat Prayer, Radiant Aura, Ward Ally, Budding Seeds, Heavy Attack (Restoration), Bash
+
+Anonymous -999930
+bar1: Swap Weapons, Illustrious Healing, Extended Ritual, Budding Seeds, Radiating Regeneration, Energy Orb
+bar2: Combat Prayer, Radiant Aura, Ward Ally, Budding Seeds, Heavy Attack (Restoration), Bash
+
+Picks-Her-Bum
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Roll Dodge
+
+Aarounus
+bar1: Bash, Goading Throw, Light Attack (One Handed), Igneous Shield, Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Break Free, Healing Combustion, Purify
+
+Anonymous -999923
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Healing Combustion, Restore Health, Healing Combustion
+
+Paddywhack
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Impale, Fetcher Infection, Unstable Wall of Fire
+bar2: Deep Fissure, Degeneration, Luminous Shards, Merciless Resolve, Fiery Contingency, Healing Combustion
+
+Deadly-arcanist
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Resolving Vigor, Quick Cloak, Restore Health
+
+Ok Beamer
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+
+Anonymous -999928
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Roll Dodge
+
+Anonymous -999929
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Bash, Purify, Restore All Resources, Stampede, Inspired Scholarship, The Languid Eye
+
+Anonymous -999927
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Radiate
+
+Anonymous -999932
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Consuming Trap
+bar2: Debilitate, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+
+Soonlyta
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Restore All Resources, Purify, Harvest, Shackle
+
+Aarounus
+bar1: Bash, Goading Throw, Light Attack (One Handed), Igneous Shield, Swap Weapons, Leashing Soul
+bar2: Warding Contingency, Blockade of Frost, Elemental Susceptibility, Break Free, Healing Combustion, Purify
+
+Anonymous -999923
+bar1: Igneous Shield, Pierce Armor, Swap Weapons, Heroic Slash, Runeguard of Still Waters, Unbreakable Fate
+bar2: Inner Rage, Runebreak, Holy Shards, Healing Combustion, Restore Health, Healing Combustion
+
+Anonymous -999929
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Light Attack (Two Handed), Quick Cloak
+bar2: Bash, Purify, Restore All Resources, Stampede, Inspired Scholarship, The Languid Eye
+
+Deadly-arcanist
+bar1: Pragmatic Fatecarver, Swap Weapons, Light Attack (Dual Wield), Fulminating Rune, Inspired Scholarship, Healing Combustion
+bar2: Healing Combustion, Light Attack (Inferno), Reaper's Mark, Resolving Vigor, Quick Cloak, Restore Health
+
+Ok Beamer
+bar1: Highland Sentinel, Light Attack (Dual Wield), Swap Weapons, Light Attack (Two Handed), Pragmatic Fatecarver, Flames of Oblivion
+bar2: Stampede, Engulfing Flames, Venomous Claw, Quick Cloak, Inspired Scholarship, Purify
+
+Soonlyta
+bar1: Light Attack (Dual Wield), Swap Weapons, Pragmatic Fatecarver, Blazing Spear, Blockade of Fire, Quick Cloak
+bar2: Inspired Scholarship, Blazing Shield, Restore All Resources, Purify, Harvest, Shackle
+
+Anonymous -999928
+bar1: Light Attack (Dual Wield), Light Attack (Inferno), Swap Weapons, Burning Embers, Draw Essence, Unstable Wall of Fire
+bar2: Eruption, Noxious Breath, Molten Whip, Flames of Oblivion, Venomous Knife, Roll Dodge
+
+Anonymous -999932
+bar1: Light Attack (Dual Wield), Surprise Attack, Swap Weapons, Relentless Focus, Killer's Blade, Consuming Trap
+bar2: Debilitate, Structured Entropy, Deadly Cloak, Forward Momentum, Healing Combustion, Healing Combustion
+
+Anonymous -999927
+bar1: Light Attack (Inferno), Escalating Runeblades, Swap Weapons, Unstable Wall of Fire, Pragmatic Fatecarver, Blighted Blastbones
+bar2: Healing Combustion, Radiant Oppression, Runebreak, Shocking Siphon, Major Sorcery, Radiate
+
+Paddywhack
+bar1: Light Attack (Lightning), Puncturing Sweep, Swap Weapons, Impale, Fetcher Infection, Unstable Wall of Fire
+bar2: Deep Fissure, Degeneration, Luminous Shards, Merciless Resolve, Fiery Contingency, Healing Combustion
+
+Picks-Her-Bum
+bar1: Light Attack (Restoration), Combat Prayer, Illustrious Healing, Radiating Regeneration, Energy Orb, Heavy Attack (Restoration)
+bar2: Light Attack (Ice), Swap Weapons, Blockade of Frost, Blood Altar, Major Sorcery, Roll Dodge
+
+Anonymous -999930
+bar1: Swap Weapons, Illustrious Healing, Extended Ritual, Budding Seeds, Radiating Regeneration, Energy Orb
+bar2: Combat Prayer, Radiant Aura, Ward Ally, Budding Seeds, Heavy Attack (Restoration), Bash
