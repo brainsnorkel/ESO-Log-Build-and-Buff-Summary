@@ -9,6 +9,7 @@ import logging
 from typing import List, Dict, Any
 from datetime import datetime
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet, calculate_kills_and_wipes
+from .set_abbreviations import abbreviate_set_name
 
 logger = logging.getLogger(__name__)
 
@@ -151,14 +152,21 @@ class MarkdownFormatter:
         else:
             status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
         
+        # Generate ESO Logs URL for this fight
+        report_code = encounter.report_code if hasattr(encounter, 'report_code') else 'UNKNOWN'
+        fight_id = encounter.fight_id if hasattr(encounter, 'fight_id') else 1
+        eso_logs_url = f"https://www.esologs.com/reports/{report_code}?fight={fight_id}"
+        
         lines = [
             f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text} {{#{encounter_anchor}}}",
+            f"[📊 ESO Logs Fight Summary]({eso_logs_url})",
             ""
         ]
         
-        # Add group DPS if available
+        # Add group DPS if available - format with k/m suffixes
         if encounter.group_dps_total:
-            lines.append(f"**Group DPS:** {encounter.group_dps_total:,}")
+            formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
+            lines.append(f"**Group DPS:** {formatted_dps}")
             lines.append("")
         
         # Add Buff/Debuff Uptime Table
@@ -166,24 +174,25 @@ class MarkdownFormatter:
             lines.extend(self._format_buff_debuff_table(encounter.buff_uptimes))
             lines.append("")
         
-        # Create team composition summary
-        tanks = encounter.tanks
-        healers = encounter.healers
-        dps = encounter.dps
+        # Create consolidated team composition table
+        all_players = []
         
-        # Format as tables for better readability
-        if tanks:
-            lines.extend(self._format_role_table("Tanks", tanks))
-            lines.append("")
+        # Add tanks first
+        if encounter.tanks:
+            all_players.extend(encounter.tanks)
         
-        if healers:
-            lines.extend(self._format_role_table("Healers", healers))
-            lines.append("")
+        # Add healers second
+        if encounter.healers:
+            all_players.extend(encounter.healers)
         
-        if dps:
-            # Sort DPS players by their DPS percentage (highest first)
-            sorted_dps = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
-            lines.extend(self._format_role_table("DPS", sorted_dps))
+        # Add DPS last, sorted by DPS percentage (highest first)
+        if encounter.dps:
+            sorted_dps = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            all_players.extend(sorted_dps)
+        
+        # Format as single consolidated table
+        if all_players:
+            lines.extend(self._format_consolidated_player_table(all_players))
             lines.append("")
         
         return lines
@@ -193,8 +202,6 @@ class MarkdownFormatter:
         # Use different table structure for DPS, Healers, and Tanks to include abilities
         if "DPS" in role_title or "Healers" in role_title or "Tanks" in role_title:
             lines = [
-                f"#### {role_title}",
-                "",
                 "| Player | Class | Gear Sets |",
                 "|--------|-------|-----------|"
             ]
@@ -220,18 +227,11 @@ class MarkdownFormatter:
                 
                 lines.append(f"| {player_name} | {class_name} | {gear_str} |")
                 
-                # Add top abilities row for DPS, healers, and tanks
-                if player.abilities and player.abilities.get('top_abilities'):
-                    if player.role.value == "DPS":
-                        ability_type = "Top Damage"
-                        abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
-                    elif player.role.value == "Healer":
-                        ability_type = "Top Healing"
-                        abilities_str = self._format_top_abilities_for_table(player.abilities.get('top_abilities', []))
-                    else:  # TANK
-                        ability_type = "Top Casts"
-                        abilities_str = self._format_cast_counts_for_table(player.abilities.get('top_abilities', []))
-                    lines.append(f"| ↳ {ability_type} | {abilities_str} |")
+                # Add action bars if available
+                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                    action_bars = self._format_action_bars_for_table(player)
+                    if action_bars:
+                        lines.append(f"| ↳ {action_bars} |")
             
             # No need to pad tables to fixed numbers - show only actual players
         else:
@@ -256,6 +256,49 @@ class MarkdownFormatter:
                     gear_str = f"**Set Problem?:** {gear_str}"
                 
                 lines.append(f"| {player_name} | {class_name} | {gear_str} |")
+                
+                # Add action bars if available
+                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                    action_bars = self._format_action_bars_for_table(player)
+                    if action_bars:
+                        lines.append(f"| ↳ {action_bars} |")
+        
+        return lines
+    
+    def _format_consolidated_player_table(self, all_players: List[PlayerBuild]) -> List[str]:
+        """Format all players in a single consolidated table with role icons."""
+        lines = [
+            "| Player | Class | Gear Sets |",
+            "|--------|-------|-----------|"
+        ]
+        
+        for player in all_players:
+            gear_str = self._format_gear_sets_for_table(player.gear_sets)
+            class_name = self._get_class_display_name(player.character_class, player)
+            
+            # Add role icon and DPS percentage to player name
+            role_icon = self.ROLE_ICONS.get(player.role, '')
+            player_name = f"{role_icon} {player.name}"
+            
+            # Add DPS percentage for all roles if available
+            if player.dps_data and 'dps_percentage' in player.dps_data:
+                dps_percentage = player.dps_data['dps_percentage']
+                player_name = f"{role_icon} {player.name} ({dps_percentage:.1f}%)"
+                logger.debug(f"Formatted {player.role.value} player {player.name} with percentage: {player_name}")
+            elif player.role.value == "DPS":
+                logger.debug(f"DPS player {player.name} - dps_data: {player.dps_data}")
+            
+            # Add "Set Problem?:" indicator if player has incomplete sets
+            if self._has_incomplete_sets(player.gear_sets):
+                gear_str = f"**Set Problem?:** {gear_str}"
+            
+            lines.append(f"| {player_name} | {class_name} | {gear_str} |")
+            
+            # Add action bars if available
+            if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                action_bars = self._format_action_bars_for_table(player)
+                if action_bars:
+                    lines.append(f"| ↳ {action_bars} |")
         
         return lines
     
@@ -267,7 +310,9 @@ class MarkdownFormatter:
         # Format each set without perfected highlighting
         formatted_sets = []
         for gear_set in gear_sets:
-            set_str = f"{gear_set.piece_count}pc {gear_set.name}"
+            # Use abbreviated set name if available
+            abbreviated_name = abbreviate_set_name(gear_set.name)
+            set_str = f"{gear_set.piece_count}x{abbreviated_name}"
             formatted_sets.append(set_str)
         
         return ", ".join(formatted_sets)
@@ -279,6 +324,34 @@ class MarkdownFormatter:
         
         # Show all abilities without truncation or abbreviation
         return ", ".join(abilities)
+    
+    def _format_dps_with_suffix(self, dps_value: int) -> str:
+        """Format DPS value with k/m suffixes to one decimal place."""
+        if dps_value >= 1000000:
+            return f"{dps_value / 1000000:.1f}m"
+        elif dps_value >= 1000:
+            return f"{dps_value / 1000:.1f}k"
+        else:
+            return str(dps_value)
+    
+    def _format_action_bars_for_table(self, player: PlayerBuild) -> str:
+        """Format action bars for markdown table cell."""
+        if not player.abilities:
+            return ""
+        
+        bars = []
+        
+        # Format bar1 if available
+        if player.abilities.get('bar1'):
+            bar1_abilities = ", ".join(player.abilities['bar1'])
+            bars.append(f"1: {bar1_abilities}")
+        
+        # Format bar2 if available
+        if player.abilities.get('bar2'):
+            bar2_abilities = ", ".join(player.abilities['bar2'])
+            bars.append(f"2: {bar2_abilities}")
+        
+        return "<br/>".join(bars)
     
     def _format_top_abilities_for_table(self, top_abilities: List[Dict[str, Any]]) -> str:
         """Format top abilities with damage/healing numbers for markdown table cell."""

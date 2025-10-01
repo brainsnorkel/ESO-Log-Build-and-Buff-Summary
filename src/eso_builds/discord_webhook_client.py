@@ -278,10 +278,11 @@ class DiscordWebhookClient:
                 class_name = self._get_class_display_name(player.character_class, player)
                 lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
                 
-                # Add top abilities for tanks
-                if player.abilities and player.abilities.get('top_abilities'):
-                    abilities_str = self._format_cast_counts_compact(player.abilities.get('top_abilities', []))
-                    lines.append(f"  ↳ **Top Casts:** {abilities_str}")
+                # Add action bars if available
+                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                    action_bars = self._format_action_bars_for_discord(player)
+                    if action_bars:
+                        lines.append(f"  ↳ {action_bars}")
             
             lines.append("")  # Empty line
         
@@ -299,10 +300,11 @@ class DiscordWebhookClient:
                 class_name = self._get_class_display_name(player.character_class, player)
                 lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
                 
-                # Add top healing abilities
-                if player.abilities and player.abilities.get('top_abilities'):
-                    abilities_str = self._format_top_abilities_compact(player.abilities.get('top_abilities', []))
-                    lines.append(f"  ↳ **Top Healing:** {abilities_str}")
+                # Add action bars if available
+                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                    action_bars = self._format_action_bars_for_discord(player)
+                    if action_bars:
+                        lines.append(f"  ↳ {action_bars}")
             
             lines.append("")  # Empty line
         
@@ -330,10 +332,11 @@ class DiscordWebhookClient:
                 class_name = self._get_class_display_name(player.character_class, player)
                 lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
                 
-                # Add top damage abilities
-                if player.abilities and player.abilities.get('top_abilities'):
-                    abilities_str = self._format_top_abilities_compact(player.abilities.get('top_abilities', []))
-                    lines.append(f"  ↳ **Top Damage:** {abilities_str}")
+                # Add action bars if available
+                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                    action_bars = self._format_action_bars_for_discord(player)
+                    if action_bars:
+                        lines.append(f"  ↳ {action_bars}")
         
         return "\n".join(lines)
     
@@ -344,7 +347,8 @@ class DiscordWebhookClient:
         
         formatted_sets = []
         for gear_set in gear_sets:
-            formatted_sets.append(f"{gear_set.piece_count}pc {gear_set.name}")
+            # Discord format: 5xPillager's Profit (no space, x instead of pc)
+            formatted_sets.append(f"{gear_set.piece_count}x{gear_set.name}")
         
         return ", ".join(formatted_sets)
     
@@ -405,6 +409,25 @@ class DiscordWebhookClient:
                 return f"Oaken{mapped_class}"
         
         return mapped_class
+    
+    def _format_action_bars_for_discord(self, player) -> str:
+        """Format action bars for Discord."""
+        if not player.abilities:
+            return ""
+        
+        bars = []
+        
+        # Format bar1 if available
+        if player.abilities.get('bar1'):
+            bar1_abilities = ", ".join(player.abilities['bar1'])
+            bars.append(f"1: {bar1_abilities}")
+        
+        # Format bar2 if available
+        if player.abilities.get('bar2'):
+            bar2_abilities = ", ".join(player.abilities['bar2'])
+            bars.append(f"2: {bar2_abilities}")
+        
+        return "\n  ↳ ".join(bars)
     
     def _create_fight_embed(self, title: str, content: str, fight_number: int, total_fights: int, color: int = 0x00ff00) -> Dict[str, Any]:
         """Create a Discord embed for an individual fight."""

@@ -475,9 +475,66 @@ class BarOnlyEncounterScraper:
         # Sort by DOM index to maintain order
         sorted_abilities = sorted(abilities, key=lambda x: x.get('dom_index', 0))
         
-        # Strategy: First 6 = Primary bar, Next 6 = Secondary bar
-        bar1 = sorted_abilities[:6] if len(sorted_abilities) >= 6 else sorted_abilities
-        bar2 = sorted_abilities[6:12] if len(sorted_abilities) >= 12 else []
+        if len(sorted_abilities) < 12:
+            # If we don't have 12 abilities, use simple split
+            bar1 = sorted_abilities[:6] if len(sorted_abilities) >= 6 else sorted_abilities
+            bar2 = sorted_abilities[6:12] if len(sorted_abilities) >= 12 else []
+        else:
+            # For 12+ abilities, we need to reorder them correctly
+            # The DOM order doesn't match action bar order, so we need to rearrange
+            ability_names = [a['ability_name'] for a in sorted_abilities]
+            
+            # Based on the correct order you provided for Ok Beamer:
+            # Current DOM order: Cephaliarch's Flail, Stampede, Pragmatic Fatecarver, Flames of Oblivion, Quick Cloak, Engulfing Flames, Venomous Claw, Inspired Scholarship, Camouflaged Hunter, Molten Whip, Everlasting Sweep, Standard of Might
+            # Correct order should be:
+            # bar1: Cephaliarch's Flail, Pragmatic Fatecarver, Quick Cloak, Venomous Claw, Camouflaged Hunter, Everlasting Sweep
+            # bar2: Stampede, Flames of Oblivion, Engulfing Flames, Inspired Scholarship, Molten Whip, Standard of Might
+            
+            # This suggests the action bars are arranged in a specific pattern
+            # Let's try a different approach - look for patterns in the ability names
+            # or use a more intelligent reordering based on the actual layout
+            
+            # For now, let's use a simple reordering that might work better
+            # We'll take every other ability starting from index 0 for bar1
+            # and every other ability starting from index 1 for bar2
+            
+            bar1_abilities = []
+            bar2_abilities = []
+            
+            for i, ability_name in enumerate(ability_names):
+                if i < 6:
+                    # First 6 abilities go to bar1, but in a specific order
+                    if i == 0:  # Cephaliarch's Flail
+                        bar1_abilities.insert(0, ability_name)
+                    elif i == 2:  # Pragmatic Fatecarver  
+                        bar1_abilities.insert(1, ability_name)
+                    elif i == 4:  # Quick Cloak
+                        bar1_abilities.insert(2, ability_name)
+                    elif i == 1:  # Stampede -> bar2
+                        bar2_abilities.insert(0, ability_name)
+                    elif i == 3:  # Flames of Oblivion -> bar2
+                        bar2_abilities.insert(1, ability_name)
+                    elif i == 5:  # Engulfing Flames -> bar2
+                        bar2_abilities.insert(2, ability_name)
+                elif i < 12:
+                    # Next 6 abilities
+                    if i == 6:  # Venomous Claw -> bar1
+                        bar1_abilities.insert(3, ability_name)
+                    elif i == 7:  # Inspired Scholarship -> bar2
+                        bar2_abilities.insert(3, ability_name)
+                    elif i == 8:  # Camouflaged Hunter -> bar1
+                        bar1_abilities.insert(4, ability_name)
+                    elif i == 9:  # Molten Whip -> bar2
+                        bar2_abilities.insert(4, ability_name)
+                    elif i == 10:  # Everlasting Sweep -> bar1
+                        bar1_abilities.insert(5, ability_name)
+                    elif i == 11:  # Standard of Might -> bar2
+                        bar2_abilities.insert(5, ability_name)
+            
+            return {
+                'bar1': ", ".join(bar1_abilities),
+                'bar2': ", ".join(bar2_abilities)
+            }
         
         return {
             'bar1': ", ".join([a['ability_name'] for a in bar1]),

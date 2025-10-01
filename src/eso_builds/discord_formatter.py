@@ -9,6 +9,7 @@ import logging
 from typing import List, Dict
 from datetime import datetime
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet, calculate_kills_and_wipes
+from .set_abbreviations import abbreviate_set_name
 
 logger = logging.getLogger(__name__)
 
@@ -119,24 +120,25 @@ class DiscordReportFormatter:
             lines.extend(self._format_buff_debuff_discord(encounter.buff_uptimes))
             lines.append("")
         
-        # Get player role groups
-        tanks = encounter.tanks
-        healers = encounter.healers
-        dps = encounter.dps
+        # Create consolidated player list
+        all_players = []
         
-        # Format role sections
-        if tanks:
-            lines.extend(self._format_role_discord("**Tanks**", tanks))
-            lines.append("")
+        # Add tanks first
+        if encounter.tanks:
+            all_players.extend(encounter.tanks)
         
-        if healers:
-            lines.extend(self._format_role_discord("**Healers**", healers))
-            lines.append("")
+        # Add healers second
+        if encounter.healers:
+            all_players.extend(encounter.healers)
         
-        if dps:
-            # Sort DPS players by damage percentage (highest first)
-            dps_sorted = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
-            lines.extend(self._format_role_discord("**DPS**", dps_sorted))
+        # Add DPS last, sorted by DPS percentage (highest first)
+        if encounter.dps:
+            dps_sorted = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            all_players.extend(dps_sorted)
+        
+        # Format as single consolidated section
+        if all_players:
+            lines.extend(self._format_consolidated_players_discord(all_players))
             lines.append("")
         
         return lines
@@ -197,7 +199,7 @@ class DiscordReportFormatter:
             role_icon = self.ROLE_ICONS.get(player.role, '')
             player_name = f"{role_icon} {base_name}"
             
-            if player.role.value == "DPS" and player.dps_data and 'dps_percentage' in player.dps_data:
+            if player.dps_data and 'dps_percentage' in player.dps_data:
                 dps_percentage = player.dps_data['dps_percentage']
                 player_name = f"{role_icon} {base_name} ({dps_percentage:.1f}%)"
             
@@ -214,18 +216,48 @@ class DiscordReportFormatter:
             class_name = self._get_class_display_name(player.character_class, player)
             lines.append(f"{escaped_name}: {class_name} - {gear_text}")
             
-            # Add top abilities for DPS, healers, and tanks
-            if player.abilities and player.abilities.get('top_abilities'):
-                if player.role.value == "DPS":
-                    ability_type = "Top Damage"
-                    abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
-                elif player.role.value == "Healer":
-                    ability_type = "Top Healing"
-                    abilities_str = self._format_top_abilities_for_discord(player.abilities.get('top_abilities', []))
-                else:  # TANK
-                    ability_type = "Top Casts"
-                    abilities_str = self._format_cast_counts_for_discord(player.abilities.get('top_abilities', []))
-                lines.append(f"  ↳ {ability_type}: {abilities_str}")
+            # Add action bars if available
+            if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                action_bars = self._format_action_bars_for_discord(player)
+                if action_bars:
+                    lines.append(f"  ↳ {action_bars}")
+        
+        return lines
+    
+    def _format_consolidated_players_discord(self, all_players: List[PlayerBuild]) -> List[str]:
+        """Format all players in a single consolidated section for Discord."""
+        lines = []
+        
+        for player in all_players:
+            # Player header - escape @ symbols with backticks to prevent Discord pings
+            base_name = player.name if player.name != "anonymous" else f"anonymous{all_players.index(player) + 1}"
+            
+            # Add role icon and DPS percentage to player name
+            role_icon = self.ROLE_ICONS.get(player.role, '')
+            player_name = f"{role_icon} {base_name}"
+            
+            if player.dps_data and 'dps_percentage' in player.dps_data:
+                dps_percentage = player.dps_data['dps_percentage']
+                player_name = f"{role_icon} {base_name} ({dps_percentage:.1f}%)"
+            
+            escaped_name = f"`{player_name}`" if "@" in player_name else player_name
+            
+            # Gear sets in a compact format
+            gear_text = self._format_gear_sets_discord(player.gear_sets)
+            
+            # Add "Set Problem?:" indicator if player has incomplete sets
+            if self._has_incomplete_sets(player.gear_sets):
+                gear_text = f"**Set Problem?:** {gear_text}"
+            
+            # Combine character class and gear sets on one line with a dash separator
+            class_name = self._get_class_display_name(player.character_class, player)
+            lines.append(f"{escaped_name}: {class_name} - {gear_text}")
+            
+            # Add action bars if available
+            if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                action_bars = self._format_action_bars_for_discord(player)
+                if action_bars:
+                    lines.append(f"  ↳ {action_bars}")
         
         return lines
     
@@ -236,8 +268,10 @@ class DiscordReportFormatter:
         
         formatted_sets = []
         for gear_set in gear_sets:
-            # Simple format without bold styling
-            formatted_sets.append(f"{gear_set.piece_count}pc {gear_set.name}")
+            # Use abbreviated set name if available
+            abbreviated_name = abbreviate_set_name(gear_set.name)
+            # Discord format: 5xPillager's Profit (no space, x instead of pc)
+            formatted_sets.append(f"{gear_set.piece_count}x{abbreviated_name}")
         
         return ", ".join(formatted_sets)
     
@@ -275,6 +309,25 @@ class DiscordReportFormatter:
             formatted_abilities.append(f"{name} ({casts})")
         
         return ", ".join(formatted_abilities)
+    
+    def _format_action_bars_for_discord(self, player: PlayerBuild) -> str:
+        """Format action bars for Discord."""
+        if not player.abilities:
+            return ""
+        
+        bars = []
+        
+        # Format bar1 if available
+        if player.abilities.get('bar1'):
+            bar1_abilities = ", ".join(player.abilities['bar1'])
+            bars.append(f"1: {bar1_abilities}")
+        
+        # Format bar2 if available
+        if player.abilities.get('bar2'):
+            bar2_abilities = ", ".join(player.abilities['bar2'])
+            bars.append(f"2: {bar2_abilities}")
+        
+        return "\n  ↳ ".join(bars)
     
     def _format_ranking_discord(self, ranking: LogRanking) -> List[str]:
         """Format a ranking section for Discord (future expansion)."""

@@ -53,32 +53,33 @@ python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
 
 ## 🎯 Action Bar Integration
 
-The tool now includes **Action Bar Integration** that provides complete player build information by combining gear analysis with web-scraped action bar abilities.
+The tool now includes **Action Bar Integration** that automatically provides complete player build information by combining gear analysis with web-scraped action bar abilities.
 
 ### Enhanced Player Details
 
-Reports now show both gear sets AND action bar abilities:
+All reports now automatically show both gear sets AND action bar abilities:
 
 ```
 🛡️ Ok Beamer: Dragonknight, 5pc Perfected Pearlescent Ward, 5pc Lucent Echoes, 2pc Nazaray
-  bar1: Cephaliarch's Flail, Stampede, Pragmatic Fatecarver, Flames of Oblivion, Quick Cloak, Engulfing Flames
-  bar2: Venomous Claw, Inspired Scholarship, Camouflaged Hunter, Molten Whip, Everlasting Sweep, Standard of Might
+  bar1: Cephaliarch's Flail, Pragmatic Fatecarver, Quick Cloak, Venomous Claw, Camouflaged Hunter, Everlasting Sweep
+  bar2: Stampede, Flames of Oblivion, Engulfing Flames, Inspired Scholarship, Molten Whip, Standard of Might
 ```
 
 ### Usage
 
 ```bash
-# Generate report with action bar integration
-python single_report_tool.py <report_code> --include-action-bars --output all
+# Action bars are automatically included in all reports
+python single_report_tool.py <report_code> --output all
 ```
 
 ### Features
 
-- ✅ **Complete Build Analysis**: Gear sets + action bar abilities
+- ✅ **Complete Build Analysis**: Gear sets + action bar abilities (automatic)
+- ✅ **Smart Ordering**: Correctly orders abilities to match actual action bar layout
 - ✅ **Web Scraping**: Extracts abilities from ESO Logs summary pages
 - ✅ **Smart Integration**: Graceful fallback for players without action bar data
 - ✅ **Timeout Protection**: Configurable timeouts prevent long-running operations
-- ✅ **Multiple Formats**: Works with Markdown, PDF, and Discord outputs
+- ✅ **Multiple Formats**: Works with Markdown and Discord outputs
 
 For detailed documentation, see [ACTION_BAR_INTEGRATION.md](ACTION_BAR_INTEGRATION.md).
 
@@ -96,7 +97,7 @@ Positional Arguments:
   report_code           ESO Logs report code or full URL (e.g. 3gjVGWB2dxCL8XAw or https://www.esologs.com/reports/3gjVGWB2dxCL8XAw)
 
 Options:
-  --output {console,markdown,discord,pdf,all}
+  --output {console,markdown,discord,all}
                         Output format (default: console)
   --output-dir DIR      Directory for output files (default: reports)
   --discord-webhook URL Discord webhook URL to post reports directly to Discord
@@ -207,7 +208,7 @@ Arguments:
   report_code           ESO Logs report code or full URL (e.g., 3gjVGWB2dxCL8XAw or https://www.esologs.com/reports/3gjVGWB2dxCL8XAw)
 
 Options:
-  --output {console,markdown,discord,pdf,all}
+  --output {console,markdown,discord,all}
                         Output format (default: console)
   --output-dir DIR      Directory for output files (default: reports)
   --discord-webhook URL Discord webhook URL to post reports directly to Discord

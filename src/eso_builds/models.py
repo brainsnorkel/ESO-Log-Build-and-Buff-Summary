@@ -69,6 +69,8 @@ class EncounterResult:
     boss_percentage: float = 0.0
     buff_uptimes: Dict[str, float] = field(default_factory=dict)
     group_dps_total: Optional[int] = None  # Total group DPS damage
+    report_code: Optional[str] = None  # ESO Logs report code
+    fight_id: Optional[int] = None  # Fight ID in the report
     
     @property
     def tanks(self) -> List[PlayerBuild]:
