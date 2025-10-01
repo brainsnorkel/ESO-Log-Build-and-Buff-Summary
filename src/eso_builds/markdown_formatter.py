@@ -157,17 +157,17 @@ class MarkdownFormatter:
         fight_id = encounter.fight_id if hasattr(encounter, 'fight_id') else 1
         eso_logs_url = f"https://www.esologs.com/reports/{report_code}?fight={fight_id}"
         
+        # Format header with group DPS if available
+        header = f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text} {{#{encounter_anchor}}}"
+        if encounter.group_dps_total:
+            formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
+            header += f" - **{formatted_dps} DPS**"
+        
         lines = [
-            f"### ⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - {status_text} {{#{encounter_anchor}}}",
+            header,
             f"[📊 ESO Logs Fight Summary]({eso_logs_url})",
             ""
         ]
-        
-        # Add group DPS if available - format with k/m suffixes
-        if encounter.group_dps_total:
-            formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
-            lines.append(f"**Group DPS:** {formatted_dps}")
-            lines.append("")
         
         # Add Buff/Debuff Uptime Table
         if encounter.buff_uptimes:

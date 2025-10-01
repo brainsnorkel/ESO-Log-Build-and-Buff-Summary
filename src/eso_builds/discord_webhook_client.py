@@ -72,6 +72,9 @@ class DiscordWebhookClient:
                 # Format individual fight content
                 fight_content = self._format_individual_fight(encounter)
                 title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - ✅ KILL"
+                if encounter.group_dps_total:
+                    formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
+                    title += f" - **{formatted_dps} DPS**"
                 
                 # Create embed for individual fight
                 embed = self._create_fight_embed(title, fight_content, fight_number, total_fights)
@@ -92,6 +95,9 @@ class DiscordWebhookClient:
                 # Format individual fight content
                 fight_content = self._format_individual_fight(encounter)
                 title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - ❌ WIPE ({encounter.boss_percentage:.1f}%)"
+                if encounter.group_dps_total:
+                    formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
+                    title += f" - **{formatted_dps} DPS**"
                 
                 # Create embed for individual fight (red color for wipes)
                 embed = self._create_fight_embed(title, fight_content, fight_number, total_fights, color=0xff0000)
@@ -246,10 +252,6 @@ class DiscordWebhookClient:
         """
         lines = []
         
-        # Group DPS if available
-        if encounter.group_dps_total:
-            lines.append(f"**Group DPS:** {encounter.group_dps_total:,}")
-            lines.append("")
         
         # Buffs/Debuffs
         if encounter.buff_uptimes:
@@ -428,6 +430,15 @@ class DiscordWebhookClient:
             bars.append(f"2: {bar2_abilities}")
         
         return "\n  ↳ ".join(bars)
+    
+    def _format_dps_with_suffix(self, dps_value: int) -> str:
+        """Format DPS value with k/m suffixes to one decimal place."""
+        if dps_value >= 1000000:
+            return f"{dps_value / 1000000:.1f}m"
+        elif dps_value >= 1000:
+            return f"{dps_value / 1000:.1f}k"
+        else:
+            return str(dps_value)
     
     def _create_fight_embed(self, title: str, content: str, fight_number: int, total_fights: int, color: int = 0x00ff00) -> Dict[str, Any]:
         """Create a Discord embed for an individual fight."""

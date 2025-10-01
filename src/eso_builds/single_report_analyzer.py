@@ -280,14 +280,15 @@ class SingleReportAnalyzer:
     async def _get_players_simple(self, client: ESOLogsClient, report_code: str, fight) -> List[PlayerBuild]:
         """Extract real player data using the working table structure."""
         try:
-            # Get table data with time ranges
+            # Get table data with time ranges and combatant info for abilities
             table_data = await client._make_request(
                 "get_report_table",
                 code=report_code,
                 start_time=int(fight.start_time),
                 end_time=int(fight.end_time),
                 data_type="Summary",
-                hostility_type="Friendlies"
+                hostility_type="Friendlies",
+                includeCombatantInfo=True
             )
             
             
@@ -351,8 +352,28 @@ class SingleReportAnalyzer:
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
                                     
-                                    # Abilities are now extracted directly from combatantInfo in the API client
+                                    # Extract abilities from combatantInfo.talents
                                     abilities = {'bar1': [], 'bar2': []}
+                                    if 'combatantInfo' in player_data and 'talents' in player_data['combatantInfo']:
+                                        talents = player_data['combatantInfo']['talents']
+                                        if isinstance(talents, list) and len(talents) >= 12:
+                                            # Extract ability names from talents (first 12 are action bars)
+                                            ability_names = []
+                                            for talent in talents[:12]:  # Only first 12 for action bars
+                                                if isinstance(talent, dict) and 'name' in talent:
+                                                    ability_names.append(talent['name'])
+                                            
+                                            # Split into two bars of 6 abilities each
+                                            if len(ability_names) >= 12:
+                                                abilities['bar1'] = ability_names[:6]
+                                                abilities['bar2'] = ability_names[6:12]
+                                            elif len(ability_names) >= 6:
+                                                abilities['bar1'] = ability_names[:6]
+                                                abilities['bar2'] = ability_names[6:] if len(ability_names) > 6 else []
+                                            else:
+                                                abilities['bar1'] = ability_names
+                                            
+                                            logger.debug(f"Extracted abilities for {final_name}: {len(abilities['bar1'])} bar1, {len(abilities['bar2'])} bar2")
                                     
                                     player = PlayerBuild(
                                         name=final_name,

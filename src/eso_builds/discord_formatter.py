@@ -105,15 +105,16 @@ class DiscordReportFormatter:
         else:
             status_text = f"❌ WIPE ({encounter.boss_percentage:.1f}%)"
         
+        # Format header with group DPS if available
+        header = f"### ⚔️ **{encounter.encounter_name}** ({encounter.difficulty.value}) - {status_text}"
+        if encounter.group_dps_total:
+            formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
+            header += f" - **{formatted_dps} DPS**"
+        
         lines = [
-            f"### ⚔️ **{encounter.encounter_name}** ({encounter.difficulty.value}) - {status_text}",
+            header,
             ""
         ]
-        
-        # Add group DPS if available
-        if encounter.group_dps_total:
-            lines.append(f"**Group DPS:** {encounter.group_dps_total:,}")
-            lines.append("")
         
         # Add Buff/Debuff Uptime Table
         if encounter.buff_uptimes:
@@ -328,6 +329,15 @@ class DiscordReportFormatter:
             bars.append(f"2: {bar2_abilities}")
         
         return "\n  ↳ ".join(bars)
+    
+    def _format_dps_with_suffix(self, dps_value: int) -> str:
+        """Format DPS value with k/m suffixes to one decimal place."""
+        if dps_value >= 1000000:
+            return f"{dps_value / 1000000:.1f}m"
+        elif dps_value >= 1000:
+            return f"{dps_value / 1000:.1f}k"
+        else:
+            return str(dps_value)
     
     def _format_ranking_discord(self, ranking: LogRanking) -> List[str]:
         """Format a ranking section for Discord (future expansion)."""
