@@ -20,6 +20,7 @@ except ImportError:
     pass
 
 from src.eso_builds.single_report_analyzer import SingleReportAnalyzer
+from src.eso_builds.enhanced_report_generator import EnhancedReportGenerator
 from src.eso_builds.report_formatter import ReportFormatter
 from src.eso_builds.markdown_formatter import MarkdownFormatter
 from src.eso_builds.discord_formatter import DiscordReportFormatter
@@ -74,10 +75,10 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
     print("=" * 50)
     
     try:
-        analyzer = SingleReportAnalyzer()
-        
-        # Analyze the report
-        trial_report = await analyzer.analyze_report(report_code)
+        # Use enhanced report generator with API-based action bars
+        print("🎯 Generating enhanced report with API-based action bar integration...")
+        generator = EnhancedReportGenerator()
+        trial_report = await generator.generate_enhanced_report(report_code=report_code)
         
         if not trial_report.rankings or not trial_report.rankings[0].encounters:
             print(f"❌ No encounter data found in report {report_code}")
@@ -101,7 +102,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             print(console_output)
         
         # Generate file outputs if requested
-        if output_format in ["markdown", "discord", "pdf", "all"]:
+        if output_format in ["markdown", "discord", "all"]:
             os.makedirs(output_dir, exist_ok=True)
             from datetime import datetime
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
@@ -135,7 +136,8 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     try:
                         async with DiscordWebhookClient(discord_webhook) as webhook_client:
                             title = f"ESO Trial Report - {report_code}"
-                            success = await webhook_client.post_report(discord_content, title)
+                            # Use markdown content instead of discord content to ensure consistent formatting
+                            success = await webhook_client.post_report(markdown_content, title)
                             if success:
                                 print(f"🚀 Report posted to Discord webhook")
                             else:
@@ -143,19 +145,6 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     except Exception as e:
                         print(f"❌ Error posting to Discord webhook: {e}")
             
-            # Generate PDF report
-            if output_format in ["pdf", "all"]:
-                from src.eso_builds.pdf_formatter import PDFReportFormatter
-                
-                pdf_formatter = PDFReportFormatter()
-                pdf_filename = f"single_report_{report_code}_{timestamp}.pdf"
-                pdf_filepath = os.path.join(output_dir, pdf_filename)
-                
-                pdf_content = pdf_formatter.format_trial_report(trial_report, anonymize=anonymize)
-                with open(pdf_filepath, 'wb') as f:
-                    f.write(pdf_content)
-                
-                print(f"📄 PDF report saved to: {pdf_filepath}")
         
         # Handle Discord webhook posting (individual fights)
         if discord_webhook_post:
@@ -222,7 +211,7 @@ Examples:
   # Analyze a specific report (full URL)
   python single_report_tool.py "https://www.esologs.com/reports/mtFqVzQPNBcCrd1h"
   
-  # Generate markdown output
+  # Generate markdown output (includes action bars by default)
   python single_report_tool.py mtFqVzQPNBcCrd1h --output markdown
   
   # Both console and markdown
@@ -239,8 +228,8 @@ Examples:
     parser.add_argument('report_code', type=str,
                        help='ESO Logs report code or full URL (e.g. mtFqVzQPNBcCrd1h or https://www.esologs.com/reports/mtFqVzQPNBcCrd1h)')
     
-    parser.add_argument('--output', choices=['console', 'markdown', 'discord', 'pdf', 'all'], default='console',
-                       help='Output format: console, markdown, discord, pdf, or all (default: console)')
+    parser.add_argument('--output', choices=['console', 'markdown', 'discord', 'all'], default='console',
+                       help='Output format: console, markdown, discord, or all (default: console)')
     
     parser.add_argument('--output-dir', type=str, default='reports',
                        help='Directory for output files (default: reports)')
@@ -256,6 +245,7 @@ Examples:
     
     parser.add_argument('--discord-webhook-post', action='store_true',
                        help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (both kills and wipes)')
+    
     
     args = parser.parse_args()
     

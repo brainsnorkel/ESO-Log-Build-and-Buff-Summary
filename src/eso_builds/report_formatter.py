@@ -109,6 +109,12 @@ class ReportFormatter:
             return f"{player.character_class}, (no gear data)"
         
         gear_str = ", ".join(str(gear) for gear in player.gear_sets)
+        
+        # Add action bar information if available
+        action_bars_info = self._format_action_bars(player)
+        if action_bars_info:
+            return f"{player.character_class}, {gear_str}\n{action_bars_info}"
+        
         return f"{player.character_class}, {gear_str}"
     
     def _format_player_build_without_name(self, player: PlayerBuild) -> str:
@@ -117,7 +123,32 @@ class ReportFormatter:
             return f"{player.character_class}, (no gear data)"
         
         gear_str = ", ".join(str(gear) for gear in player.gear_sets)
+        
+        # Add action bar information if available
+        action_bars_info = self._format_action_bars(player)
+        if action_bars_info:
+            return f"{player.character_class}, {gear_str}\n{action_bars_info}"
+        
         return f"{player.character_class}, {gear_str}"
+    
+    def _format_action_bars(self, player: PlayerBuild) -> str:
+        """Format a player's action bars if available."""
+        if not player.abilities:
+            return ""
+        
+        bar_lines = []
+        
+        # Format bar1 if available
+        if 'bar1' in player.abilities and player.abilities['bar1']:
+            bar1_abilities = ", ".join(player.abilities['bar1'])
+            bar_lines.append(f"  bar1: {bar1_abilities}")
+        
+        # Format bar2 if available
+        if 'bar2' in player.abilities and player.abilities['bar2']:
+            bar2_abilities = ", ".join(player.abilities['bar2'])
+            bar_lines.append(f"  bar2: {bar2_abilities}")
+        
+        return "\n".join(bar_lines)
     
     def format_multiple_trials(self, trial_reports: List[TrialReport]) -> str:
         """Format multiple trial reports."""

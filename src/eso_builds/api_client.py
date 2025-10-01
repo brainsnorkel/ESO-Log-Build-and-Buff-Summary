@@ -14,6 +14,7 @@ import time
 from esologs import get_access_token, Client, GraphQLClientError
 
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, Difficulty, GearSet
+from .gear_parser import GearParser
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +299,10 @@ class ESOLogsClient:
                 )
                 
                 # Get player details for this fight using rankings data (more reliable)
-                players = await self._get_fight_players_from_rankings(report_code, fight.id)
+                # Pass fight times for ability extraction
+                fight_start = getattr(fight, 'start_time', None)
+                fight_end = getattr(fight, 'end_time', None)
+                players = await self._get_fight_players_from_rankings(report_code, fight.id, fight_start, fight_end)
                 encounter.players = players
                 
                 encounters.append(encounter)
@@ -322,7 +326,8 @@ class ESOLogsClient:
                     start_time=int(fight_start_time),
                     end_time=int(fight_end_time),
                     data_type="Summary",
-                    hostility_type="Friendlies"
+                    hostility_type="Friendlies",
+                    includeCombatantInfo=True
                 )
             else:
                 # Fallback: try with fight_ids parameter
@@ -331,60 +336,124 @@ class ESOLogsClient:
                     code=report_code,
                     fight_ids=[fight_id],
                     data_type="Summary",
-                    hostility_type="Friendlies"
+                    hostility_type="Friendlies",
+                    includeCombatantInfo=True
                 )
             
             players = []
             
             # Parse the table data structure 
             if table_data and hasattr(table_data, 'report_data') and hasattr(table_data.report_data, 'report'):
-                table = table_data.report_data.report.table
+                data = table_data.report_data.report.table['data']
                 
-                # The table data is a dict with different sections
-                if isinstance(table, dict):
+                # The data contains playerDetails with role sections
+                if isinstance(data, dict) and 'playerDetails' in data:
+                    player_details = data['playerDetails']
+                    
                     # Extract players from role sections
                     role_sections = [
-                        ('tanks', Role.TANK),
                         ('healers', Role.HEALER), 
-                        ('dps', Role.DPS)
+                        ('dps', Role.DPS),
+                        ('tanks', Role.TANK)
                     ]
                     
                     for section_name, role in role_sections:
-                        if section_name in table and table[section_name]:
-                            section_players = table[section_name]
+                        if section_name in player_details and player_details[section_name]:
+                            section_players = player_details[section_name]
                             
                             for player_data in section_players:
-                                if hasattr(player_data, 'name'):
-                                    # Extract gear sets
+                                if isinstance(player_data, dict) and 'name' in player_data:
+                                    # Extract player names - prefer display_name over character name
+                                    char_name = player_data.get('name', 'Unknown')
+                                    display_name = player_data.get('displayName', '')
+
+                                    # Use display name if available, otherwise character name with @
+                                    if display_name and display_name.startswith('@'):
+                                        final_name = display_name  # Already has @ symbol
+                                    elif display_name:
+                                        final_name = f"@{display_name}"  # Add @ to display name
+                                    elif char_name and not char_name.startswith('@'):
+                                        final_name = f"@{char_name}"  # Add @ to character name
+                                    else:
+                                        final_name = char_name or "@anonymous"  # Use as-is or fallback
+
+                                    # Replace @nil with @anonymous for better readability
+                                    if final_name == "@nil":
+                                        final_name = "@anonymous"
+
+                                    # Extract gear sets and abilities
                                     gear_sets = []
-                                    if hasattr(player_data, 'combatant_info') and hasattr(player_data.combatant_info, 'gear'):
-                                        gear_data = {'gear': []}
-                                        for gear_item in player_data.combatant_info.gear:
-                                            gear_data['gear'].append({
-                                                'setID': getattr(gear_item, 'set_id', None),
-                                                'setName': getattr(gear_item, 'set_name', None),
-                                                'slot': getattr(gear_item, 'slot', 'unknown')
-                                            })
-                                        gear_sets = self.gear_parser.parse_player_gear(gear_data)
+                                    abilities = {'bar1': [], 'bar2': []}
                                     
+                                    if 'combatantInfo' in player_data:
+                                        combatant_info = player_data['combatantInfo']
+
+                                        # Handle API inconsistency: combatantInfo can be dict or empty list
+                                        if not isinstance(combatant_info, dict):
+                                            logger.debug(f"Player {player_data.get('name')}: combatantInfo is {type(combatant_info).__name__}, not dict - skipping gear/abilities")
+                                            combatant_info = None
+
+                                        # Extract gear sets (only if combatantInfo is a valid dict)
+                                        if combatant_info and 'gear' in combatant_info and combatant_info['gear']:
+                                            gear_data = {'gear': []}
+                                            for gear_item in combatant_info['gear']:
+                                                if isinstance(gear_item, dict):
+                                                    gear_data['gear'].append({
+                                                        'setID': gear_item.get('setID'),
+                                                        'setName': gear_item.get('setName'),
+                                                        'slot': gear_item.get('slot', 'unknown')
+                                                    })
+
+                                            # Process gear data into gear sets using GearParser
+                                            parser = GearParser()
+                                            gear_sets = parser.parse_player_gear(gear_data)
+                                        
+                                        # Extract abilities from talents (only if combatantInfo is valid)
+                                        if combatant_info:
+                                            abilities = self._extract_abilities_from_combatant_info(combatant_info)
+                                    
+                                    # Create PlayerBuild object
                                     player = PlayerBuild(
-                                        name=player_data.name,
-                                        character_class=getattr(player_data, 'type', 'Unknown'),
+                                        name=final_name,  # Use final_name instead of char_name
+                                        character_class=player_data.get('type', 'Unknown'),
                                         role=role,
-                                        gear_sets=gear_sets
+                                        gear_sets=gear_sets,
+                                        abilities=abilities
                                     )
                                     players.append(player)
-            
-            logger.debug(f"Found {len(players)} players for fight {fight_id}")
-            return players
+
+            # Deduplicate players - keep the one with gear data if there are duplicates
+            # Use name + role as key to handle anonymous players in different roles
+            deduplicated_players = {}
+            for player in players:
+                player_key = f"{player.name}_{player.role.value}"  # Use name + role as key
+
+                if player_key not in deduplicated_players:
+                    # First time seeing this player, add them
+                    deduplicated_players[player_key] = player
+                else:
+                    # Player already exists - keep the one with more gear data
+                    existing_player = deduplicated_players[player_key]
+                    if len(player.gear_sets) > len(existing_player.gear_sets):
+                        # New player has more gear info, replace existing
+                        logger.debug(f"Deduplicating {player.name} ({player.role.value}): replacing (gear: {len(existing_player.gear_sets)} sets) with (gear: {len(player.gear_sets)} sets)")
+                        deduplicated_players[player_key] = player
+                    else:
+                        logger.debug(f"Deduplicating {player.name} ({player.role.value}): keeping existing (gear: {len(existing_player.gear_sets)} sets) over (gear: {len(player.gear_sets)} sets)")
+
+            final_players = list(deduplicated_players.values())
+            logger.debug(f"Found {len(players)} players, deduplicated to {len(final_players)} players for fight {fight_id}")
+            return final_players
             
         except Exception as e:
             logger.error(f"Failed to get players for fight {fight_id}: {e}")
             return []
     
-    async def _get_fight_players_from_rankings(self, report_code: str, fight_id: int) -> List[PlayerBuild]:
-        """Get player data from rankings which has complete info including gear."""
+    async def _get_fight_players_from_rankings(self, report_code: str, fight_id: int, fight_start_time: float = None, fight_end_time: float = None) -> List[PlayerBuild]:
+        """Get player data from rankings which has complete info including gear and abilities."""
         try:
+            logger.info(f"_get_fight_players_from_rankings: fight_id={fight_id}, start={fight_start_time}, end={fight_end_time}")
+
             # Get rankings for this specific fight
             rankings_data = await self._make_request(
                 "get_report_rankings",
@@ -392,63 +461,109 @@ class ESOLogsClient:
                 fight_ids=[fight_id],
                 metric="dps"
             )
-            
+
             players = []
-            
+
             if rankings_data and hasattr(rankings_data, 'report_data') and hasattr(rankings_data.report_data, 'report'):
                 rankings = rankings_data.report_data.report.rankings
-                
+
                 if isinstance(rankings, dict) and 'data' in rankings:
                     for ranking_entry in rankings['data']:
                         if 'roles' in ranking_entry:
                             roles_data = ranking_entry['roles']
-                            
+
                             # Process each role section
                             for role_name, role_enum in [('tanks', Role.TANK), ('healers', Role.HEALER), ('dps', Role.DPS)]:
                                 if role_name in roles_data and 'characters' in roles_data[role_name]:
                                     for char_data in roles_data[role_name]['characters']:
-                                        # Extract gear sets - try to get detailed player info
+                                        # Extract gear sets and abilities - try to get detailed player info
                                         gear_sets = []
+                                        abilities = {'bar1': [], 'bar2': []}
                                         player_id = char_data.get('id')
-                                        if player_id:
-                                            gear_sets = await self._get_player_gear_sets(report_code, fight_id, player_id)
-                                        
+                                        player_name = char_data.get('name', 'Unknown')
+                                        if player_id and fight_start_time is not None and fight_end_time is not None:
+                                            gear_sets, abilities = await self._get_player_gear_and_abilities(
+                                                report_code, fight_id, player_id, fight_start_time, fight_end_time
+                                            )
+                                            logger.debug(f"Player {player_name}: {len(gear_sets)} gear sets, bar1={len(abilities['bar1'])}, bar2={len(abilities['bar2'])}")
+
                                         player = PlayerBuild(
-                                            name=char_data.get('name', 'Unknown'),
+                                            name=player_name,
                                             character_class=char_data.get('class', 'Unknown'),
                                             role=role_enum,
-                                            gear_sets=gear_sets
+                                            gear_sets=gear_sets,
+                                            abilities=abilities
                                         )
                                         players.append(player)
-            
-            logger.debug(f"Found {len(players)} players from rankings for fight {fight_id}")
-            return players
+
+            # Deduplicate players - keep the one with gear data if there are duplicates
+            # Use name + role as key to handle anonymous players in different roles
+            deduplicated_players = {}
+            for player in players:
+                player_key = f"{player.name}_{player.role.value}"  # Use name + role as key
+
+                if player_key not in deduplicated_players:
+                    # First time seeing this player, add them
+                    deduplicated_players[player_key] = player
+                else:
+                    # Player already exists - keep the one with more gear data
+                    existing_player = deduplicated_players[player_key]
+                    if len(player.gear_sets) > len(existing_player.gear_sets):
+                        # New player has more gear info, replace existing
+                        logger.debug(f"Deduplicating {player.name} ({player.role.value}): replacing (gear: {len(existing_player.gear_sets)} sets) with (gear: {len(player.gear_sets)} sets)")
+                        deduplicated_players[player_key] = player
+                    else:
+                        logger.debug(f"Deduplicating {player.name} ({player.role.value}): keeping existing (gear: {len(existing_player.gear_sets)} sets) over (gear: {len(player.gear_sets)} sets)")
+
+            final_players = list(deduplicated_players.values())
+            logger.debug(f"Found {len(players)} players from rankings, deduplicated to {len(final_players)} players for fight {fight_id}")
+            return final_players
             
         except Exception as e:
             logger.error(f"Failed to get players from rankings for fight {fight_id}: {e}")
             return []
     
-    async def _get_player_gear_sets(self, report_code: str, fight_id: int, player_id: int) -> List[GearSet]:
-        """Get gear sets for a specific player in a fight."""
+    async def _get_player_gear_and_abilities(self, report_code: str, fight_id: int, player_id: int,
+                                             start_time: float = None, end_time: float = None) -> tuple[List[GearSet], Dict[str, List[str]]]:
+        """Get gear sets and abilities for a specific player in a fight.
+
+        Returns:
+            Tuple of (gear_sets, abilities) where abilities is {'bar1': [...], 'bar2': [...]}
+        """
         try:
+            # Build request parameters - API requires either fightIDs or startTime+endTime
+            request_params = {
+                "code": report_code,
+                "player_id": player_id
+            }
+
+            if start_time is not None and end_time is not None:
+                request_params["start_time"] = int(start_time)
+                request_params["end_time"] = int(end_time)
+            else:
+                # Fall back to fight_id if times not provided
+                request_params["fight_id"] = fight_id
+
             # Try to get player details with gear information
             player_details = await self._make_request(
                 "get_report_player_details",
-                code=report_code,
-                fight_id=fight_id,
-                player_id=player_id
+                **request_params
             )
-            
+
             gear_sets = []
+            abilities = {'bar1': [], 'bar2': []}
+
             if player_details and hasattr(player_details, 'combatant_info'):
+                combatant_info = player_details.combatant_info
+
                 # Use the gear parser to extract sets from gear data
                 from .gear_parser import GearParser
                 parser = GearParser()
-                
+
                 # Convert API gear data to parser format
                 gear_data = {'gear': []}
-                if hasattr(player_details.combatant_info, 'gear'):
-                    for item in player_details.combatant_info.gear:
+                if hasattr(combatant_info, 'gear'):
+                    for item in combatant_info.gear:
                         gear_item = {
                             'setID': getattr(item, 'set_id', None),
                             'setName': getattr(item, 'set_name', None),
@@ -456,14 +571,24 @@ class ESOLogsClient:
                         }
                         if gear_item['setID'] and gear_item['setName']:
                             gear_data['gear'].append(gear_item)
-                
+
                 gear_sets = parser.parse_player_gear(gear_data)
-            
-            return gear_sets
-            
+
+                # Extract abilities from talents
+                if hasattr(combatant_info, 'talents'):
+                    combatant_dict = {'talents': combatant_info.talents}
+                    abilities = self._extract_abilities_from_combatant_info(combatant_dict)
+
+            return gear_sets, abilities
+
         except Exception as e:
-            logger.debug(f"Could not get gear for player {player_id}: {e}")
-            return []  # Return empty list if gear data unavailable
+            logger.debug(f"Could not get gear/abilities for player {player_id}: {e}")
+            return [], {'bar1': [], 'bar2': []}  # Return empty data if unavailable
+
+    async def _get_player_gear_sets(self, report_code: str, fight_id: int, player_id: int) -> List[GearSet]:
+        """Get gear sets for a specific player in a fight (legacy method for compatibility)."""
+        gear_sets, _ = await self._get_player_gear_and_abilities(report_code, fight_id, player_id)
+        return gear_sets
     
     def _determine_role(self, player_entry) -> Role:
         """Determine player role from entry data."""
@@ -479,18 +604,9 @@ class ESOLogsClient:
                     else:
                         return Role.DPS
         
-        # Fallback: analyze by class and typical roles
-        class_name = getattr(player_entry, 'type', '').lower()
-        
-        # Some classes are more commonly tanks/healers
-        if class_name in ['dragonknight', 'templar'] and hasattr(player_entry, 'damage_done'):
-            # If low damage, likely tank/healer
-            damage = getattr(player_entry, 'damage_done', 0)
-            if damage < 100000:  # Arbitrary threshold
-                if class_name == 'templar':
-                    return Role.HEALER
-                else:
-                    return Role.TANK
+        # No fallback: only use the esologs role, do not analyze by class or typical roles
+        # No fallback: only use the esologs role, do not analyze by class or typical roles
+  
         
         # Default to DPS
         return Role.DPS
@@ -1566,3 +1682,42 @@ class ESOLogsClient:
         except Exception as e:
             logger.error(f"Failed to get buff/debuff uptimes: {e}")
             return {}
+    
+    def _extract_abilities_from_combatant_info(self, combatant_info: Dict[str, Any]) -> Dict[str, List[str]]:
+        """
+        Extract action bar abilities from combatant info.
+        
+        Args:
+            combatant_info: The combatantInfo object from API response
+            
+        Returns:
+            Dictionary with 'bar1' and 'bar2' lists of ability names
+        """
+        abilities = {'bar1': [], 'bar2': []}
+        
+        if not combatant_info or 'talents' not in combatant_info:
+            return abilities
+        
+        talents = combatant_info['talents']
+        if not isinstance(talents, list) or len(talents) < 12:
+            logger.warning(f"Expected 12+ talents, got {len(talents) if isinstance(talents, list) else 'non-list'}")
+            return abilities
+        
+        # Extract ability names from talents
+        ability_names = []
+        for talent in talents:
+            if isinstance(talent, dict) and 'name' in talent:
+                ability_names.append(talent['name'])
+        
+        # Split into two bars of 6 abilities each
+        if len(ability_names) >= 12:
+            abilities['bar1'] = ability_names[:6]
+            abilities['bar2'] = ability_names[6:12]
+        elif len(ability_names) >= 6:
+            abilities['bar1'] = ability_names[:6]
+            abilities['bar2'] = ability_names[6:] if len(ability_names) > 6 else []
+        else:
+            abilities['bar1'] = ability_names
+        
+        logger.info(f"Extracted abilities: {len(abilities['bar1'])} bar1, {len(abilities['bar2'])} bar2")
+        return abilities

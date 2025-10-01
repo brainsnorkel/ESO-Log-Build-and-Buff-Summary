@@ -4,7 +4,7 @@ PDF Report Formatter for ESO Builds
 This module formats TrialReport objects into PDF documents using ReportLab.
 """
 
-from typing import List
+from typing import List, Dict
 from datetime import datetime
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, PageBreak
@@ -379,8 +379,28 @@ class PDFReportFormatter:
                 Paragraph(gear_str, self.styles['Normal'])
             ])
             
-            # Add top abilities row for DPS, healers, and tanks
-            if player.abilities and player.abilities.get('top_abilities'):
+            # Add action bars if available
+            if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
+                # Add bar1 if available
+                if player.abilities.get('bar1'):
+                    bar1_abilities = self._format_action_bar_for_pdf(player.abilities['bar1'])
+                    table_data.append([
+                        Paragraph("↳ bar1:", self.styles['Normal']),
+                        Paragraph("", self.styles['Normal']),
+                        Paragraph(bar1_abilities, self.styles['Normal'])
+                    ])
+                
+                # Add bar2 if available
+                if player.abilities.get('bar2'):
+                    bar2_abilities = self._format_action_bar_for_pdf(player.abilities['bar2'])
+                    table_data.append([
+                        Paragraph("↳ bar2:", self.styles['Normal']),
+                        Paragraph("", self.styles['Normal']),
+                        Paragraph(bar2_abilities, self.styles['Normal'])
+                    ])
+            
+            # Add top abilities row for DPS, healers, and tanks (legacy support)
+            elif player.abilities and player.abilities.get('top_abilities'):
                 if player.role.value == "DPS":
                     ability_type = "Top Damage"
                     abilities_str = self._format_top_abilities_for_pdf(player.abilities.get('top_abilities', []))
@@ -449,6 +469,20 @@ class PDFReportFormatter:
             if gear_set.max_pieces == 5 and gear_set.piece_count < 5:
                 return True
         return False
+    
+    def _format_action_bar_for_pdf(self, abilities: List[str]) -> str:
+        """Format action bar abilities for PDF display."""
+        if not abilities:
+            return "*No abilities*"
+        
+        # Join abilities with commas, limit length for PDF readability
+        abilities_str = ", ".join(abilities)
+        
+        # Truncate if too long for PDF display
+        if len(abilities_str) > 100:
+            abilities_str = abilities_str[:97] + "..."
+        
+        return abilities_str
     
     def _format_top_abilities_for_pdf(self, top_abilities: List) -> str:
         """Format top abilities with percentages for PDF table cell."""

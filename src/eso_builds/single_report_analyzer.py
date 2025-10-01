@@ -228,34 +228,33 @@ class SingleReportAnalyzer:
                 group_dps_total = dps_totals.get('_group_total', 0) if dps_totals else 0
                 group_dps = dps_totals.get('_group_dps', 0) if dps_totals else 0
                 
-                # Add DPS data to players
+                # Add DPS data to all players (tanks, healers, and DPS)
                 for player in players:
-                    if player.role == Role.DPS:
-                        # Try to find DPS data by name first
-                        if player.name in dps_totals:
-                            player.dps_data = dps_totals[player.name]
+                    # Try to find DPS data by name first
+                    if player.name in dps_totals:
+                        player.dps_data = dps_totals[player.name]
+                    else:
+                        # Try to find by player ID (stored as 'id_<player_id>')
+                        player_id = getattr(player, 'player_id', None)
+                        if player_id and f"id_{player_id}" in dps_totals:
+                            player.dps_data = dps_totals[f"id_{player_id}"]
+                            logger.debug(f"Matched {player.role.value} player {player.name} by ID {player_id}")
                         else:
-                            # Try to find by player ID (stored as 'id_<player_id>')
-                            player_id = getattr(player, 'player_id', None)
-                            if player_id and f"id_{player_id}" in dps_totals:
-                                player.dps_data = dps_totals[f"id_{player_id}"]
-                                logger.debug(f"Matched DPS player {player.name} by ID {player_id}")
+                            # Try to find by character name (without @ prefix)
+                            character_name = player.name.replace('@', '') if player.name.startswith('@') else player.name
+                            if character_name in dps_totals:
+                                player.dps_data = dps_totals[character_name]
+                                logger.debug(f"Matched {player.role.value} player {player.name} by character name {character_name}")
                             else:
-                                # Try to find by character name (without @ prefix)
-                                character_name = player.name.replace('@', '') if player.name.startswith('@') else player.name
-                                if character_name in dps_totals:
-                                    player.dps_data = dps_totals[character_name]
-                                    logger.debug(f"Matched DPS player {player.name} by character name {character_name}")
-                                else:
-                                    logger.debug(f"DPS player {player.name} not found in dps_totals. Available keys: {list(dps_totals.keys())}")
-                                    continue
-                        
-                        # Calculate percentage of group DPS
-                        if group_dps_total > 0:
-                            player.dps_data['dps_percentage'] = (player.dps_data['total_damage'] / group_dps_total) * 100
-                        else:
-                            player.dps_data['dps_percentage'] = 0.0
-                        logger.debug(f"Added DPS data for {player.name}: {player.dps_data}")
+                                logger.debug(f"{player.role.value} player {player.name} not found in dps_totals. Available keys: {list(dps_totals.keys())}")
+                                continue
+                    
+                    # Calculate percentage of group DPS
+                    if group_dps_total > 0:
+                        player.dps_data['dps_percentage'] = (player.dps_data['total_damage'] / group_dps_total) * 100
+                    else:
+                        player.dps_data['dps_percentage'] = 0.0
+                    logger.debug(f"Added DPS data for {player.name} ({player.role.value}): {player.dps_data}")
                 
                 encounter = EncounterResult(
                     encounter_name=fight.name,
@@ -264,7 +263,9 @@ class SingleReportAnalyzer:
                     kill=kill_status,
                     boss_percentage=boss_percentage,
                     buff_uptimes=buff_uptimes,
-                    group_dps_total=int(group_dps)  # Store DPS instead of total damage
+                    group_dps_total=int(group_dps),  # Store DPS instead of total damage
+                    report_code=report_code,
+                    fight_id=fight.id
                 )
                 
                 encounters.append(encounter)
@@ -279,14 +280,15 @@ class SingleReportAnalyzer:
     async def _get_players_simple(self, client: ESOLogsClient, report_code: str, fight) -> List[PlayerBuild]:
         """Extract real player data using the working table structure."""
         try:
-            # Get table data with time ranges
+            # Get table data with time ranges and combatant info for abilities
             table_data = await client._make_request(
                 "get_report_table",
                 code=report_code,
                 start_time=int(fight.start_time),
                 end_time=int(fight.end_time),
                 data_type="Summary",
-                hostility_type="Friendlies"
+                hostility_type="Friendlies",
+                includeCombatantInfo=True
             )
             
             
@@ -350,89 +352,28 @@ class SingleReportAnalyzer:
                                     if final_name == "@nil":
                                         final_name = "@anonymous"
                                     
-                                    # Get player top abilities based on role
-                                    abilities = {'top_abilities': []}
-                                    if role_enum in [Role.DPS, Role.HEALER, Role.TANK]:
-                                        try:
-                                            if role_enum == Role.TANK:
-                                                # For tanks, get cast counts instead of damage/healing
-                                                logger.debug(f"Fetching cast counts for TANK player: {final_name}")
-                                                
-                                                player_abilities = await client.get_player_cast_counts(
-                                                    report_code, 
-                                                    int(fight.start_time), 
-                                                    int(fight.end_time)
-                                                )
-                                            else:
-                                                # For DPS and healers, use damage/healing data
-                                                if role_enum == Role.DPS:
-                                                    ability_type = 'damage'
-                                                elif role_enum == Role.HEALER:
-                                                    ability_type = 'healing'
-                                                logger.debug(f"Fetching top {ability_type} abilities for {role_enum.value} player: {final_name}")
-                                                
-                                                player_abilities = await client.get_player_top_abilities(
-                                                    report_code, 
-                                                    int(fight.start_time), 
-                                                    int(fight.end_time),
-                                                    ability_type=ability_type
-                                                )
-                                            if role_enum == Role.TANK:
-                                                logger.info(f"Retrieved cast counts for {len(player_abilities)} players: {list(player_abilities.keys())}")
-                                                logger.info(f"Looking for cast counts for player: '{final_name}' (ID: {player_id})")
-                                            else:
-                                                logger.info(f"Retrieved top {ability_type} abilities for {len(player_abilities)} players: {list(player_abilities.keys())}")
-                                                logger.info(f"Looking for top {ability_type} abilities for player: '{final_name}' (ID: {player_id})")
+                                    # Extract abilities from combatantInfo.talents
+                                    abilities = {'bar1': [], 'bar2': []}
+                                    if 'combatantInfo' in player_data and 'talents' in player_data['combatantInfo']:
+                                        talents = player_data['combatantInfo']['talents']
+                                        if isinstance(talents, list) and len(talents) >= 12:
+                                            # Extract ability names from talents (first 12 are action bars)
+                                            ability_names = []
+                                            for talent in talents[:12]:  # Only first 12 for action bars
+                                                if isinstance(talent, dict) and 'name' in talent:
+                                                    ability_names.append(talent['name'])
                                             
-                                            # Try to match by player ID first (most reliable)
-                                            if player_id and f"id_{player_id}" in player_abilities:
-                                                abilities = player_abilities[f"id_{player_id}"]
-                                                if role_enum == Role.TANK:
-                                                    logger.info(f"Matched {final_name} by player ID {player_id} for cast counts")
-                                                else:
-                                                    logger.info(f"Matched {final_name} by player ID {player_id} for top {ability_type} abilities")
-                                            elif final_name in player_abilities:
-                                                abilities = player_abilities[final_name]
-                                                if role_enum == Role.TANK:
-                                                    logger.info(f"Matched {final_name} by exact name for cast counts")
-                                                else:
-                                                    logger.info(f"Matched {final_name} by exact name for top {ability_type} abilities")
+                                            # Split into two bars of 6 abilities each
+                                            if len(ability_names) >= 12:
+                                                abilities['bar1'] = ability_names[:6]
+                                                abilities['bar2'] = ability_names[6:12]
+                                            elif len(ability_names) >= 6:
+                                                abilities['bar1'] = ability_names[:6]
+                                                abilities['bar2'] = ability_names[6:] if len(ability_names) > 6 else []
                                             else:
-                                                # Try to match by character name without @ prefix
-                                                character_name = final_name.lstrip('@')
-                                                matched = False
-                                                logger.debug(f"Trying to match '{character_name}' (without @) against ability player names...")
-                                                
-                                                for ability_player_name, ability_data in player_abilities.items():
-                                                    if ability_player_name.startswith('id_'):
-                                                        continue  # Skip ID-based entries
-                                                    logger.debug(f"Comparing '{character_name}' with '{ability_player_name}'")
-                                                    # Try exact match first
-                                                    if character_name.lower() == ability_player_name.lower():
-                                                        abilities = ability_data
-                                                        matched = True
-                                                        if role_enum == Role.TANK:
-                                                            logger.info(f"Matched {final_name} to {ability_player_name} by exact name for cast counts")
-                                                        else:
-                                                            logger.info(f"Matched {final_name} to {ability_player_name} by exact name for top {ability_type} abilities")
-                                                        break
-                                                    # Try partial match (for cases where names might be truncated)
-                                                    if character_name.lower() in ability_player_name.lower() or ability_player_name.lower() in character_name.lower():
-                                                        abilities = ability_data
-                                                        matched = True
-                                                        if role_enum == Role.TANK:
-                                                            logger.info(f"Matched {final_name} to {ability_player_name} by partial name for cast counts")
-                                                        else:
-                                                            logger.info(f"Matched {final_name} to {ability_player_name} by partial name for top {ability_type} abilities")
-                                                        break
-                                                
-                                                if not matched:
-                                                    if role_enum == Role.TANK:
-                                                        logger.warning(f"No cast counts found for {final_name} (character: {character_name}, ID: {player_id})")
-                                                    else:
-                                                        logger.warning(f"No top {ability_type} abilities found for {final_name} (character: {character_name}, ID: {player_id})")
-                                        except Exception as e:
-                                            logger.warning(f"Failed to get top abilities for {final_name}: {e}")
+                                                abilities['bar1'] = ability_names
+                                            
+                                            logger.debug(f"Extracted abilities for {final_name}: {len(abilities['bar1'])} bar1, {len(abilities['bar2'])} bar2")
                                     
                                     player = PlayerBuild(
                                         name=final_name,
@@ -443,11 +384,38 @@ class SingleReportAnalyzer:
                                         player_id=player_id
                                     )
                                     players.append(player)
-                                    
+
                                     logger.debug(f"Added {final_name} ({character_class}, {role_enum.value}) with {len(gear_sets)} sets")
-            
-            logger.info(f"Extracted {len(players)} real players for {fight.name}")
-            return players
+
+            # Deduplicate players - keep the one with gear data if there are duplicates
+            # Strategy: First deduplicate by name only, keeping the one with most gear
+            # Then handle anonymous players specially to keep different roles
+            deduplicated_players = {}
+
+            for player in players:
+                # For anonymous players, use name+role as key to keep different anonymous players
+                # For named players, use name only to prefer gear data over role
+                if player.name == "@anonymous":
+                    player_key = f"{player.name}_{player.role.value}"
+                else:
+                    player_key = player.name
+
+                if player_key not in deduplicated_players:
+                    # First time seeing this player, add them
+                    deduplicated_players[player_key] = player
+                else:
+                    # Player already exists - keep the one with more gear data
+                    existing_player = deduplicated_players[player_key]
+                    if len(player.gear_sets) > len(existing_player.gear_sets):
+                        # New player has more gear info, replace existing
+                        logger.debug(f"Deduplicating {player.name} ({player.role.value}): replacing (gear: {len(existing_player.gear_sets)} sets, {existing_player.role.value}) with (gear: {len(player.gear_sets)} sets, {player.role.value})")
+                        deduplicated_players[player_key] = player
+                    else:
+                        logger.debug(f"Deduplicating {player.name} ({player.role.value}): keeping existing (gear: {len(existing_player.gear_sets)} sets, {existing_player.role.value}) over (gear: {len(player.gear_sets)} sets, {player.role.value})")
+
+            final_players = list(deduplicated_players.values())
+            logger.info(f"Extracted {len(players)} real players, deduplicated to {len(final_players)} for {fight.name}")
+            return final_players
             
         except Exception as e:
             logger.error(f"Failed to get players for fight: {e}")

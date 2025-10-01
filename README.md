@@ -18,12 +18,94 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
   - Tanks: Top cast abilities with cast counts
   - Healers: Top healing abilities with damage percentages
   - DPS: Top damage abilities with contribution percentages
+- **Action Bar Integration**: 
+  - Complete player build information including action bar abilities
+  - Web-scraped primary and secondary action bar data
+  - Integration with existing gear analysis for comprehensive builds
 - **Buff/Debuff Tracking**: Track important raid buffs and debuffs with uptime percentages
 - **Professional PDF Reports**: 
   - Table of contents with navigation
   - Proper page breaks between encounters
   - Text wrapping in tables
 - **Kill/Wipe Status**: Accurate fight outcome detection with boss health percentages
+
+## ⚡ Quick Start
+
+Analyze any ESO Logs report with a simple command:
+
+```bash
+# Basic analysis (console output)
+python single_report_tool.py <report_code>
+
+# Generate all formats (markdown, discord, pdf)
+python single_report_tool.py <report_code> --output all
+
+# Post to Discord webhook
+python single_report_tool.py <report_code> --output discord --discord-webhook "https://discord.com/api/webhooks/..."
+```
+
+**Example:**
+```bash
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
+```
+
+> 📋 **Report Code**: Extract from any ESO Logs URL: `https://www.esologs.com/reports/3gjVGWB2dxCL8XAw` → `3gjVGWB2dxCL8XAw`
+
+## 🎯 Action Bar Integration
+
+The tool now includes **Action Bar Integration** that automatically provides complete player build information by combining gear analysis with web-scraped action bar abilities.
+
+### Enhanced Player Details
+
+All reports now automatically show both gear sets AND action bar abilities:
+
+```
+🛡️ Ok Beamer: Dragonknight, 5pc Perfected Pearlescent Ward, 5pc Lucent Echoes, 2pc Nazaray
+  bar1: Cephaliarch's Flail, Pragmatic Fatecarver, Quick Cloak, Venomous Claw, Camouflaged Hunter, Everlasting Sweep
+  bar2: Stampede, Flames of Oblivion, Engulfing Flames, Inspired Scholarship, Molten Whip, Standard of Might
+```
+
+### Usage
+
+```bash
+# Action bars are automatically included in all reports
+python single_report_tool.py <report_code> --output all
+```
+
+### Features
+
+- ✅ **Complete Build Analysis**: Gear sets + action bar abilities (automatic)
+- ✅ **Smart Ordering**: Correctly orders abilities to match actual action bar layout
+- ✅ **Web Scraping**: Extracts abilities from ESO Logs summary pages
+- ✅ **Smart Integration**: Graceful fallback for players without action bar data
+- ✅ **Timeout Protection**: Configurable timeouts prevent long-running operations
+- ✅ **Multiple Formats**: Works with Markdown and Discord outputs
+
+For detailed documentation, see [ACTION_BAR_INTEGRATION.md](ACTION_BAR_INTEGRATION.md).
+
+### 📖 Command Help
+
+```bash
+python single_report_tool.py --help
+```
+
+**Usage:**
+```bash
+python single_report_tool.py <report_code> [options]
+
+Positional Arguments:
+  report_code           ESO Logs report code or full URL (e.g. 3gjVGWB2dxCL8XAw or https://www.esologs.com/reports/3gjVGWB2dxCL8XAw)
+
+Options:
+  --output {console,markdown,discord,all}
+                        Output format (default: console)
+  --output-dir DIR      Directory for output files (default: reports)
+  --discord-webhook URL Discord webhook URL to post reports directly to Discord
+  --discord-webhook-post  Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env
+  --verbose, -v         Enable verbose logging
+  --anonymize           Anonymize player names and remove URLs
+  --help, -h           Show help message
+```
 
 ## 📋 Requirements
 
@@ -126,7 +208,7 @@ Arguments:
   report_code           ESO Logs report code or full URL (e.g., 3gjVGWB2dxCL8XAw or https://www.esologs.com/reports/3gjVGWB2dxCL8XAw)
 
 Options:
-  --output {console,markdown,discord,pdf,all}
+  --output {console,markdown,discord,all}
                         Output format (default: console)
   --output-dir DIR      Directory for output files (default: reports)
   --discord-webhook URL Discord webhook URL to post reports directly to Discord
