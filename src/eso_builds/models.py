@@ -53,6 +53,7 @@ class PlayerBuild:
     abilities: Dict[str, List[str]] = field(default_factory=lambda: {'bar1': [], 'bar2': []})
     dps_data: Optional[Dict[str, Any]] = None  # DPS damage and percentage data
     player_id: Optional[str] = None  # Player ID for matching across different APIs
+    subclass_info: Optional[Dict[str, Any]] = None  # Subclass analysis results
     
     def __str__(self) -> str:
         gear_str = ", ".join(str(gear) for gear in self.gear_sets)

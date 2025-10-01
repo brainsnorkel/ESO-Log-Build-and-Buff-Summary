@@ -327,13 +327,42 @@ git commit -m "Add analysis for raid 3gjVGWB2dxCL8XAw"
 ```
 
 #### Use with Discord Webhooks
+
+**Option 1: Post Individual Fights (One Message Per Fight)**
 ```bash
-# Generate Discord format and post via webhook
-python single_report_tool.py 3gjVGWB2dxCL8XAw --output markdown
+# Post each boss fight as a separate Discord message
+# Requires DISCORD_WEBHOOK_URL environment variable to be set
+python single_report_tool.py 3gjVGWB2dxCL8XAw --discord-webhook-post
+```
+
+This will:
+- Post each boss encounter as a separate Discord embed
+- Include detailed player builds and buff/debuff information for each fight
+- Post kills first (green embeds), then wipes (red embeds)
+- End with a summary message containing the ESO Logs URL
+- Perfect for guild Discord channels where you want each fight analyzed separately
+
+**Option 2: Post Complete Report**
+```bash
+# Post the entire report as one Discord message (or multiple if too long)
+python single_report_tool.py 3gjVGWB2dxCL8XAw --discord-webhook "https://discord.com/api/webhooks/..."
+```
+
+**Option 3: Generate Discord Format File**
+```bash
+# Generate Discord format file for manual posting
+python single_report_tool.py 3gjVGWB2dxCL8XAw --output discord
 curl -X POST -H "Content-Type: application/json" \
   -d "@reports/single_report_3gjVGWB2dxCL8XAw_*_discord.txt" \
   YOUR_WEBHOOK_URL
 ```
+
+**Setting up Discord Webhook:**
+1. Go to your Discord server settings
+2. Navigate to Integrations > Webhooks
+3. Create a new webhook
+4. Copy the webhook URL
+5. Add to your `.env` file: `DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...`
 
 ## 🔍 Troubleshooting
 

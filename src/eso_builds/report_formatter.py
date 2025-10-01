@@ -33,8 +33,17 @@ class ReportFormatter:
         Role.DPS: '⚔️'
     }
     
-    def _get_class_display_name(self, class_name: str) -> str:
-        """Get the shortened display name for a class."""
+    def _get_class_display_name(self, class_name: str, player_build=None) -> str:
+        """Get the shortened display name for a class, with subclass info if available."""
+        # Use subclass information if available
+        if player_build and player_build.subclass_info:
+            from .subclass_analyzer import ESOSubclassAnalyzer
+            analyzer = ESOSubclassAnalyzer()
+            skill_lines = player_build.subclass_info.get('skill_lines', [])
+            confidence = player_build.subclass_info.get('confidence', 0.0)
+            return analyzer.get_subclass_display_name(class_name, skill_lines, confidence)
+        
+        # Fallback to original logic
         return self.CLASS_MAPPING.get(class_name, class_name)
     
     def _get_anonymous_name(self, original_name: str, name_counter: dict) -> str:

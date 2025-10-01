@@ -8,6 +8,8 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
 - **Automatic Boss Detection**: Works with any trial - automatically detects boss encounters
 - **Multi-Format Output**: Generate reports in Markdown, Discord markup, and PDF formats
 - **Discord Webhook Integration**: Post reports directly to Discord channels via webhooks
+  - Post complete reports as single messages
+  - Post individual boss fights as separate messages (one per fight)
 - **Comprehensive Build Analysis**: 
   - Player gear sets with proper piece counting (2H weapons = 2 pieces)
   - Arena weapons, mythic items, and monster sets
@@ -40,8 +42,11 @@ python single_report_tool.py <report_code>
 # Generate all formats (markdown, discord, pdf)
 python single_report_tool.py <report_code> --output all
 
-# Post to Discord webhook
-python single_report_tool.py <report_code> --output discord --discord-webhook "https://discord.com/api/webhooks/..."
+# Post to Discord webhook (complete report)
+python single_report_tool.py <report_code> --discord-webhook "https://discord.com/api/webhooks/..."
+
+# Post individual boss fights to Discord (one message per fight)
+python single_report_tool.py <report_code> --discord-webhook-post
 ```
 
 **Example:**

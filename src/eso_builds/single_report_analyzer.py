@@ -12,6 +12,7 @@ from datetime import datetime
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, Difficulty, GearSet
 from .api_client import ESOLogsClient, ESOLogsAPIError
 from .gear_parser import GearParser
+from .subclass_analyzer import ESOSubclassAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class SingleReportAnalyzer:
     def __init__(self):
         """Initialize the analyzer."""
         self.gear_parser = GearParser()
+        self.subclass_analyzer = ESOSubclassAnalyzer()
         self.libsets_initialized = False
     
     async def analyze_report(self, report_code: str) -> TrialReport:
@@ -375,13 +377,19 @@ class SingleReportAnalyzer:
                                             
                                             logger.debug(f"Extracted abilities for {final_name}: {len(abilities['bar1'])} bar1, {len(abilities['bar2'])} bar2")
                                     
+                                    # Analyze subclass from abilities
+                                    all_abilities = set(abilities.get('bar1', []) + abilities.get('bar2', []))
+                                    subclass_info = self.subclass_analyzer.analyze_subclass(all_abilities)
+                                    logger.debug(f"Subclass analysis for {final_name}: {subclass_info}")
+                                    
                                     player = PlayerBuild(
                                         name=final_name,
                                         character_class=character_class,
                                         role=role_enum,
                                         gear_sets=gear_sets,
                                         abilities=abilities,
-                                        player_id=player_id
+                                        player_id=player_id,
+                                        subclass_info=subclass_info
                                     )
                                     players.append(player)
 

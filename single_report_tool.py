@@ -108,6 +108,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             
             # Generate Markdown report
+            markdown_content = None
             if output_format in ["markdown", "all"]:
                 markdown_formatter = MarkdownFormatter()
                 markdown_filename = f"single_report_{report_code}_{timestamp}.md"
@@ -136,8 +137,9 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     try:
                         async with DiscordWebhookClient(discord_webhook) as webhook_client:
                             title = f"ESO Trial Report - {report_code}"
-                            # Use markdown content instead of discord content to ensure consistent formatting
-                            success = await webhook_client.post_report(markdown_content, title)
+                            # Use markdown content if available, otherwise use discord content
+                            content_to_post = markdown_content if markdown_content else discord_content
+                            success = await webhook_client.post_report(content_to_post, title)
                             if success:
                                 print(f"🚀 Report posted to Discord webhook")
                             else:

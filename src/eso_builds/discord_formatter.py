@@ -39,7 +39,27 @@ class DiscordReportFormatter:
         pass
     
     def _get_class_display_name(self, class_name: str, player_build=None) -> str:
-        """Get the shortened display name for a class, with Oaken prefix if Oakensoul Ring equipped."""
+        """Get the shortened display name for a class, with subclass info and Oaken prefix if Oakensoul Ring equipped."""
+        # Use subclass information if available
+        if player_build and player_build.subclass_info:
+            from .subclass_analyzer import ESOSubclassAnalyzer
+            analyzer = ESOSubclassAnalyzer()
+            skill_lines = player_build.subclass_info.get('skill_lines', [])
+            confidence = player_build.subclass_info.get('confidence', 0.0)
+            subclass_name = analyzer.get_subclass_display_name(class_name, skill_lines, confidence)
+            
+            # Check for Oakensoul Ring
+            if player_build.gear_sets:
+                has_oakensoul = any(
+                    'oakensoul' in gear_set.name.lower() 
+                    for gear_set in player_build.gear_sets
+                )
+                if has_oakensoul:
+                    return f"Oaken{subclass_name}"
+            
+            return subclass_name
+        
+        # Fallback to original logic
         mapped_class = self.CLASS_MAPPING.get(class_name, class_name)
         
         # Check for Oakensoul Ring if player_build is provided
