@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Test script to check set abbreviations and unknown sets."""
 
-from src.eso_builds.set_abbreviations import get_set_abbreviations
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+from eso_builds.set_abbreviations import get_set_abbreviations
 import logging
 
 logging.basicConfig(level=logging.WARNING)

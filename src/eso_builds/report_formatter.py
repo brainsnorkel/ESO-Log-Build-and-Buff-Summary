@@ -8,6 +8,8 @@ specified in the project overview.
 import logging
 from typing import List
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role
+from .build_name_mapper import BuildNameMapper
+from .ability_abbreviations import abbreviate_ability_name
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,10 @@ class ReportFormatter:
         'Warden': 'Warden',
         'Nightblade': 'NB'
     }
+    
+    def __init__(self):
+        """Initialize the report formatter with build name mapper."""
+        self.build_name_mapper = BuildNameMapper()
     
     # Role icons for visual identification
     ROLE_ICONS = {
@@ -118,6 +124,8 @@ class ReportFormatter:
             return f"{player.character_class}, (no gear data)"
         
         gear_str = ", ".join(str(gear) for gear in player.gear_sets)
+        # Apply build name mapping
+        gear_str = self.build_name_mapper.apply_build_mapping(gear_str)
         
         # Add action bar information if available
         action_bars_info = self._format_action_bars(player)
@@ -132,6 +140,8 @@ class ReportFormatter:
             return f"{player.character_class}, (no gear data)"
         
         gear_str = ", ".join(str(gear) for gear in player.gear_sets)
+        # Apply build name mapping
+        gear_str = self.build_name_mapper.apply_build_mapping(gear_str)
         
         # Add action bar information if available
         action_bars_info = self._format_action_bars(player)
@@ -149,12 +159,12 @@ class ReportFormatter:
         
         # Format bar1 if available
         if 'bar1' in player.abilities and player.abilities['bar1']:
-            bar1_abilities = ", ".join(player.abilities['bar1'])
+            bar1_abilities = ", ".join(abbreviate_ability_name(ability) for ability in player.abilities['bar1'])
             bar_lines.append(f"  bar1: {bar1_abilities}")
         
         # Format bar2 if available
         if 'bar2' in player.abilities and player.abilities['bar2']:
-            bar2_abilities = ", ".join(player.abilities['bar2'])
+            bar2_abilities = ", ".join(abbreviate_ability_name(ability) for ability in player.abilities['bar2'])
             bar_lines.append(f"  bar2: {bar2_abilities}")
         
         return "\n".join(bar_lines)

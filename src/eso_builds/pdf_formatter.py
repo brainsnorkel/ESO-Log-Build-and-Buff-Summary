@@ -16,6 +16,7 @@ from reportlab.platypus.flowables import Flowable
 from reportlab.pdfgen.canvas import Canvas
 
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, GearSet, Role, calculate_kills_and_wipes
+from .ability_abbreviations import abbreviate_ability_name
 
 
 class PDFReportFormatter:
@@ -495,8 +496,8 @@ class PDFReportFormatter:
         if not abilities:
             return "*No abilities*"
         
-        # Join abilities with commas, limit length for PDF readability
-        abilities_str = ", ".join(abilities)
+        # Join abilities with commas, applying abbreviations, limit length for PDF readability
+        abilities_str = ", ".join(abbreviate_ability_name(ability) for ability in abilities)
         
         # Truncate if too long for PDF display
         if len(abilities_str) > 100:

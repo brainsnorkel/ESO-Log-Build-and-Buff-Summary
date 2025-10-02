@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class SetAbbreviations:
     """Manages set name abbreviations."""
 
-    def __init__(self, config_file: str = "set_abbreviations.json"):
+    def __init__(self, config_file: str = "config/set_abbreviations.json"):
         """Initialize with abbreviation mappings from config file."""
         self.config_file = Path(config_file)
         self.abbreviations: Dict[str, str] = {}

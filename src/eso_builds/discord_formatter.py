@@ -10,6 +10,8 @@ from typing import List, Dict
 from datetime import datetime
 from .models import TrialReport, LogRanking, EncounterResult, PlayerBuild, Role, GearSet, calculate_kills_and_wipes
 from .set_abbreviations import abbreviate_set_name
+from .build_name_mapper import BuildNameMapper
+from .ability_abbreviations import abbreviate_ability_name
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +37,8 @@ class DiscordReportFormatter:
     }
     
     def __init__(self):
-        """Initialize the Discord formatter."""
-        pass
+        """Initialize the discord formatter with build name mapper."""
+        self.build_name_mapper = BuildNameMapper()
     
     def _get_class_display_name(self, class_name: str, player_build=None) -> str:
         """Get the shortened display name for a class, with subclass info and Oaken prefix if Oakensoul Ring equipped."""
@@ -287,14 +289,50 @@ class DiscordReportFormatter:
         if not gear_sets:
             return "No gear data"
         
-        formatted_sets = []
+        # First, apply build name mapping on full set names
+        full_gear_sets = []
         for gear_set in gear_sets:
-            # Use abbreviated set name if available
-            abbreviated_name = abbreviate_set_name(gear_set.name)
-            # Discord format: 5xPillager's Profit (no space, x instead of pc)
-            formatted_sets.append(f"{gear_set.piece_count}x{abbreviated_name}")
+            set_str = f"{gear_set.piece_count}pc {gear_set.name}"
+            full_gear_sets.append(set_str)
         
-        return ", ".join(formatted_sets)
+        gear_str = ", ".join(full_gear_sets)
+        # Apply build name mapping first
+        gear_str = self.build_name_mapper.apply_build_mapping(gear_str)
+        
+        # Then apply abbreviations to the result
+        return self._apply_abbreviations_to_gear_string(gear_str)
+    
+    def _apply_abbreviations_to_gear_string(self, gear_str: str) -> str:
+        """Apply abbreviations to a gear string that may contain build names."""
+        # Split by comma and process each part
+        parts = [part.strip() for part in gear_str.split(',')]
+        abbreviated_parts = []
+        
+        for part in parts:
+            # Check if this part contains a build name (contains '/')
+            if '/' in part:
+                # This is likely a build name, keep as-is
+                abbreviated_parts.append(part)
+            else:
+                # This is a regular gear set, apply abbreviations
+                abbreviated_part = self._apply_abbreviations_to_single_set(part)
+                abbreviated_parts.append(abbreviated_part)
+        
+        return ', '.join(abbreviated_parts)
+    
+    def _apply_abbreviations_to_single_set(self, set_str: str) -> str:
+        """Apply abbreviations to a single gear set string."""
+        # Extract piece count and set name
+        if 'pc ' in set_str:
+            piece_count, set_name = set_str.split('pc ', 1)
+            abbreviated_name = abbreviate_set_name(set_name)
+            return f"{piece_count}x{abbreviated_name}"
+        elif 'x' in set_str:
+            # Already in abbreviated format
+            return set_str
+        else:
+            # Fallback
+            return set_str
     
     def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
         """Check if a player has incomplete 5-piece sets that should be flagged."""
@@ -353,12 +391,12 @@ class DiscordReportFormatter:
         
         # Format bar1 if available
         if player.abilities.get('bar1'):
-            bar1_abilities = ", ".join(player.abilities['bar1'])
+            bar1_abilities = ", ".join(abbreviate_ability_name(ability) for ability in player.abilities['bar1'])
             bars.append(f"1: {bar1_abilities}")
         
         # Format bar2 if available
         if player.abilities.get('bar2'):
-            bar2_abilities = ", ".join(player.abilities['bar2'])
+            bar2_abilities = ", ".join(abbreviate_ability_name(ability) for ability in player.abilities['bar2'])
             bars.append(f"2: {bar2_abilities}")
         
         return "\n  ↳ ".join(bars)

@@ -58,7 +58,7 @@ class ExcelLibSetsParser:
         self.sets_data: Dict[str, ExcelSetInfo] = {}
         self.set_id_data: Dict[int, ExcelSetInfo] = {}
         self.libsets_excel_url = "https://raw.githubusercontent.com/Baertram/LibSets/LibSets-reworked/LibSets/Data/LibSets_SetData.xlsm"
-        self.local_excel_path = Path("LibSets_SetData.xlsm")
+        self.local_excel_path = Path("config/LibSets_SetData.xlsm")
         self.initialized = False
     
     async def initialize_from_excel(self) -> bool:

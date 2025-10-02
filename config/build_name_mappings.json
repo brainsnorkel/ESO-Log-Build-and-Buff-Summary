@@ -1,0 +1,90 @@
+{
+  "_comment": "Build name mappings configuration. Each mapping defines two gear sets that combine into a shorter build name. The system automatically handles both 'Perfected' and 'Perfect' prefixes.",
+  "mappings": [
+    {
+      "set1": "Roaring Opportunist",
+      "set2": "Jorvuld's Guidance",
+      "combined_name": "ROJO"
+    },
+    {
+      "set1": "Pearlescent Ward",
+      "set2": "Lucent Echoes",
+      "combined_name": "PW/LE"
+    },
+    {
+      "set1": "Spell Power Cure",
+      "set2": "Pillager's Profit",
+      "combined_name": "SPC/Pillager"
+    },
+    {
+      "set1": "Deadly Strike",
+      "set2": "Slivers of the Null Arca",
+      "combined_name": "Deadly/Null Arca"
+    },
+    {
+      "set1": "Ansuul's Torment",
+      "set2": "Tide-Born Wildstalker",
+      "combined_name": "Ansuul/Tide-Born"
+    },
+    {
+      "set1": "Ansuul's Torment",
+      "set2": "Deadly Strike",
+      "combined_name": "Ansuul/Deadly"
+    },
+    {
+      "set1": "Tide-Born Wildstalker",
+      "set2": "Sul-Xan's Torment",
+      "combined_name": "SulXan/Tide-Born"
+    },
+    {
+      "set1": "Highland Sentinel",
+      "set2": "Slivers of the Null Arca",
+      "combined_name": "Highland/Null Arca"
+    },
+    {
+      "set1": "Corpseburster",
+      "set2": "Azureblight Reaper",
+      "combined_name": "Corpse/Azureblight"
+    },
+    {
+      "set1": "Corpseburster",
+      "set2": "Slivers of the Null Arca",
+      "combined_name": "Corpse/Null Arca"
+    },
+    {
+      "set1": "Azureblight Reaper",
+      "set2": "Slivers of the Null Arca",
+      "combined_name": "Azureblight/Null Arca"
+    },
+    {
+      "set1": "Powerful Assault",
+      "set2": "Lucent Echoes",
+      "combined_name": "PA/LE"
+    },
+    {
+      "set1": "Pearlescent Ward",
+      "set2": "Turning Tide",
+      "combined_name": "PW/TT"
+    },
+    {
+      "set1": "Ansuul's Torment",
+      "set2": "Slivers of the Null Arca",
+      "combined_name": "Ansuul/Null Arca"
+    },
+    {
+      "set1": "Deadly Strike",
+      "set2": "Tide-Born Wildstalker",
+      "combined_name": "Deadly/Tide-Born"
+    },
+    {
+      "set1": "Highland Sentinel",
+      "set2": "Deadly Strike",
+      "combined_name": "Highland/Deadly"
+    },
+    {
+      "set1": "Corpseburster",
+      "set2": "Deadly Strike",
+      "combined_name": "Corpse/Deadly"
+    }
+  ]
+}
