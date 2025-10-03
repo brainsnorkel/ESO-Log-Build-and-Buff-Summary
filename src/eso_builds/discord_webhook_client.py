@@ -6,6 +6,7 @@ import json
 from .models import Role
 from .build_name_mapper import BuildNameMapper
 from .ability_abbreviations import abbreviate_ability_name
+from .set_abbreviations import abbreviate_set_name
 
 logger = logging.getLogger(__name__)
 
@@ -369,9 +370,8 @@ class DiscordWebhookClient:
         # Extract piece count and set name
         if 'pc ' in set_str:
             piece_count, set_name = set_str.split('pc ', 1)
-            # For Discord webhook, we don't use the abbreviate_set_name function
-            # since it's not imported. We'll just convert to the Discord format.
-            return f"{piece_count}x{set_name}"
+            abbreviated_name = abbreviate_set_name(set_name)
+            return f"{piece_count}x{abbreviated_name}"
         elif 'x' in set_str:
             # Already in abbreviated format
             return set_str
