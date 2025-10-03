@@ -33,25 +33,41 @@ A Python tool for analyzing Elder Scrolls Online (ESO) trial logs from [ESO Logs
 
 ## ⚡ Quick Start
 
-Analyze any ESO Logs report with a simple command:
+### Installation (Optional)
+
+Install as a command-line tool:
 
 ```bash
-# Basic analysis (console output)
-python single_report_tool.py <report_code>
+./install.sh
+```
 
-# Generate all formats (markdown, discord, pdf)
-python single_report_tool.py <report_code> --output all
+This creates an `eso-report` command you can use from anywhere.
 
-# Post to Discord webhook (complete report)
-python single_report_tool.py <report_code> --discord-webhook "https://discord.com/api/webhooks/..."
+### Usage
 
-# Post individual boss fights to Discord (one message per fight)
+Analyze any ESO Logs report:
+
+```bash
+# With installation
+eso-report <report_code> --discord-webhook-post
+
+# Without installation (direct Python)
 python single_report_tool.py <report_code> --discord-webhook-post
 ```
 
-**Example:**
+**More Examples:**
 ```bash
-python single_report_tool.py 3gjVGWB2dxCL8XAw --output all
+# Post kills only (default)
+eso-report mTbKBVJGW8z6AR4P --discord-webhook-post
+
+# Post kills AND wipes
+eso-report mTbKBVJGW8z6AR4P --discord-webhook-post --include-wipes
+
+# Generate Discord file only
+eso-report mTbKBVJGW8z6AR4P --output discord
+
+# Console output only
+eso-report mTbKBVJGW8z6AR4P
 ```
 
 > 📋 **Report Code**: Extract from any ESO Logs URL: `https://www.esologs.com/reports/3gjVGWB2dxCL8XAw` → `3gjVGWB2dxCL8XAw`
