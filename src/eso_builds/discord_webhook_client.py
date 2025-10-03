@@ -407,8 +407,9 @@ class DiscordWebhookClient:
             # Already in abbreviated format
             return set_str
         else:
-            # Fallback
-            return set_str
+            # Mythic items without "pc " prefix - abbreviate the name directly
+            abbreviated_name = abbreviate_set_name(set_str)
+            return abbreviated_name
     
     def _format_top_abilities_compact(self, top_abilities) -> str:
         """Format top abilities in compact Discord format."""

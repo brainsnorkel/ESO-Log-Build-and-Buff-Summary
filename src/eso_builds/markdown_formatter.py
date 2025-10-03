@@ -375,8 +375,9 @@ class MarkdownFormatter:
             # Already in abbreviated format
             return set_str
         else:
-            # Fallback
-            return set_str
+            # Mythic items without "pc " prefix - abbreviate the name directly
+            abbreviated_name = abbreviate_set_name(set_str)
+            return abbreviated_name
     
     def _format_abilities_for_table(self, abilities: List[str]) -> str:
         """Format abilities list for markdown table cell."""

@@ -343,8 +343,9 @@ class DiscordReportFormatter:
             # Already in abbreviated format
             return set_str
         else:
-            # Fallback
-            return set_str
+            # Mythic items without "pc " prefix - abbreviate the name directly
+            abbreviated_name = abbreviate_set_name(set_str)
+            return abbreviated_name
     
     def _has_incomplete_sets(self, gear_sets: List[GearSet]) -> bool:
         """Check if a player has incomplete 5-piece sets that should be flagged."""
