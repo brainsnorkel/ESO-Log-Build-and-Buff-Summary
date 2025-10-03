@@ -265,7 +265,6 @@ class DiscordWebhookClient:
         """
         lines = []
         
-        
         # Buffs/Debuffs
         if encounter.buff_uptimes:
             # buff_uptimes is a Dict[str, float] where keys are buff names and values are uptime percentages
@@ -274,65 +273,30 @@ class DiscordWebhookClient:
                 lines.append(f"**Buffs:** {', '.join(buff_items)}")
             lines.append("")  # Empty line
         
-        # Team composition
-        tanks = encounter.tanks
-        healers = encounter.healers
-        dps = encounter.dps
+        # Create consolidated team composition (tanks, healers, then DPS sorted by percentage)
+        all_players = []
         
-        if tanks:
-            lines.append("**Tanks**")
-            for player in tanks:
-                role_icon = self.ROLE_ICONS.get(player.role, '')
-                player_name = f"`{player.name}`" if "@" in player.name else player.name
-                gear_text = self._format_gear_sets_compact(player.gear_sets)
-                
-                # Add set problem indicator if needed
-                if self._has_incomplete_sets(player.gear_sets):
-                    gear_text = f"**Set Problem?:** {gear_text}"
-                
-                class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
-                
-                # Add action bars if available
-                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
-                    action_bars = self._format_action_bars_for_discord(player)
-                    if action_bars:
-                        lines.append(f"  ↳ {action_bars}")
-            
-            lines.append("")  # Empty line
+        # Add tanks first
+        if encounter.tanks:
+            all_players.extend(encounter.tanks)
         
-        if healers:
-            lines.append("**Healers**")
-            for player in healers:
-                role_icon = self.ROLE_ICONS.get(player.role, '')
-                player_name = f"`{player.name}`" if "@" in player.name else player.name
-                gear_text = self._format_gear_sets_compact(player.gear_sets)
-                
-                # Add set problem indicator if needed
-                if self._has_incomplete_sets(player.gear_sets):
-                    gear_text = f"**Set Problem?:** {gear_text}"
-                
-                class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
-                
-                # Add action bars if available
-                if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
-                    action_bars = self._format_action_bars_for_discord(player)
-                    if action_bars:
-                        lines.append(f"  ↳ {action_bars}")
-            
-            lines.append("")  # Empty line
+        # Add healers second
+        if encounter.healers:
+            all_players.extend(encounter.healers)
         
-        if dps:
-            lines.append("**DPS**")
-            # Sort DPS players by damage percentage (highest first)
-            dps_sorted = sorted(dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
-            
-            for player in dps_sorted:
+        # Add DPS last, sorted by DPS percentage (highest first)
+        if encounter.dps:
+            dps_sorted = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            all_players.extend(dps_sorted)
+        
+        # Format all players in a single consolidated list
+        if all_players:
+            lines.append("**Team Composition**")
+            for player in all_players:
                 role_icon = self.ROLE_ICONS.get(player.role, '')
                 player_name = player.name
                 
-                # Add DPS percentage to player name for DPS players
+                # Add DPS percentage to player name if available
                 if player.dps_data and 'dps_percentage' in player.dps_data:
                     dps_percentage = player.dps_data['dps_percentage']
                     player_name = f"{player_name} ({dps_percentage:.1f}%)"
