@@ -37,6 +37,11 @@
       "combined_name": "SulXan/Tide-Born"
     },
     {
+      "set1": "Tide-Born Wildstalker",
+      "set2": "Slivers of the Null Arca",
+      "combined_name": "Null Arca/Tide-Born"
+    },
+    {
       "set1": "Highland Sentinel",
       "set2": "Slivers of the Null Arca",
       "combined_name": "Highland/Null Arca"
@@ -85,6 +90,11 @@
       "set1": "Corpseburster",
       "set2": "Deadly Strike",
       "combined_name": "Corpse/Deadly"
+    },
+    {
+      "set1": "Whorl of the Depths",
+      "set2": "Deadly Strike",
+      "combined_name": "Deadly/Depths"
     }
   ]
 }

@@ -1,0 +1,26 @@
+{
+  "_comment": "Skill line abbreviations configuration. Maps full skill line names to shorter versions for use in subclass displays.",
+  "skill_lines": {
+    "Ardent Flame": "Flame",
+    "Earthen Heart": "Earthen",
+    "Draconic Power": "Draconic",
+    "Assassination": "Ass",
+    "Shadow": "Shadow",
+    "Siphoning": "Siphon",
+    "Dawn's Wrath": "Dawn",
+    "Restoring Light": "Restoring",
+    "Aedric Spear": "Aedric",
+    "Storm Calling": "Storm",
+    "Dark Magic": "Dark",
+    "Daedric Summoning": "Daedric",
+    "Winter's Embrace": "Winter",
+    "Green Balance": "Green",
+    "Animal Companions": "Animal",
+    "Bone Tyrant": "BoneTyrant",
+    "Grave Lord": "Grave",
+    "Living Death": "Living",
+    "Herald of the Tome": "Herald",
+    "Soldier of Apocrypha": "Soldier",
+    "Curative Runeforms": "Curative"
+  }
+}

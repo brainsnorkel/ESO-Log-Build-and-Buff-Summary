@@ -20,7 +20,7 @@ from eso_builds.models import TrialReport, LogRanking, EncounterResult, PlayerBu
 from eso_builds.report_formatter import ReportFormatter
 from eso_builds.pdf_formatter import PDFReportFormatter
 from eso_builds.bar_only_scraper import BarOnlyEncounterScraper, scrape_encounter_bars_only
-from eso_builds.enhanced_report_generator import EnhancedReportGenerator, generate_enhanced_report
+from eso_builds.enhanced_report_generator import EnhancedReportGenerator
 
 # Set up logging
 logging.basicConfig(

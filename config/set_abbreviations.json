@@ -1,12 +1,13 @@
 {
   "Ansuul's Torment": "Ansuul",
+  "Archdruid Devyric": "AD",
   "Velothi Ur-Mage's Amulet": "Velothi",
   "Symphony of Blades": "Symphony",
   "Ozezan the Inferno": "Ozezan",
   "Slivers of the Null Arca": "Null Arca",
   "Deadly Strike": "Deadly",
   "Pillager's Profit": "Pillager",
-  "Pearlescent Ward": "Pearlescent",
+  "Pearlescent Ward": "PW",
   "Roaring Opportunist": "RO",
   "Jorvuld's Guidance": "JO",
   "Powerful Assault": "PA",
@@ -21,5 +22,12 @@
   "Elemental Catalyst": "EC",
   "Molag Kena": "MK",
   "Roar of Alkosh": "Alkosh",
-  "Z'en's Redress": "Z'en's"
+  "Z'en's Redress": "Zens",
+  "Master Architect": "MA",
+  "War Machine": "WM",
+  "Whorl of the Depths": "Depths",
+  "Xoryn's Masterpiece": "Xoryns",
+  "Order's Wrath": "OW",
+  "Spaulder of Ruin": "Spaulder",
+  "Saxhleel Champion": "Sax"
 }

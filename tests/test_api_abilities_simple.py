@@ -5,8 +5,10 @@ Simple test to verify that includeCombatantInfo=True provides abilities data
 
 import asyncio
 import os
+import pytest
 from src.eso_builds.api_client import ESOLogsClient
 
+@pytest.mark.asyncio
 async def test_api_abilities():
     """Test if the API with includeCombatantInfo=True provides abilities"""
     
