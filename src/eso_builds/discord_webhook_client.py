@@ -275,10 +275,32 @@ class DiscordWebhookClient:
         """
         lines = []
         
-        # Buffs/Debuffs
+        # Buffs/Debuffs - use predefined order for consistency
         if encounter.buff_uptimes:
-            # buff_uptimes is a Dict[str, float] where keys are buff names and values are uptime percentages
-            buff_items = [f"{name} {uptime:.1f}%" for name, uptime in encounter.buff_uptimes.items()]
+            # Define all tracked buffs and debuffs in priority order
+            base_buffs = ['Major Courage', 'Major Slayer', 'Major Berserk', 'Major Force', 'Minor Toughness', 'Major Resolve', 'Powerful Assault']
+            base_debuffs = ['Major Breach', 'Major Vulnerability', 'Minor Brittle', 'Stagger', 'Crusher', 'Off Balance', 'Weakening']
+            
+            buff_items = []
+            # Add buffs in predefined order
+            for base_buff_name in base_buffs:
+                # Look for the buff with or without asterisk
+                if base_buff_name in encounter.buff_uptimes:
+                    uptime = encounter.buff_uptimes[base_buff_name]
+                    buff_items.append(f"{base_buff_name} {uptime:.1f}%")
+                elif f"{base_buff_name}*" in encounter.buff_uptimes:
+                    uptime = encounter.buff_uptimes[f"{base_buff_name}*"]
+                    buff_items.append(f"{base_buff_name}* {uptime:.1f}%")
+            
+            # Add debuffs in predefined order
+            for base_debuff_name in base_debuffs:
+                if base_debuff_name in encounter.buff_uptimes:
+                    uptime = encounter.buff_uptimes[base_debuff_name]
+                    buff_items.append(f"{base_debuff_name} {uptime:.1f}%")
+                elif f"{base_debuff_name}*" in encounter.buff_uptimes:
+                    uptime = encounter.buff_uptimes[f"{base_debuff_name}*"]
+                    buff_items.append(f"{base_debuff_name}* {uptime:.1f}%")
+            
             if buff_items:
                 lines.append(f"{', '.join(buff_items)}")
             lines.append("")  # Empty line
@@ -302,16 +324,25 @@ class DiscordWebhookClient:
         # Format all players in a single consolidated list
         if all_players:
             for player in all_players:
-                role_icon = self.ROLE_ICONS.get(player.role, '')
-                player_name = player.name
+                # Only show icons for tanks and healers, not DPS
+                role_icon = ''
+                if player.role in [Role.TANK, Role.HEALER]:
+                    role_icon = self.ROLE_ICONS.get(player.role, '') + ' '
                 
-                # Add DPS number to player name if available
+                # Format player name with backticks only around @handle
+                base_name = player.name
+                if "@" in base_name:
+                    # Put backticks only around the @handle
+                    player_display = f"`{base_name}`"
+                else:
+                    player_display = base_name
+                
+                # Add DPS number if available
                 if player.dps_data and 'dps' in player.dps_data:
                     dps_value = player.dps_data['dps']
                     formatted_dps = self._format_dps_with_suffix(int(dps_value))
-                    player_name = f"{player_name} {formatted_dps}"
+                    player_display = f"{player_display} {formatted_dps}"
                 
-                player_name = f"`{player_name}`" if "@" in player_name else player_name
                 gear_text = self._format_gear_sets_compact(player.gear_sets)
                 
                 # Add set problem indicator if needed
@@ -319,7 +350,7 @@ class DiscordWebhookClient:
                     gear_text = f"**Set Problem?:** {gear_text}"
                 
                 class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"{role_icon} {player_name}: {class_name} - {gear_text}")
+                lines.append(f"{role_icon}{player_display}: {class_name} - {gear_text}")
                 
                 # Add action bars if available
                 if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
