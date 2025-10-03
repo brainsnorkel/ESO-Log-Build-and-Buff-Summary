@@ -235,9 +235,9 @@ class DiscordReportFormatter:
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
             
-            # Add "Set Problem?:" indicator if player has incomplete sets
+            # Add "Check Sets:" indicator if player has incomplete sets
             if self._has_incomplete_sets(player.gear_sets):
-                gear_text = f"**Set Problem?:** {gear_text}"
+                gear_text = f"**Check Sets:** {gear_text}"
             
             # Combine character class and gear sets on one line with a dash separator
             class_name = self._get_class_display_name(player.character_class, player)
@@ -273,9 +273,9 @@ class DiscordReportFormatter:
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
             
-            # Add "Set Problem?:" indicator if player has incomplete sets
+            # Add "Check Sets:" indicator if player has incomplete sets
             if self._has_incomplete_sets(player.gear_sets):
-                gear_text = f"**Set Problem?:** {gear_text}"
+                gear_text = f"**Check Sets:** {gear_text}"
             
             # Combine character class and gear sets on one line with a dash separator
             class_name = self._get_class_display_name(player.character_class, player)

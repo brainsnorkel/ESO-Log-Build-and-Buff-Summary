@@ -347,7 +347,7 @@ class DiscordWebhookClient:
                 
                 # Add set problem indicator if needed
                 if self._has_incomplete_sets(player.gear_sets):
-                    gear_text = f"**Set Problem?:** {gear_text}"
+                    gear_text = f"**Check Sets:** {gear_text}"
                 
                 class_name = self._get_class_display_name(player.character_class, player)
                 lines.append(f"{role_icon}{player_display}: {class_name} - {gear_text}")

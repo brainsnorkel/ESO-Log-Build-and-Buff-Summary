@@ -382,9 +382,9 @@ class PDFReportFormatter:
             gear_str = self._format_gear_sets_for_pdf(player.gear_sets)
             class_name = self._get_class_display_name(player.character_class, player)
 
-            # Add "Set Problem?:" indicator if player has incomplete sets
+            # Add "Check Sets:" indicator if player has incomplete sets
             if self._has_incomplete_sets(player.gear_sets):
-                gear_str = f"<b>Set Problem?:</b> {gear_str}"
+                gear_str = f"<b>Check Sets:</b> {gear_str}"
             
             # Add role icon and DPS percentage to player name
             role_icon = self.ROLE_ICONS.get(player.role, '')

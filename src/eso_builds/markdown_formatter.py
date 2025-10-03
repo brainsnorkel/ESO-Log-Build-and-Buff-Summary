@@ -247,9 +247,9 @@ class MarkdownFormatter:
                 elif player.role.value == "DPS":
                     logger.debug(f"DPS player {player.name} - dps_data: {player.dps_data}")
                 
-                # Add "Set Problem?:" indicator if player has incomplete sets
+                # Add "Check Sets:" indicator if player has incomplete sets
                 if self._has_incomplete_sets(player.gear_sets):
-                    gear_str = f"**Set Problem?:** {gear_str}"
+                    gear_str = f"**Check Sets:** {gear_str}"
                 
                 lines.append(f"| {player_name} | {class_name} | {gear_str} |")
                 
@@ -277,9 +277,9 @@ class MarkdownFormatter:
                 role_icon = self.ROLE_ICONS.get(player.role, '')
                 player_name = f"{role_icon} {player.name}"
                 
-                # Add "Set Problem?:" indicator if player has incomplete sets
+                # Add "Check Sets:" indicator if player has incomplete sets
                 if self._has_incomplete_sets(player.gear_sets):
-                    gear_str = f"**Set Problem?:** {gear_str}"
+                    gear_str = f"**Check Sets:** {gear_str}"
                 
                 lines.append(f"| {player_name} | {class_name} | {gear_str} |")
                 
@@ -314,9 +314,9 @@ class MarkdownFormatter:
             elif player.role.value == "DPS":
                 logger.debug(f"DPS player {player.name} - dps_data: {player.dps_data}")
             
-            # Add "Set Problem?:" indicator if player has incomplete sets
+            # Add "Check Sets:" indicator if player has incomplete sets
             if self._has_incomplete_sets(player.gear_sets):
-                gear_str = f"**Set Problem?:** {gear_str}"
+                gear_str = f"**Check Sets:** {gear_str}"
             
             lines.append(f"| {player_name} | {class_name} | {gear_str} |")
             
@@ -336,7 +336,7 @@ class MarkdownFormatter:
         # First, apply build name mapping on full set names
         full_gear_sets = []
         for gear_set in gear_sets:
-            set_str = f"{gear_set.piece_count}pc {gear_set.name}"
+            set_str = str(gear_set)  # Use GearSet.__str__() which handles mythic items properly
             full_gear_sets.append(set_str)
         
         gear_str = ", ".join(full_gear_sets)
