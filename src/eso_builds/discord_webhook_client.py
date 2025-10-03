@@ -348,7 +348,9 @@ class DiscordWebhookClient:
                     gear_text = f"**Check Sets:** {gear_text}"
                 
                 class_name = self._get_class_display_name(player.character_class, player)
-                lines.append(f"{role_icon}{player_display}: {class_name} - {gear_text}")
+                # Split into two lines: name/class on first line, gear on second line
+                lines.append(f"{role_icon}{player_display}: {class_name}")
+                lines.append(f"{gear_text}")
                 
                 # Add action bars if available
                 if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):

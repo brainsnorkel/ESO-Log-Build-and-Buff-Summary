@@ -282,9 +282,10 @@ class DiscordReportFormatter:
             if self._has_incomplete_sets(player.gear_sets):
                 gear_text = f"**Check Sets:** {gear_text}"
             
-            # Combine character class and gear sets on one line with a dash separator
+            # Split into two lines: name/class on first line, gear on second line
             class_name = self._get_class_display_name(player.character_class, player)
-            lines.append(f"{role_icon}{player_display}: {class_name} - {gear_text}")
+            lines.append(f"{role_icon}{player_display}: {class_name}")
+            lines.append(f"{gear_text}")
             
             # Add action bars if available
             if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
