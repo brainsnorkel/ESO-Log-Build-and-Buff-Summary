@@ -324,10 +324,8 @@ class DiscordWebhookClient:
         # Format all players in a single consolidated list
         if all_players:
             for player in all_players:
-                # Only show icons for tanks and healers, not DPS
-                role_icon = ''
-                if player.role in [Role.TANK, Role.HEALER]:
-                    role_icon = self.ROLE_ICONS.get(player.role, '') + ' '
+                # Show role icons for all players
+                role_icon = self.ROLE_ICONS.get(player.role, '') + ' '
                 
                 # Format player name with backticks only around @handle
                 base_name = player.name

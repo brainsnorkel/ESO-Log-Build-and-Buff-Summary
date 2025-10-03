@@ -259,10 +259,8 @@ class DiscordReportFormatter:
             # Player header - escape @ symbols with backticks to prevent Discord pings
             base_name = player.name if player.name != "anonymous" else f"anonymous{all_players.index(player) + 1}"
             
-            # Only show icons for tanks and healers, not DPS
-            role_icon = ''
-            if player.role in [Role.TANK, Role.HEALER]:
-                role_icon = self.ROLE_ICONS.get(player.role, '') + ' '
+            # Show role icons for all players
+            role_icon = self.ROLE_ICONS.get(player.role, '') + ' '
             
             # Format player name with backticks only around @handle
             if "@" in base_name:
