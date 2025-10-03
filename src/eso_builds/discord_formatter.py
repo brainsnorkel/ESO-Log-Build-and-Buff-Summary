@@ -259,16 +259,23 @@ class DiscordReportFormatter:
             # Player header - escape @ symbols with backticks to prevent Discord pings
             base_name = player.name if player.name != "anonymous" else f"anonymous{all_players.index(player) + 1}"
             
-            # Add role icon and DPS number to player name
-            role_icon = self.ROLE_ICONS.get(player.role, '')
-            player_name = f"{role_icon} {base_name}"
+            # Only show icons for tanks and healers, not DPS
+            role_icon = ''
+            if player.role in [Role.TANK, Role.HEALER]:
+                role_icon = self.ROLE_ICONS.get(player.role, '') + ' '
             
+            # Format player name with backticks only around @handle
+            if "@" in base_name:
+                # Put backticks only around the @handle
+                player_display = f"`{base_name}`"
+            else:
+                player_display = base_name
+            
+            # Add DPS number if available
             if player.dps_data and 'dps' in player.dps_data:
                 dps_value = player.dps_data['dps']
                 formatted_dps = self._format_dps_with_suffix(int(dps_value))
-                player_name = f"{role_icon} {base_name} {formatted_dps}"
-            
-            escaped_name = f"`{player_name}`" if "@" in player_name else player_name
+                player_display = f"{player_display} {formatted_dps}"
             
             # Gear sets in a compact format
             gear_text = self._format_gear_sets_discord(player.gear_sets)
@@ -279,7 +286,7 @@ class DiscordReportFormatter:
             
             # Combine character class and gear sets on one line with a dash separator
             class_name = self._get_class_display_name(player.character_class, player)
-            lines.append(f"{escaped_name}: {class_name} - {gear_text}")
+            lines.append(f"{role_icon}{player_display}: {class_name} - {gear_text}")
             
             # Add action bars if available
             if player.abilities and (player.abilities.get('bar1') or player.abilities.get('bar2')):
