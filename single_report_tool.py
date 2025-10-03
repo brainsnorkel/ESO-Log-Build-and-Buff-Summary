@@ -68,7 +68,7 @@ def setup_logging(verbose: bool = False):
     logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook_post: bool = False):
+async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook_post: bool = False, include_wipes: bool = False):
     """Analyze a single ESO Logs report."""
     print(f"🔍 Analyzing ESO Logs Report: {report_code}")
     print("=" * 50)
@@ -149,7 +149,8 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     success = await webhook_client.post_individual_fights(
                         encounters=encounters,
                         report_title=report_title,
-                        log_url=log_url
+                        log_url=log_url,
+                        include_wipes=include_wipes
                     )
                     
                     if success:
@@ -185,8 +186,11 @@ Examples:
   # Generate Discord formatted report file
   python single_report_tool.py mtFqVzQPNBcCrd1h --output discord
   
-  # Post individual boss fights to Discord webhook (recommended)
+  # Post individual boss fights to Discord webhook (kills only, recommended)
   python single_report_tool.py mtFqVzQPNBcCrd1h --discord-webhook-post
+  
+  # Post both kills and wipes to Discord webhook
+  python single_report_tool.py mtFqVzQPNBcCrd1h --discord-webhook-post --include-wipes
   
   # Both Discord file and webhook posting
   python single_report_tool.py mtFqVzQPNBcCrd1h --output discord --discord-webhook-post
@@ -209,7 +213,10 @@ Examples:
                        help='Anonymize the report by replacing player names with anon1, anon2, etc. and removing URLs')
     
     parser.add_argument('--discord-webhook-post', action='store_true',
-                       help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (both kills and wipes)')
+                       help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (default: kills only)')
+    
+    parser.add_argument('--include-wipes', action='store_true',
+                       help='Include wipe attempts when posting to Discord webhook (default: kills only)')
     
     
     args = parser.parse_args()
@@ -240,7 +247,7 @@ Examples:
     
     # Run analysis
     try:
-        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook_post))
+        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook_post, args.include_wipes))
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print("\n⏹️ Analysis cancelled by user")

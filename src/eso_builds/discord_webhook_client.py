@@ -40,7 +40,7 @@ class DiscordWebhookClient:
         if self.session:
             await self.session.close()
     
-    async def post_individual_fights(self, encounters: list, report_title: str, log_url: str) -> bool:
+    async def post_individual_fights(self, encounters: list, report_title: str, log_url: str, include_wipes: bool = False) -> bool:
         """
         Post individual boss fights as separate Discord messages.
         
@@ -48,6 +48,7 @@ class DiscordWebhookClient:
             encounters: List of encounter objects (both kill and wipe fights)
             report_title: Title for the report
             log_url: ESO Logs URL
+            include_wipes: If True, post wipe attempts as well (default: False, only post kills)
             
         Returns:
             True if successful, False otherwise
@@ -66,7 +67,10 @@ class DiscordWebhookClient:
             wipe_fights = [e for e in encounters if not (e.kill or e.boss_percentage <= 0.1)]
             total_kills = len(kill_fights)
             total_wipes = len(wipe_fights)
-            total_fights = total_kills + total_wipes
+            
+            # Determine which fights to post
+            fights_to_post = kill_fights if not include_wipes else kill_fights + wipe_fights
+            total_fights = len(fights_to_post)
             
             fight_number = 1
             
@@ -98,33 +102,34 @@ class DiscordWebhookClient:
                 
                 fight_number += 1
             
-            # Post each wipe fight as a separate message
-            for encounter in wipe_fights:
-                # Format individual fight content
-                fight_content = self._format_individual_fight(encounter)
-                title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - ❌ WIPE ({encounter.boss_percentage:.1f}%)"
-                if encounter.group_dps_total:
-                    formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
-                    title += f" - **{formatted_dps} DPS**"
-                
-                # Add fight URL if available
-                if encounter.report_code and encounter.fight_id:
-                    fight_url = f"https://www.esologs.com/reports/{encounter.report_code}?fight={encounter.fight_id}"
-                    title += f"\n{fight_url}"
-                
-                # Create embed for individual fight (red color for wipes)
-                embed = self._create_fight_embed(title, fight_content, fight_number, total_fights, color=0xff0000)
-                
-                payload = {"embeds": [embed]}
-                
-                async with self.session.post(self.webhook_url, json=payload) as response:
-                    if response.status == 204:
-                        logger.info(f"Successfully posted wipe fight {fight_number} to Discord")
-                    else:
-                        logger.error(f"Failed to post fight to Discord: {response.status} - {await response.text()}")
-                        return False
-                
-                fight_number += 1
+            # Post each wipe fight as a separate message (only if include_wipes is True)
+            if include_wipes:
+                for encounter in wipe_fights:
+                    # Format individual fight content
+                    fight_content = self._format_individual_fight(encounter)
+                    title = f"⚔️ {encounter.encounter_name} ({encounter.difficulty.value}) - ❌ WIPE ({encounter.boss_percentage:.1f}%)"
+                    if encounter.group_dps_total:
+                        formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
+                        title += f" - **{formatted_dps} DPS**"
+                    
+                    # Add fight URL if available
+                    if encounter.report_code and encounter.fight_id:
+                        fight_url = f"https://www.esologs.com/reports/{encounter.report_code}?fight={encounter.fight_id}"
+                        title += f"\n{fight_url}"
+                    
+                    # Create embed for individual fight (red color for wipes)
+                    embed = self._create_fight_embed(title, fight_content, fight_number, total_fights, color=0xff0000)
+                    
+                    payload = {"embeds": [embed]}
+                    
+                    async with self.session.post(self.webhook_url, json=payload) as response:
+                        if response.status == 204:
+                            logger.info(f"Successfully posted wipe fight {fight_number} to Discord")
+                        else:
+                            logger.error(f"Failed to post fight to Discord: {response.status} - {await response.text()}")
+                            return False
+                    
+                    fight_number += 1
             
             # Post summary with ESO logs URL
             summary_embed = self._create_summary_embed(report_title, log_url, total_kills, total_wipes)
@@ -137,7 +142,11 @@ class DiscordWebhookClient:
                     logger.error(f"Failed to post summary to Discord: {response.status} - {await response.text()}")
                     return False
             
-            logger.info(f"Successfully posted {total_fights} individual fights ({total_kills} kills, {total_wipes} wipes) and summary to Discord")
+            # Log appropriate message based on what was posted
+            if include_wipes:
+                logger.info(f"Successfully posted {total_fights} individual fights ({total_kills} kills, {total_wipes} wipes) and summary to Discord")
+            else:
+                logger.info(f"Successfully posted {total_kills} kill fights (skipped {total_wipes} wipes) and summary to Discord")
             return True
             
         except Exception as e:
