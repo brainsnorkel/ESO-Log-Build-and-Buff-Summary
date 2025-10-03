@@ -404,11 +404,11 @@ class DiscordReportFormatter:
         return "\n  ↳ ".join(bars)
     
     def _format_dps_with_suffix(self, dps_value: int) -> str:
-        """Format DPS value with k/m suffixes to one decimal place."""
+        """Format DPS value with k/m suffixes as whole numbers."""
         if dps_value >= 1000000:
-            return f"{dps_value / 1000000:.1f}m"
+            return f"{int(round(dps_value / 1000000))}m"
         elif dps_value >= 1000:
-            return f"{dps_value / 1000:.1f}k"
+            return f"{int(round(dps_value / 1000))}k"
         else:
             return str(dps_value)
     
