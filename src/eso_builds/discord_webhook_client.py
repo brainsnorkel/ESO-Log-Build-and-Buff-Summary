@@ -501,8 +501,8 @@ class DiscordWebhookClient:
     def _create_fight_embed(self, title: str, content: str, fight_number: int, total_fights: int, color: int = 0x00ff00) -> Dict[str, Any]:
         """Create a Discord embed for an individual fight."""
         # Ensure content fits within Discord limits
-        if len(content) > 4000:  # Discord embed description limit is 4096, leave some buffer
-            content = content[:3950] + "\n... *[Content truncated]*"
+        if len(content) > 4050:  # Discord embed description limit is 4096, leave some buffer
+            content = content[:4050] + "\n[truncated]"
         
         embed = {
             "title": title,
