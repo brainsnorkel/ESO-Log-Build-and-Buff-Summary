@@ -154,9 +154,9 @@ class DiscordReportFormatter:
         if encounter.healers:
             all_players.extend(encounter.healers)
         
-        # Add DPS last, sorted by DPS percentage (highest first)
+        # Add DPS last, sorted by DPS number (highest first)
         if encounter.dps:
-            dps_sorted = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            dps_sorted = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps', 0) if p.dps_data else 0, reverse=True)
             all_players.extend(dps_sorted)
         
         # Format as single consolidated section
@@ -218,13 +218,14 @@ class DiscordReportFormatter:
             # Player header - escape @ symbols with backticks to prevent Discord pings
             base_name = player.name if player.name != "anonymous" else f"anonymous{i}"
             
-            # Add role icon and DPS percentage to player name
+            # Add role icon and DPS number to player name
             role_icon = self.ROLE_ICONS.get(player.role, '')
             player_name = f"{role_icon} {base_name}"
             
-            if player.dps_data and 'dps_percentage' in player.dps_data:
-                dps_percentage = player.dps_data['dps_percentage']
-                player_name = f"{role_icon} {base_name} ({dps_percentage:.1f}%)"
+            if player.dps_data and 'dps' in player.dps_data:
+                dps_value = player.dps_data['dps']
+                formatted_dps = self._format_dps_with_suffix(int(dps_value))
+                player_name = f"{role_icon} {base_name} {formatted_dps}"
             
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
@@ -255,13 +256,14 @@ class DiscordReportFormatter:
             # Player header - escape @ symbols with backticks to prevent Discord pings
             base_name = player.name if player.name != "anonymous" else f"anonymous{all_players.index(player) + 1}"
             
-            # Add role icon and DPS percentage to player name
+            # Add role icon and DPS number to player name
             role_icon = self.ROLE_ICONS.get(player.role, '')
             player_name = f"{role_icon} {base_name}"
             
-            if player.dps_data and 'dps_percentage' in player.dps_data:
-                dps_percentage = player.dps_data['dps_percentage']
-                player_name = f"{role_icon} {base_name} ({dps_percentage:.1f}%)"
+            if player.dps_data and 'dps' in player.dps_data:
+                dps_value = player.dps_data['dps']
+                formatted_dps = self._format_dps_with_suffix(int(dps_value))
+                player_name = f"{role_icon} {base_name} {formatted_dps}"
             
             escaped_name = f"`{player_name}`" if "@" in player_name else player_name
             
@@ -292,7 +294,7 @@ class DiscordReportFormatter:
         # First, apply build name mapping on full set names
         full_gear_sets = []
         for gear_set in gear_sets:
-            set_str = f"{gear_set.piece_count}pc {gear_set.name}"
+            set_str = str(gear_set)  # Use GearSet.__str__() which handles mythic items properly
             full_gear_sets.append(set_str)
         
         gear_str = ", ".join(full_gear_sets)

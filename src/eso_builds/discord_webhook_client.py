@@ -293,9 +293,9 @@ class DiscordWebhookClient:
         if encounter.healers:
             all_players.extend(encounter.healers)
         
-        # Add DPS last, sorted by DPS percentage (highest first)
+        # Add DPS last, sorted by DPS number (highest first)
         if encounter.dps:
-            dps_sorted = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps_percentage', 0) if p.dps_data else 0, reverse=True)
+            dps_sorted = sorted(encounter.dps, key=lambda p: p.dps_data.get('dps', 0) if p.dps_data else 0, reverse=True)
             all_players.extend(dps_sorted)
         
         # Format all players in a single consolidated list
@@ -305,10 +305,11 @@ class DiscordWebhookClient:
                 role_icon = self.ROLE_ICONS.get(player.role, '')
                 player_name = player.name
                 
-                # Add DPS percentage to player name if available
-                if player.dps_data and 'dps_percentage' in player.dps_data:
-                    dps_percentage = player.dps_data['dps_percentage']
-                    player_name = f"{player_name} ({dps_percentage:.1f}%)"
+                # Add DPS number to player name if available
+                if player.dps_data and 'dps' in player.dps_data:
+                    dps_value = player.dps_data['dps']
+                    formatted_dps = self._format_dps_with_suffix(int(dps_value))
+                    player_name = f"{player_name} {formatted_dps}"
                 
                 player_name = f"`{player_name}`" if "@" in player_name else player_name
                 gear_text = self._format_gear_sets_compact(player.gear_sets)
