@@ -189,7 +189,6 @@ class DiscordReportFormatter:
             
             if buff_key:
                 buff_items.append(f"{buff_key} {uptime:.1f}%")
-        lines.append(f"Buffs: {', '.join(buff_items)}")
         
         # Format debuffs as simple list
         debuff_items = []
@@ -206,7 +205,11 @@ class DiscordReportFormatter:
             
             if debuff_key:
                 debuff_items.append(f"{debuff_key} {uptime:.1f}%")
-        lines.append(f"Debuffs: {', '.join(debuff_items)}")
+        
+        # Combine buffs and debuffs on a single line without prefixes
+        all_items = buff_items + debuff_items
+        if all_items:
+            lines.append(f"{', '.join(all_items)}")
         
         return lines
     

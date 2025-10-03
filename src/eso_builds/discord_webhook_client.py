@@ -279,7 +279,7 @@ class DiscordWebhookClient:
             # buff_uptimes is a Dict[str, float] where keys are buff names and values are uptime percentages
             buff_items = [f"{name} {uptime:.1f}%" for name, uptime in encounter.buff_uptimes.items()]
             if buff_items:
-                lines.append(f"**Buffs:** {', '.join(buff_items)}")
+                lines.append(f"{', '.join(buff_items)}")
             lines.append("")  # Empty line
         
         # Create consolidated team composition (tanks, healers, then DPS sorted by percentage)
@@ -300,7 +300,6 @@ class DiscordWebhookClient:
         
         # Format all players in a single consolidated list
         if all_players:
-            lines.append("**Team Composition**")
             for player in all_players:
                 role_icon = self.ROLE_ICONS.get(player.role, '')
                 player_name = player.name
