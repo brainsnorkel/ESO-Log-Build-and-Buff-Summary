@@ -22,7 +22,6 @@ except ImportError:
 from src.eso_builds.single_report_analyzer import SingleReportAnalyzer
 from src.eso_builds.enhanced_report_generator import EnhancedReportGenerator
 from src.eso_builds.report_formatter import ReportFormatter
-from src.eso_builds.markdown_formatter import MarkdownFormatter
 from src.eso_builds.discord_formatter import DiscordReportFormatter
 from src.eso_builds.discord_webhook_client import DiscordWebhookClient
 
@@ -69,7 +68,7 @@ def setup_logging(verbose: bool = False):
     logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook: str = None, discord_webhook_post: bool = False):
+async def analyze_single_report(report_code: str, output_format: str = "console", output_dir: str = ".", anonymize: bool = False, discord_webhook_post: bool = False):
     """Analyze a single ESO Logs report."""
     print(f"🔍 Analyzing ESO Logs Report: {report_code}")
     print("=" * 50)
@@ -93,7 +92,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             print(f"    Players: {len(encounter.tanks)} tanks, {len(encounter.healers)} healers, {len(encounter.dps)} dps")
         
         # Generate output
-        if output_format in ["console", "both"]:
+        if output_format == "console":
             formatter = ReportFormatter()
             console_output = formatter.format_trial_report(trial_report, anonymize=anonymize)
             print("\n" + "=" * 60)
@@ -101,51 +100,21 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
             print("=" * 60)
             print(console_output)
         
-        # Generate file outputs if requested
-        if output_format in ["markdown", "discord", "all"]:
+        # Generate Discord report file if requested
+        if output_format == "discord":
             os.makedirs(output_dir, exist_ok=True)
             from datetime import datetime
             timestamp = datetime.now().strftime('%Y%m%d_%H%M')
             
-            # Generate Markdown report
-            markdown_content = None
-            if output_format in ["markdown", "all"]:
-                markdown_formatter = MarkdownFormatter()
-                markdown_filename = f"single_report_{report_code}_{timestamp}.md"
-                markdown_filepath = os.path.join(output_dir, markdown_filename)
-                
-                markdown_content = markdown_formatter.format_trial_report(trial_report, anonymize=anonymize)
-                with open(markdown_filepath, 'w', encoding='utf-8') as f:
-                    f.write(markdown_content)
-                
-                print(f"\n💾 Markdown report saved to: {markdown_filepath}")
+            discord_formatter = DiscordReportFormatter()
+            discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
+            discord_filepath = os.path.join(output_dir, discord_filename)
             
-            # Generate Discord report
-            if output_format in ["discord", "all"]:
-                discord_formatter = DiscordReportFormatter()
-                discord_filename = f"single_report_{report_code}_{timestamp}_discord.txt"
-                discord_filepath = os.path.join(output_dir, discord_filename)
-                
-                discord_content = discord_formatter.format_trial_report(trial_report, anonymize=anonymize)
-                with open(discord_filepath, 'w', encoding='utf-8') as f:
-                    f.write(discord_content)
-                
-                print(f"💬 Discord report saved to: {discord_filepath}")
-                
-                # Post to Discord webhook if provided
-                if discord_webhook:
-                    try:
-                        async with DiscordWebhookClient(discord_webhook) as webhook_client:
-                            title = f"ESO Trial Report - {report_code}"
-                            # Use markdown content if available, otherwise use discord content
-                            content_to_post = markdown_content if markdown_content else discord_content
-                            success = await webhook_client.post_report(content_to_post, title)
-                            if success:
-                                print(f"🚀 Report posted to Discord webhook")
-                            else:
-                                print(f"❌ Failed to post to Discord webhook")
-                    except Exception as e:
-                        print(f"❌ Error posting to Discord webhook: {e}")
+            discord_content = discord_formatter.format_trial_report(trial_report, anonymize=anonymize)
+            with open(discord_filepath, 'w', encoding='utf-8') as f:
+                f.write(discord_content)
+            
+            print(f"💬 Discord report saved to: {discord_filepath}")
             
         
         # Handle Discord webhook posting (individual fights)
@@ -174,7 +143,7 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     
                     print(f"🚀 Posting {len(encounters)} fights to Discord...")
                     
-                    report_title = f"{trial_report.trial_name} - {report_code}"
+                    report_title = trial_report.trial_name
                     log_url = ranking.log_url
                     
                     success = await webhook_client.post_individual_fights(
@@ -207,31 +176,28 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Analyze a specific report (report ID)
+  # Analyze a specific report (console output only)
   python single_report_tool.py mtFqVzQPNBcCrd1h
   
   # Analyze a specific report (full URL)
   python single_report_tool.py "https://www.esologs.com/reports/mtFqVzQPNBcCrd1h"
   
-  # Generate markdown output (includes action bars by default)
-  python single_report_tool.py mtFqVzQPNBcCrd1h --output markdown
+  # Generate Discord formatted report file
+  python single_report_tool.py mtFqVzQPNBcCrd1h --output discord
   
-  # Both console and markdown
-  python single_report_tool.py mtFqVzQPNBcCrd1h --output both --output-dir reports
-  
-  # Post directly to Discord webhook
-  python single_report_tool.py mtFqVzQPNBcCrd1h --output discord --discord-webhook "https://discord.com/api/webhooks/..."
-  
-  # Post individual boss fights to Discord (uses DISCORD_WEBHOOK_URL from .env)
+  # Post individual boss fights to Discord webhook (recommended)
   python single_report_tool.py mtFqVzQPNBcCrd1h --discord-webhook-post
+  
+  # Both Discord file and webhook posting
+  python single_report_tool.py mtFqVzQPNBcCrd1h --output discord --discord-webhook-post
         """
     )
     
     parser.add_argument('report_code', type=str,
                        help='ESO Logs report code or full URL (e.g. mtFqVzQPNBcCrd1h or https://www.esologs.com/reports/mtFqVzQPNBcCrd1h)')
     
-    parser.add_argument('--output', choices=['console', 'markdown', 'discord', 'all'], default='console',
-                       help='Output format: console, markdown, discord, or all (default: console)')
+    parser.add_argument('--output', choices=['console', 'discord'], default='console',
+                       help='Output format: console (terminal only) or discord (save to file) (default: console)')
     
     parser.add_argument('--output-dir', type=str, default='reports',
                        help='Directory for output files (default: reports)')
@@ -241,9 +207,6 @@ Examples:
     
     parser.add_argument('--anonymize', action='store_true',
                        help='Anonymize the report by replacing player names with anon1, anon2, etc. and removing URLs')
-    
-    parser.add_argument('--discord-webhook', type=str,
-                       help='Discord webhook URL to post the report directly to Discord')
     
     parser.add_argument('--discord-webhook-post', action='store_true',
                        help='Post individual boss fights to Discord using DISCORD_WEBHOOK_URL from .env (both kills and wipes)')
@@ -277,7 +240,7 @@ Examples:
     
     # Run analysis
     try:
-        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook, args.discord_webhook_post))
+        success = asyncio.run(analyze_single_report(report_id, args.output, args.output_dir, args.anonymize, args.discord_webhook_post))
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
         print("\n⏹️ Analysis cancelled by user")

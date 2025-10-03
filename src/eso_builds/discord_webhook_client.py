@@ -79,6 +79,11 @@ class DiscordWebhookClient:
                     formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
                     title += f" - **{formatted_dps} DPS**"
                 
+                # Add fight URL if available
+                if encounter.report_code and encounter.fight_id:
+                    fight_url = f"https://www.esologs.com/reports/{encounter.report_code}?fight={encounter.fight_id}"
+                    title += f"\n{fight_url}"
+                
                 # Create embed for individual fight
                 embed = self._create_fight_embed(title, fight_content, fight_number, total_fights)
                 
@@ -101,6 +106,11 @@ class DiscordWebhookClient:
                 if encounter.group_dps_total:
                     formatted_dps = self._format_dps_with_suffix(encounter.group_dps_total)
                     title += f" - **{formatted_dps} DPS**"
+                
+                # Add fight URL if available
+                if encounter.report_code and encounter.fight_id:
+                    fight_url = f"https://www.esologs.com/reports/{encounter.report_code}?fight={encounter.fight_id}"
+                    title += f"\n{fight_url}"
                 
                 # Create embed for individual fight (red color for wipes)
                 embed = self._create_fight_embed(title, fight_content, fight_number, total_fights, color=0xff0000)
@@ -353,7 +363,7 @@ class DiscordWebhookClient:
         # First, apply build name mapping on full set names
         full_gear_sets = []
         for gear_set in gear_sets:
-            set_str = f"{gear_set.piece_count}pc {gear_set.name}"
+            set_str = str(gear_set)  # Use GearSet.__str__() which handles mythic items properly
             full_gear_sets.append(set_str)
         
         gear_str = ", ".join(full_gear_sets)
