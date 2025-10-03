@@ -80,7 +80,16 @@ class GearParser:
                     logger.info(f"🔍 Arena weapon detection result: {is_arena}")
                 
                 if individual_name and self._is_mythic_or_arena_weapon(individual_name):
-                    logger.info(f"🎯 FOUND ARENA WEAPON: '{individual_name}' from set '{set_name}'")
+                    # Determine if it's a mythic or arena weapon for better logging
+                    is_mythic = self._is_mythic_item(individual_name)
+                    is_arena = self._is_arena_weapon(individual_name)
+                    
+                    if is_mythic:
+                        logger.info(f"💎 FOUND MYTHIC ITEM: '{individual_name}' from set '{set_name}'")
+                    elif is_arena:
+                        logger.info(f"🎯 FOUND ARENA WEAPON: '{individual_name}' from set '{set_name}'")
+                    else:
+                        logger.info(f"🔧 FOUND SPECIAL ITEM: '{individual_name}' from set '{set_name}'")
                     
                     # Always use the set name, not the individual item name
                     cleaned_name = self._clean_set_name(set_name)
@@ -104,12 +113,14 @@ class GearParser:
                             'is_perfected': False,
                             'original_name': set_name
                         }
-                        logger.info(f"✅ Added arena weapon: {piece_count}pc {cleaned_name}")
+                        item_type = "mythic" if is_mythic else "arena weapon" if is_arena else "special item"
+                        logger.info(f"✅ Added {item_type}: {piece_count}pc {cleaned_name}")
                     else:
-                        # Increment count for grouped arena weapons (like multiple 1H weapons from same set)
+                        # Increment count for grouped special items (like multiple 1H weapons from same set)
                         set_counts[cleaned_name] += piece_count
                         slot_info[cleaned_name].append(slot)
-                        logger.info(f"✅ Added to arena weapon set: {piece_count}pc -> {set_counts[cleaned_name]}pc total {cleaned_name}")
+                        item_type = "mythic" if is_mythic else "arena weapon" if is_arena else "special item"
+                        logger.info(f"✅ Added to {item_type} set: {piece_count}pc -> {set_counts[cleaned_name]}pc total {cleaned_name}")
                     
                     continue  # Skip the normal set processing for this item
                 else:
@@ -206,13 +217,15 @@ class GearParser:
             if is_special_item or self._is_valid_set_combination(count, slots):
                 max_pieces = self._get_set_max_pieces(info['name'])
                 is_incomplete = count < max_pieces
+                is_mythic = self._is_mythic_item(original_name)
                 
                 gear_set = GearSet(
                     name=info['name'],
                     piece_count=count,
                     is_perfected=info['is_perfected'],
                     max_pieces=max_pieces,
-                    is_incomplete=is_incomplete
+                    is_incomplete=is_incomplete,
+                    is_mythic=is_mythic
                 )
                 gear_sets.append(gear_set)
                 if is_special_item:
@@ -392,6 +405,41 @@ class GearParser:
             return True
             
         return False
+    
+    def _is_mythic_item(self, set_name: str) -> bool:
+        """Check if a set is specifically a mythic item."""
+        if not set_name:
+            return False
+        
+        set_lower = set_name.lower()
+        
+        # Common mythic items (1-piece sets)
+        mythic_indicators = [
+            'kilt', 'harpooner', 'ring of the pale order', 'ring of the wild hunt',
+            'malacath', 'thrassian stranglers', 'snow treaders', 'gaze of sithis',
+            'death dealer', 'markyn ring', 'oakensoul', 'velothi ur-mage',
+            'mora\'s whispers', 'esoteric environment greaves', 'spaulder of ruin',
+            'lefthander\'s aegis belt', 'pearls of ehlnofey', 'shapeshifter\'s chain',
+            'sea-serpent\'s coil', 'antiquarian\'s eye', 'torc of tonal constancy'
+        ]
+        
+        return any(mythic in set_lower for mythic in mythic_indicators)
+    
+    def _is_arena_weapon(self, set_name: str) -> bool:
+        """Check if a set is specifically an arena weapon."""
+        if not set_name:
+            return False
+        
+        set_lower = set_name.lower()
+        
+        # Arena weapons (Maelstrom, Dragonstar, Blackrose Prison, Vateshran Hollows)
+        arena_weapon_indicators = [
+            'maelstrom', 'dragonstar', 'blackrose prison', 'vateshran hollows',
+            'master\'s', 'perfected master\'s', 'perfected maelstrom', 'perfected dragonstar',
+            'perfected blackrose', 'perfected vateshran'
+        ]
+        
+        return any(arena in set_lower for arena in arena_weapon_indicators)
     
     def _is_two_handed_weapon(self, item_name: str) -> bool:
         """Check if an item is a 2-handed weapon or staff (counts as 2 pieces)."""

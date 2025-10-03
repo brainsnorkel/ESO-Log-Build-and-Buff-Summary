@@ -33,10 +33,16 @@ class GearSet:
     is_perfected: bool = False
     max_pieces: int = 5
     is_incomplete: bool = False
+    is_mythic: bool = False
     
     def __str__(self) -> str:
         prefix = "Perfected " if self.is_perfected else ""
-        return f"{self.piece_count}pc {prefix}{self.name}"
+        
+        # For mythic items, don't show piece count since they're always 1 piece and players can only equip one
+        if self.is_mythic:
+            return f"{prefix}{self.name}"
+        else:
+            return f"{self.piece_count}pc {prefix}{self.name}"
     
     def is_missing_pieces(self) -> bool:
         """Check if this set is missing pieces for full capability."""

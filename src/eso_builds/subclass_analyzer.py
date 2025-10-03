@@ -392,6 +392,8 @@ class ESOSubclassAnalyzer:
 
     def get_subclass_display_name(self, base_class: str, skill_lines: List[str], confidence: float = 1.0) -> str:
         """Generate a display name in format: Class(Subclass1/Subclass2/Subclass3)."""
+        from .skill_line_abbreviations import abbreviate_skill_line
+        
         # Get base class abbreviation
         class_mapping = {
             'Arcanist': 'Arc',
@@ -408,12 +410,12 @@ class ESOSubclassAnalyzer:
             # Fallback to base class only
             return base_abbrev
         
-        # Get skill line names using first word of each skill line
+        # Get skill line abbreviations using the skill line abbreviator
         skill_line_names = []
         for skill_line in skill_lines:
-            # Use the first word of the skill line name
-            first_word = skill_line.split()[0]
-            skill_line_names.append(first_word)
+            # Use the skill line abbreviator to get the abbreviation
+            abbreviated = abbreviate_skill_line(skill_line)
+            skill_line_names.append(abbreviated)
         
         # Format as Class(Subclass1/Subclass2/Subclass3)
         if skill_line_names:
