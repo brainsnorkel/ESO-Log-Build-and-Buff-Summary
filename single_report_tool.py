@@ -145,12 +145,22 @@ async def analyze_single_report(report_code: str, output_format: str = "console"
                     
                     report_title = trial_report.trial_name
                     log_url = ranking.log_url
+                    score = ranking.score if hasattr(ranking, 'score') else None
+                    
+                    # Calculate vitality from encounters
+                    vitality = None
+                    if encounters:
+                        # Vitality is typically the number of deaths/revives, but for now use player count
+                        # We can enhance this later if needed
+                        vitality = sum(len(e.players) for e in encounters if e.kill or e.boss_percentage <= 0.1)
                     
                     success = await webhook_client.post_individual_fights(
                         encounters=encounters,
                         report_title=report_title,
                         log_url=log_url,
-                        include_wipes=include_wipes
+                        include_wipes=include_wipes,
+                        score=score,
+                        vitality=vitality
                     )
                     
                     if success:
